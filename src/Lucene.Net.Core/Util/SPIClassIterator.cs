@@ -79,16 +79,9 @@ namespace Lucene.Net.Util
                     {
                         try
                         {
-                            if (typeof(S).IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface)
+                            if (IsInvokableSubclassOf<S>(type))
                             {
-                                if (type.GetConstructor(Type.EmptyTypes) == null)
-                                {
-                                    Debug.Write(string.Format("Skipping over type [{0}] because it does not have a default ctor.", type.FullName), "WARNING");
-                                }
-                                else
-                                {
-                                    types.Add(type);
-                                }
+                                types.Add(type);
                             }
                         }
                         catch
@@ -103,6 +96,12 @@ namespace Lucene.Net.Util
                 }
             }
         }
+
+        internal static bool IsInvokableSubclassOf<S>(Type type)
+        {
+            return typeof(S).IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface;
+        }
+
 
         public static SPIClassIterator<S> Get()
         {
