@@ -57,7 +57,7 @@ namespace Lucene.Net.Analysis.Util
     /// </summary>
     public class CharArraySet : ISet<object>
     {
-        public static readonly CharArraySet EMPTY_SET = new CharArraySet(CharArrayMap<object>.EmptyMap());
+        public static readonly CharArraySet EMPTY_SET = new CharArraySet(CharArrayMap.EmptyMap<object>());
         private static readonly object PLACEHOLDER = new object();
 
         internal readonly CharArrayMap<object> map;
@@ -195,11 +195,11 @@ namespace Lucene.Net.Analysis.Util
             {
                 return EMPTY_SET;
             }
-            if (set.map is CharArrayMap<object>.UnmodifiableCharArrayMap<object>)
+            if (set.map is CharArrayMap.UnmodifiableCharArrayMap<object>)
             {
                 return set;
             }
-            return new CharArraySet(CharArrayMap<object>.UnmodifiableMap(set.map));
+            return new CharArraySet(CharArrayMap.UnmodifiableMap(set.map));
         }
 
         /// <summary>
@@ -232,7 +232,7 @@ namespace Lucene.Net.Analysis.Util
             var source = set as CharArraySet;
             if (source != null)
             {
-                return new CharArraySet(CharArrayMap<object>.Copy(source.map.matchVersion, source.map));
+                return new CharArraySet(CharArrayMap.Copy(source.map.matchVersion, source.map));
             }
 
             return new CharArraySet(matchVersion, set.Cast<object>(), false);

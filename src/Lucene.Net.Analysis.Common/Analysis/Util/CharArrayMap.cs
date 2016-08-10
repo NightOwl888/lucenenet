@@ -51,9 +51,6 @@ namespace Lucene.Net.Analysis.Util
     /// </summary>
     public class CharArrayMap<V> : IDictionary<object, V>
     {
-        // private only because missing generics
-        private static readonly CharArrayMap<V> EMPTY_MAP = new EmptyCharArrayMap<V>();
-
         private const int INIT_SIZE = 8;
         private readonly CharacterUtils charUtils;
         private readonly bool ignoreCase;
@@ -65,7 +62,7 @@ namespace Lucene.Net.Analysis.Util
         /// <summary>
         /// LUCENENET: Added in .NET to prevent infinite recursion when accessing the Keys collection
         /// </summary>
-        private IDictionary<object, V> innerDictionary = new Dictionary<object, V>();
+        internal IDictionary<object, V> innerDictionary = new Dictionary<object, V>();
 
         /// <summary>
         /// Create map with enough capacity to hold startSize terms
@@ -133,7 +130,7 @@ namespace Lucene.Net.Analysis.Util
 
         /// <summary>
         /// Create set from the supplied map (used internally for readonly maps...) </summary>
-        private CharArrayMap(CharArrayMap<V> toCopy)
+        internal CharArrayMap(CharArrayMap<V> toCopy)
         {
             this.keys = toCopy.keys;
             this.values = toCopy.values;
@@ -920,7 +917,14 @@ namespace Lucene.Net.Analysis.Util
             }
             #endregion
         }
+    }
 
+    /// <summary>
+    /// LUCENENET: Added this type so a similar syntax that was used in Java to access the static
+    /// methods can be used in .NET (CharArrayMap.Copy(something) rather than CharArrayMap{String}.Copy(something)).
+    /// </summary>
+    public static class CharArrayMap
+    {
         /// <summary>
         /// Returns an unmodifiable <seealso cref="CharArrayMap"/>. This allows to provide
         /// unmodifiable views of internal map for "read-only" use.
@@ -930,15 +934,15 @@ namespace Lucene.Net.Analysis.Util
         /// <returns> an new unmodifiable <seealso cref="CharArrayMap"/>. </returns>
         /// <exception cref="NullPointerException">
         ///           if the given map is <code>null</code>. </exception>
-        public static CharArrayMap<V> UnmodifiableMap(CharArrayMap<V> map)
+        public static CharArrayMap<V> UnmodifiableMap<V>(CharArrayMap<V> map)
         {
             if (map == null)
             {
                 throw new ArgumentException("Given map is null", "map");
             }
-            if (map == EmptyMap() || map.Count == 0)
+            if (map == EmptyMap<V>() || map.Count == 0)
             {
-                return EmptyMap();
+                return EmptyMap<V>();
             }
             if (map is UnmodifiableCharArrayMap<V>)
             {
@@ -967,11 +971,11 @@ namespace Lucene.Net.Analysis.Util
         /// <returns> a copy of the given map as a <seealso cref="CharArrayMap"/>. If the given map
         ///         is a <seealso cref="CharArrayMap"/> the ignoreCase property as well as the
         ///         matchVersion will be of the given map will be preserved. </returns>
-        public static CharArrayMap<V> Copy(LuceneVersion matchVersion, IDictionary<object, V> map)
+        public static CharArrayMap<V> Copy<V>(LuceneVersion matchVersion, IDictionary<object, V> map)
         {
-            if (map == EMPTY_MAP)
+            if (map == EmptyMap<V>())
             {
-                return EmptyMap();
+                return EmptyMap<V>();
             }
 
             var vs = map as CharArrayMap<V>;
@@ -999,9 +1003,10 @@ namespace Lucene.Net.Analysis.Util
 
         /// <summary>
         /// Returns an empty, unmodifiable map. </summary>
-        public static CharArrayMap<V> EmptyMap()
+        public static CharArrayMap<V> EmptyMap<V>()
         {
-            return EMPTY_MAP;
+            return new EmptyCharArrayMap<V>();
+            //return EMPTY_MAP;
         }
 
         // package private CharArraySet instanceof check in CharArraySet
@@ -1012,7 +1017,7 @@ namespace Lucene.Net.Analysis.Util
             {
 
             }
-            
+
             public override void Clear()
             {
                 throw new System.NotSupportedException();
@@ -1076,7 +1081,7 @@ namespace Lucene.Net.Analysis.Util
         /// </summary>
         private class EmptyCharArrayMap<V> : UnmodifiableCharArrayMap<V>
         {
-            public EmptyCharArrayMap() 
+            public EmptyCharArrayMap()
                 : base(new CharArrayMap<V>(LuceneVersion.LUCENE_CURRENT, 0, false))
             {
             }
