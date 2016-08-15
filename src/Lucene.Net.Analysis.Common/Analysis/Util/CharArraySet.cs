@@ -58,7 +58,7 @@ namespace Lucene.Net.Analysis.Util
     /// </summary>
     public class CharArraySet<V> : CharArraySet, ISet<V>
     {
-        private static readonly object PLACEHOLDER = new object();
+        private static readonly V PLACEHOLDER = default(V);
 
         internal readonly CharArrayMap<V> map;
 
@@ -106,7 +106,7 @@ namespace Lucene.Net.Analysis.Util
         /// <summary>
         /// Clears all entries in this set. This method is supported for reusing, but not <seealso cref="Set#Remove"/>.
         /// </summary>
-        public virtual void Clear()
+        public override void Clear()
         {
             map.Clear();
         }
@@ -115,14 +115,14 @@ namespace Lucene.Net.Analysis.Util
         /// true if the <code>len</code> chars of <code>text</code> starting at <code>off</code>
         /// are in the set 
         /// </summary>
-        public virtual bool Contains(char[] text, int off, int len)
+        public override bool Contains(char[] text, int off, int len)
         {
             return map.ContainsKey(text, off, len);
         }
 
         /// <summary>
         /// true if the <code>CharSequence</code> is in the set </summary>
-        public virtual bool Contains(string cs)
+        public override bool Contains(string cs)
         {
             return map.ContainsKey(cs);
         }
@@ -144,14 +144,14 @@ namespace Lucene.Net.Analysis.Util
 
         public virtual bool Add(V o)
         {
-            return map.Put(o, (V)PLACEHOLDER) == null;
+            return map.Put(o, PLACEHOLDER) == null;
         }
 
         /// <summary>
         /// Add this String into the set </summary>
-        public virtual bool Add(string text)
+        public override bool Add(string text)
         {
-            return map.Put(text, (V)PLACEHOLDER) == null;
+            return map.Put(text, PLACEHOLDER) == null;
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Lucene.Net.Analysis.Util
         /// If ignoreCase is true for this Set, the text array will be directly modified.
         /// The user should never modify this text array after calling this method.
         /// </summary>
-        public virtual bool Add(char[] text)
+        public override bool Add(char[] text)
         {
             return map.Put(text, (V)PLACEHOLDER) == null;
         }
@@ -169,19 +169,20 @@ namespace Lucene.Net.Analysis.Util
             Add(item);
         }
 
-        public virtual int Count
+        public override int Count
         {
             get { return map.Count; }
         }
 
-        public virtual bool IsReadOnly { get; private set; }
+        private bool isReadOnly;
+        public override bool IsReadOnly { get { return isReadOnly; } }
 
         
 
         /// <summary>
         /// Returns an <seealso cref="IEnumerator"/> for {@code char[]} instances in this set.
         /// </summary>
-        public virtual IEnumerator GetEnumerator()
+        public override IEnumerator GetEnumerator()
         {
             // use the AbstractSet#keySet()'s iterator (to not produce endless recursion)
             return map.OriginalKeySet().GetEnumerator();
@@ -286,7 +287,7 @@ namespace Lucene.Net.Analysis.Util
     }
 
 
-    public abstract class CharArraySet
+    public abstract class CharArraySet : IEnumerable
     {
         //public static readonly CharArraySet EMPTY_SET = new CharArraySet(CharArrayMap<object>.EmptyMap());
 
@@ -305,7 +306,7 @@ namespace Lucene.Net.Analysis.Util
         /// <returns> an new unmodifiable <seealso cref="CharArraySet"/>. </returns>
         /// <exception cref="NullPointerException">
         ///           if the given set is <code>null</code>. </exception>
-        public static CharArraySet UnmodifiableSet<V>(CharArraySet<V> set)
+        public static CharArraySet<V> UnmodifiableSet<V>(CharArraySet<V> set)
         {
             if (set == null)
             {
@@ -342,7 +343,7 @@ namespace Lucene.Net.Analysis.Util
         /// <returns> a copy of the given set as a <seealso cref="CharArraySet"/>. If the given set
         ///         is a <seealso cref="CharArraySet"/> the ignoreCase property as well as the
         ///         matchVersion will be of the given set will be preserved. </returns>
-        public static CharArraySet Copy<V>(LuceneVersion matchVersion, ISet<V> set)
+        public static CharArraySet<V> Copy<V>(LuceneVersion matchVersion, ISet<V> set)
         {
             if (set == EmptySet<V>())
             {
@@ -357,5 +358,21 @@ namespace Lucene.Net.Analysis.Util
 
             return new CharArraySet<V>(matchVersion, set, false);
         }
+
+        public abstract IEnumerator GetEnumerator();
+
+        public abstract void Clear();
+
+        public abstract bool Contains(char[] text, int off, int len);
+
+        public abstract bool Contains(string cs);
+
+        public abstract bool Add(string text);
+
+        public abstract bool Add(char[] text);
+
+        public abstract int Count { get; }
+
+        public abstract bool IsReadOnly { get; }
     }
 }
