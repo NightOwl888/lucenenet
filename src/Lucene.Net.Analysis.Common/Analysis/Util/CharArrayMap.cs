@@ -489,7 +489,7 @@ namespace Lucene.Net.Analysis.Util
             set { Put(key, value); }
         }
 
-        public virtual ICollection<object> Keys { get { return KeySet(); } }
+        public virtual ICollection<object> Keys { get { return (ICollection<object>)KeySet(); } }
 
         public ICollection<V> Values { get { return values; } }
 
@@ -568,7 +568,7 @@ namespace Lucene.Net.Analysis.Util
         }
 
         // helper for CharArraySet to not produce endless recursion
-        internal IEnumerable<object> OriginalKeySet()
+        internal ICollection<object> OriginalKeySet()
         {
             return innerDictionary.Keys;
         }
@@ -583,37 +583,39 @@ namespace Lucene.Net.Analysis.Util
             {
                 // prevent adding of entries
 
-                // LUCENENET TODO: Should find a way to pass a direct reference to this object to
-                // CharArraySet's constructor. The only known side effect this causes is to make
-                // the ToString test fail when calling it on the Keys property after changing
-                // the main set, so perhaps this is not a huge issue.
+                //// LUCENENET TODO: Should find a way to pass a direct reference to this object to
+                //// CharArraySet's constructor. The only known side effect this causes is to make
+                //// the ToString test fail when calling it on the Keys property after changing
+                //// the main set, so perhaps this is not a huge issue.
 
-                // Then again, any derived classes of this one could have serious issues without
-                // the direct reference.
+                //// Then again, any derived classes of this one could have serious issues without
+                //// the direct reference.
 
-                // A possible solution is to create an interface with no generics that this class 
-                // implements to be passed into the CharArraySet's constructor. Another possible 
-                // solution is to make the CharArraySet class generic so the inner type can be 
-                // inferred at compile time.
-                var innerDictionaryObj = new Dictionary<object, object>();
-                foreach (var kvp in this.innerDictionary)
-                {
-                    innerDictionaryObj.Add(kvp.Key, kvp.Value);
-                }
-                var copy = new CharArrayMap<object>(this.keys, this.values.Cast<object>().ToArray(), 
-                    this.ignoreCase, this.count, this.charUtils, this.matchVersion, innerDictionaryObj);
-                keySet = new UnmodifiableCharArraySet(copy);
+                //// A possible solution is to create an interface with no generics that this class 
+                //// implements to be passed into the CharArraySet's constructor. Another possible 
+                //// solution is to make the CharArraySet class generic so the inner type can be 
+                //// inferred at compile time.
+                //var innerDictionaryObj = new Dictionary<object, object>();
+                //foreach (var kvp in this.innerDictionary)
+                //{
+                //    innerDictionaryObj.Add(kvp.Key, kvp.Value);
+                //}
+                //var copy = new CharArrayMap<object>(this.keys, this.values.Cast<object>().ToArray(), 
+                //    this.ignoreCase, this.count, this.charUtils, this.matchVersion, innerDictionaryObj);
+                //keySet = new UnmodifiableCharArraySet(copy);
+
+                keySet = new UnmodifiableCharArraySet(this);
             }
             return keySet;
         }
 
-        private sealed class UnmodifiableCharArraySet : CharArraySet
+        private sealed class UnmodifiableCharArraySet : CharArraySet<V>
         {
-            internal UnmodifiableCharArraySet(CharArrayMap<object> map) : base(map)
+            internal UnmodifiableCharArraySet(CharArrayMap<V> map) : base(map)
             {
             }
 
-            public override bool Add(object o)
+            public override bool Add(V o)
             {
                 throw new NotSupportedException();
             }
@@ -633,7 +635,7 @@ namespace Lucene.Net.Analysis.Util
             {
                 throw new NotSupportedException();
             }
-            public override bool Remove(object item)
+            public override bool Remove(V item)
             {
                 throw new NotSupportedException();
             }
@@ -740,7 +742,16 @@ namespace Lucene.Net.Analysis.Util
                 GoNext();
             }
 
-            public virtual KeyValuePair<object, V> Current { get { return new KeyValuePair<object, V>(outerInstance.keys[lastPos], outerInstance.values[lastPos]); } private set { } }
+            public virtual KeyValuePair<object, V> Current
+            {
+                get
+                {
+                    return new KeyValuePair<object, V>(outerInstance.keys[lastPos], outerInstance.values[lastPos]);
+                }
+                private set
+                {
+                }
+            }
 
             object IEnumerator.Current
             {

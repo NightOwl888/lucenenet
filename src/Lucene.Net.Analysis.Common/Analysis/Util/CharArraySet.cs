@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System;
 
 namespace Lucene.Net.Analysis.Util
 {
@@ -55,12 +56,11 @@ namespace Lucene.Net.Analysis.Util
     /// The <seealso cref="#iterator()"/> returns an {@code Iterator<char[]>}.
     /// </p>
     /// </summary>
-    public class CharArraySet : ISet<object>
+    public class CharArraySet<V> : CharArraySet, ISet<V>
     {
-        public static readonly CharArraySet EMPTY_SET = new CharArraySet(CharArrayMap<object>.EmptyMap());
         private static readonly object PLACEHOLDER = new object();
 
-        internal readonly CharArrayMap<object> map;
+        internal readonly CharArrayMap<V> map;
 
         /// <summary>
         /// Create set with enough capacity to hold startSize terms
@@ -74,7 +74,7 @@ namespace Lucene.Net.Analysis.Util
         ///          <code>false</code> if and only if the set should be case sensitive
         ///          otherwise <code>true</code>. </param>
         public CharArraySet(LuceneVersion matchVersion, int startSize, bool ignoreCase)
-            : this(new CharArrayMap<object>(matchVersion, startSize, ignoreCase))
+            : this(new CharArrayMap<V>(matchVersion, startSize, ignoreCase))
         {
         }
 
@@ -89,7 +89,7 @@ namespace Lucene.Net.Analysis.Util
         /// <param name="ignoreCase">
         ///          <code>false</code> if and only if the set should be case sensitive
         ///          otherwise <code>true</code>. </param>
-        public CharArraySet(LuceneVersion matchVersion, IEnumerable<object> c, bool ignoreCase)
+        public CharArraySet(LuceneVersion matchVersion, IEnumerable<V> c, bool ignoreCase)
             : this(matchVersion, c.Count(), ignoreCase)
         {
             this.AddAll(c);
@@ -98,7 +98,7 @@ namespace Lucene.Net.Analysis.Util
         /// <summary>
         /// Create set from the specified map (internal only), used also by <seealso cref="CharArrayMap#KeySet()"/>
         /// </summary>
-        internal CharArraySet(CharArrayMap<object> map)
+        internal CharArraySet(CharArrayMap<V> map)
         {
             this.map = map;
         }
@@ -127,31 +127,31 @@ namespace Lucene.Net.Analysis.Util
             return map.ContainsKey(cs);
         }
 
-        public virtual bool Contains(object o)
+        public virtual bool Contains(V o)
         {
             return map.ContainsKey(o);
         }
 
-        public void CopyTo(object[] array, int arrayIndex)
+        public void CopyTo(V[] array, int arrayIndex)
         {
             throw new System.NotImplementedException();
         }
 
-        public virtual bool Remove(object item)
+        public virtual bool Remove(V item)
         {
             return map.Remove(item);
         }
 
-        public virtual bool Add(object o)
+        public virtual bool Add(V o)
         {
-            return map.Put(o, PLACEHOLDER) == null;
+            return map.Put(o, (V)PLACEHOLDER) == null;
         }
 
         /// <summary>
         /// Add this String into the set </summary>
         public virtual bool Add(string text)
         {
-            return map.Put(text, PLACEHOLDER) == null;
+            return map.Put(text, (V)PLACEHOLDER) == null;
         }
 
         /// <summary>
@@ -161,10 +161,10 @@ namespace Lucene.Net.Analysis.Util
         /// </summary>
         public virtual bool Add(char[] text)
         {
-            return map.Put(text, PLACEHOLDER) == null;
+            return map.Put(text, (V)PLACEHOLDER) == null;
         }
 
-        void ICollection<object>.Add(object item)
+        void ICollection<V>.Add(V item)
         {
             Add(item);
         }
@@ -176,67 +176,7 @@ namespace Lucene.Net.Analysis.Util
 
         public virtual bool IsReadOnly { get; private set; }
 
-        /// <summary>
-        /// Returns an unmodifiable <seealso cref="CharArraySet"/>. This allows to provide
-        /// unmodifiable views of internal sets for "read-only" use.
-        /// </summary>
-        /// <param name="set">
-        ///          a set for which the unmodifiable set is returned. </param>
-        /// <returns> an new unmodifiable <seealso cref="CharArraySet"/>. </returns>
-        /// <exception cref="NullPointerException">
-        ///           if the given set is <code>null</code>. </exception>
-        public static CharArraySet UnmodifiableSet(CharArraySet set)
-        {
-            if (set == null)
-            {
-                throw new System.NullReferenceException("Given set is null");
-            }
-            if (set == EMPTY_SET)
-            {
-                return EMPTY_SET;
-            }
-            if (set.map is CharArrayMap<object>.UnmodifiableCharArrayMap<object>)
-            {
-                return set;
-            }
-            return new CharArraySet(CharArrayMap<object>.UnmodifiableMap(set.map));
-        }
-
-        /// <summary>
-        /// Returns a copy of the given set as a <seealso cref="CharArraySet"/>. If the given set
-        /// is a <seealso cref="CharArraySet"/> the ignoreCase property will be preserved.
-        /// <para>
-        /// <b>Note:</b> If you intend to create a copy of another <seealso cref="CharArraySet"/> where
-        /// the <seealso cref="LuceneVersion"/> of the source set differs from its copy
-        /// <seealso cref="#CharArraySet(Version, Collection, boolean)"/> should be used instead.
-        /// The <seealso cref="#copy(Version, Set)"/> will preserve the <seealso cref="LuceneVersion"/> of the
-        /// source set it is an instance of <seealso cref="CharArraySet"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="matchVersion">
-        ///          compatibility match version see <a href="#version">Version
-        ///          note</a> above for details. This argument will be ignored if the
-        ///          given set is a <seealso cref="CharArraySet"/>. </param>
-        /// <param name="set">
-        ///          a set to copy </param>
-        /// <returns> a copy of the given set as a <seealso cref="CharArraySet"/>. If the given set
-        ///         is a <seealso cref="CharArraySet"/> the ignoreCase property as well as the
-        ///         matchVersion will be of the given set will be preserved. </returns>
-        public static CharArraySet Copy<T1>(LuceneVersion matchVersion, ISet<T1> set)
-        {
-            if (set == EMPTY_SET)
-            {
-                return EMPTY_SET;
-            }
-
-            var source = set as CharArraySet;
-            if (source != null)
-            {
-                return new CharArraySet(CharArrayMap<object>.Copy(source.map.matchVersion, source.map));
-            }
-
-            return new CharArraySet(matchVersion, set.Cast<object>(), false);
-        }
+        
 
         /// <summary>
         /// Returns an <seealso cref="IEnumerator"/> for {@code char[]} instances in this set.
@@ -247,10 +187,10 @@ namespace Lucene.Net.Analysis.Util
             return map.OriginalKeySet().GetEnumerator();
         }
 
-        IEnumerator<object> IEnumerable<object>.GetEnumerator()
+        IEnumerator<V> IEnumerable<V>.GetEnumerator()
         {
             // use the AbstractSet#keySet()'s iterator (to not produce endless recursion)
-            return map.OriginalKeySet().GetEnumerator();
+            return (IEnumerator<V>)map.OriginalKeySet().GetEnumerator();
         }
 
         public override string ToString()
@@ -275,9 +215,9 @@ namespace Lucene.Net.Analysis.Util
         }
 
         // LUCENENET - Added to ensure equality checking works in tests
-        public bool SetEquals(IEnumerable<object> other)
+        public bool SetEquals(IEnumerable<V> other)
         {
-            var otherSet = other as CharArraySet;
+            var otherSet = other as CharArraySet<V>;
             if (otherSet == null)
                 return false;
 
@@ -297,51 +237,125 @@ namespace Lucene.Net.Analysis.Util
         }
 
         #region Not used by the Java implementation anyway
-        public void UnionWith(IEnumerable<object> other)
+        public void UnionWith(IEnumerable<V> other)
         {
             throw new System.NotImplementedException();
         }
 
-        public void IntersectWith(IEnumerable<object> other)
+        public void IntersectWith(IEnumerable<V> other)
         {
             throw new System.NotImplementedException();
         }
 
-        public void ExceptWith(IEnumerable<object> other)
+        public void ExceptWith(IEnumerable<V> other)
         {
             throw new System.NotImplementedException();
         }
 
-        public void SymmetricExceptWith(IEnumerable<object> other)
+        public void SymmetricExceptWith(IEnumerable<V> other)
         {
             throw new System.NotImplementedException();
         }
 
-        public bool IsSubsetOf(IEnumerable<object> other)
+        public bool IsSubsetOf(IEnumerable<V> other)
         {
             throw new System.NotImplementedException();
         }
 
-        public bool IsSupersetOf(IEnumerable<object> other)
+        public bool IsSupersetOf(IEnumerable<V> other)
         {
             throw new System.NotImplementedException();
         }
 
-        public bool IsProperSupersetOf(IEnumerable<object> other)
+        public bool IsProperSupersetOf(IEnumerable<V> other)
         {
             throw new System.NotImplementedException();
         }
 
-        public bool IsProperSubsetOf(IEnumerable<object> other)
+        public bool IsProperSubsetOf(IEnumerable<V> other)
         {
             throw new System.NotImplementedException();
         }
 
-        public bool Overlaps(IEnumerable<object> other)
+        public bool Overlaps(IEnumerable<V> other)
         {
             throw new System.NotImplementedException();
         }
 
         #endregion
+    }
+
+
+    public abstract class CharArraySet
+    {
+        //public static readonly CharArraySet EMPTY_SET = new CharArraySet(CharArrayMap<object>.EmptyMap());
+
+        public static CharArraySet<V> EmptySet<V>()
+        {
+            return new CharArraySet<V>(CharArrayMap<V>.EmptyMap());
+        }
+
+
+        /// <summary>
+        /// Returns an unmodifiable <seealso cref="CharArraySet"/>. This allows to provide
+        /// unmodifiable views of internal sets for "read-only" use.
+        /// </summary>
+        /// <param name="set">
+        ///          a set for which the unmodifiable set is returned. </param>
+        /// <returns> an new unmodifiable <seealso cref="CharArraySet"/>. </returns>
+        /// <exception cref="NullPointerException">
+        ///           if the given set is <code>null</code>. </exception>
+        public static CharArraySet UnmodifiableSet<V>(CharArraySet<V> set)
+        {
+            if (set == null)
+            {
+                throw new System.NullReferenceException("Given set is null");
+            }
+            if (set == EmptySet<V>())
+            {
+                return EmptySet<V>();
+            }
+            if (set.map is CharArrayMap<V>.UnmodifiableCharArrayMap<V>)
+            {
+                return set;
+            }
+            return new CharArraySet<V>(CharArrayMap<V>.UnmodifiableMap(set.map));
+        }
+
+        /// <summary>
+        /// Returns a copy of the given set as a <seealso cref="CharArraySet"/>. If the given set
+        /// is a <seealso cref="CharArraySet"/> the ignoreCase property will be preserved.
+        /// <para>
+        /// <b>Note:</b> If you intend to create a copy of another <seealso cref="CharArraySet"/> where
+        /// the <seealso cref="LuceneVersion"/> of the source set differs from its copy
+        /// <seealso cref="#CharArraySet(Version, Collection, boolean)"/> should be used instead.
+        /// The <seealso cref="#copy(Version, Set)"/> will preserve the <seealso cref="LuceneVersion"/> of the
+        /// source set it is an instance of <seealso cref="CharArraySet"/>.
+        /// </para>
+        /// </summary>
+        /// <param name="matchVersion">
+        ///          compatibility match version see <a href="#version">Version
+        ///          note</a> above for details. This argument will be ignored if the
+        ///          given set is a <seealso cref="CharArraySet"/>. </param>
+        /// <param name="set">
+        ///          a set to copy </param>
+        /// <returns> a copy of the given set as a <seealso cref="CharArraySet"/>. If the given set
+        ///         is a <seealso cref="CharArraySet"/> the ignoreCase property as well as the
+        ///         matchVersion will be of the given set will be preserved. </returns>
+        public static CharArraySet Copy<V>(LuceneVersion matchVersion, ISet<V> set)
+        {
+            if (set == EmptySet<V>())
+            {
+                return EmptySet<V>();
+            }
+
+            var source = set as CharArraySet<V>;
+            if (source != null)
+            {
+                return new CharArraySet<V>(CharArrayMap<V>.Copy(source.map.matchVersion, source.map));
+            }
+
+            return new CharArraySet<V>(matchVersion, set, false);
+        }
     }
 }
