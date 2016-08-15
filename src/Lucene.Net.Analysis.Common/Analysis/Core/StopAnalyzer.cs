@@ -43,12 +43,12 @@ namespace Lucene.Net.Analysis.Core
         /// An unmodifiable set containing some common English words that are not usually useful
         /// for searching.
         /// </summary>
-        public static readonly CharArraySet ENGLISH_STOP_WORDS_SET;
+        public static readonly CharArraySet<string> ENGLISH_STOP_WORDS_SET;
 
         static StopAnalyzer()
         {
             IList<string> stopWords = Arrays.AsList("a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it", "no", "not", "of", "on", "or", "such", "that", "the", "their", "then", "there", "these", "they", "this", "to", "was", "will", "with");
-            var stopSet = new CharArraySet(LuceneVersion.LUCENE_CURRENT, stopWords, false);
+            var stopSet = new CharArraySet<string>(LuceneVersion.LUCENE_CURRENT, stopWords, false);
             ENGLISH_STOP_WORDS_SET = CharArraySet.UnmodifiableSet(stopSet);
         }
 
@@ -65,7 +65,7 @@ namespace Lucene.Net.Analysis.Core
         /// Builds an analyzer with the stop words from the given set. </summary>
         /// <param name="matchVersion"> See <a href="#version">above</a> </param>
         /// <param name="stopWords"> Set of stop words  </param>
-        public StopAnalyzer(LuceneVersion matchVersion, CharArraySet stopWords)
+        public StopAnalyzer(LuceneVersion matchVersion, CharArraySet<string> stopWords)
             : base(matchVersion, stopWords)
         {
         }

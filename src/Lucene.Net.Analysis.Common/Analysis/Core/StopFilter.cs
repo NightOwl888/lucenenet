@@ -100,8 +100,8 @@ namespace Lucene.Net.Analysis.Core
         /// <returns> a Set containing the words </returns>
         public static CharArraySet MakeStopSet(LuceneVersion matchVersion, string[] stopWords, bool ignoreCase)
         {
-            CharArraySet stopSet = new CharArraySet(matchVersion, stopWords.Length, ignoreCase);
-            stopSet.AddAll(Arrays.AsList(stopWords));
+            CharArraySet<string> stopSet = new CharArraySet<string>(matchVersion, stopWords.Length, ignoreCase);
+            stopSet.AddAll(stopWords);
             return stopSet;
         }
 
@@ -111,10 +111,10 @@ namespace Lucene.Net.Analysis.Core
         /// <param name="stopWords"> A List of Strings or char[] or any other toString()-able list representing the stopwords </param>
         /// <param name="ignoreCase"> if true, all words are lower cased first </param>
         /// <returns> A Set (<seealso cref="CharArraySet"/>) containing the words </returns>
-        public static CharArraySet MakeStopSet<T1>(LuceneVersion matchVersion, IEnumerable<T1> stopWords, bool ignoreCase)
+        public static CharArraySet<T1> MakeStopSet<T1>(LuceneVersion matchVersion, IEnumerable<T1> stopWords, bool ignoreCase)
         {
-            var stopSet = new CharArraySet(matchVersion, stopWords.Count(), ignoreCase);
-            stopSet.AddAll(stopWords.Cast<object>().ToArray());
+            var stopSet = new CharArraySet<T1>(matchVersion, stopWords.Count(), ignoreCase);
+            stopSet.AddAll(stopWords);
             return stopSet;
         }
 

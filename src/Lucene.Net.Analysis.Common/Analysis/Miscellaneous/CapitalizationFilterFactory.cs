@@ -60,7 +60,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
         public const string ONLY_FIRST_WORD = "onlyFirstWord";
         public const string FORCE_FIRST_LETTER = "forceFirstLetter";
 
-        internal CharArraySet keep;
+        internal CharArraySet<string> keep;
 
         internal ICollection<char[]> okPrefix = Collections.EmptyList<char[]>(); // for Example: McK
 
@@ -80,7 +80,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
             IEnumerable<string> k = GetSet(args, KEEP);
             if (k != null)
             {
-                keep = new CharArraySet(luceneMatchVersion, 10, ignoreCase);
+                keep = new CharArraySet<string>(luceneMatchVersion, 10, ignoreCase);
                 keep.AddAll(k);
             }
 

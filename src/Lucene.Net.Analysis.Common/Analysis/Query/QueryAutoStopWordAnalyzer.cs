@@ -157,7 +157,7 @@ namespace Lucene.Net.Analysis.Query
             {
                 return components;
             }
-            var stopFilter = new StopFilter(matchVersion, components.TokenStream, new CharArraySet(matchVersion, stopWords, false));
+            var stopFilter = new StopFilter(matchVersion, components.TokenStream, new CharArraySet<string>(matchVersion, stopWords, false));
             return new TokenStreamComponents(components.Tokenizer, stopFilter);
         }
 

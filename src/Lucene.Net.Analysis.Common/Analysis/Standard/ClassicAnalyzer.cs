@@ -56,14 +56,14 @@ namespace Lucene.Net.Analysis.Standard
         /// An unmodifiable set containing some common English words that are usually not
         /// useful for searching. 
         /// </summary>
-        public static readonly CharArraySet STOP_WORDS_SET = StopAnalyzer.ENGLISH_STOP_WORDS_SET;
+        public static readonly CharArraySet<string> STOP_WORDS_SET = StopAnalyzer.ENGLISH_STOP_WORDS_SET;
 
         /// <summary>
         /// Builds an analyzer with the given stop words. </summary>
         /// <param name="matchVersion"> Lucene version to match See {@link
         /// <a href="#version">above</a>} </param>
         /// <param name="stopWords"> stop words  </param>
-        public ClassicAnalyzer(LuceneVersion matchVersion, CharArraySet stopWords)
+        public ClassicAnalyzer(LuceneVersion matchVersion, CharArraySet<string> stopWords)
             : base(matchVersion, stopWords)
         {
         }

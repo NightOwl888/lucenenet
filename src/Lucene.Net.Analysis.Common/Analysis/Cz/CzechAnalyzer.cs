@@ -67,7 +67,7 @@ namespace Lucene.Net.Analysis.Cz
 
         private class DefaultSetHolder
         {
-            internal static readonly CharArraySet DEFAULT_SET;
+            internal static readonly CharArraySet<string> DEFAULT_SET;
 
             static DefaultSetHolder()
             {
@@ -106,8 +106,8 @@ namespace Lucene.Net.Analysis.Cz
         /// <param name="matchVersion"> Lucene version to match See
         ///          <seealso cref="<a href="#version">above</a>"/> </param>
         /// <param name="stopwords"> a stopword set </param>
-        public CzechAnalyzer(LuceneVersion matchVersion, CharArraySet stopwords)
-              : this(matchVersion, stopwords, CharArraySet.EMPTY_SET)
+        public CzechAnalyzer(LuceneVersion matchVersion, CharArraySet<string> stopwords)
+              : this(matchVersion, stopwords, CharArraySet.EmptySet<string>())
         {
         }
 
@@ -119,7 +119,7 @@ namespace Lucene.Net.Analysis.Cz
         ///          <seealso cref="<a href="#version">above</a>"/> </param>
         /// <param name="stopwords"> a stopword set </param>
         /// <param name="stemExclusionTable"> a stemming exclusion set </param>
-        public CzechAnalyzer(LuceneVersion matchVersion, CharArraySet stopwords, CharArraySet stemExclusionTable)
+        public CzechAnalyzer(LuceneVersion matchVersion, CharArraySet<string> stopwords, CharArraySet<string> stemExclusionTable)
               : base(matchVersion, stopwords)
         {
             this.stemExclusionTable = CharArraySet.UnmodifiableSet(CharArraySet.Copy(matchVersion, stemExclusionTable));
@@ -147,7 +147,7 @@ namespace Lucene.Net.Analysis.Cz
             result = new StopFilter(matchVersion, result, stopwords);
             if (matchVersion.OnOrAfter(LuceneVersion.LUCENE_31))
             {
-                if (this.stemExclusionTable.Any())
+                if (this.stemExclusionTable.Count > 0)
                 {
                     result = new SetKeywordMarkerFilter(result, stemExclusionTable);
                 }

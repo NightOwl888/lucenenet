@@ -57,11 +57,11 @@ namespace Lucene.Net.Analysis.Util
         ///          the Lucene version for cross version compatibility </param>
         /// <param name="stopwords">
         ///          the analyzer's stopword set </param>
-        protected internal StopwordAnalyzerBase(LuceneVersion version, CharArraySet stopwords)
+        protected internal StopwordAnalyzerBase(LuceneVersion version, CharArraySet<string> stopwords)
         {
             matchVersion = version;
             // analyzers should use char array set for stopwords!
-            this.stopwords = stopwords == null ? CharArraySet.EMPTY_SET : CharArraySet.UnmodifiableSet(CharArraySet.Copy(version, stopwords));
+            this.stopwords = stopwords == null ? CharArraySet.EmptySet<string>() : CharArraySet.UnmodifiableSet(CharArraySet.Copy(version, stopwords));
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace Lucene.Net.Analysis.Util
             {
                 //reader = IOUtils.GetDecodingReader(aClass.GetResourceAsStream(resource), StandardCharsets.UTF_8);
                 reader = IOUtils.GetDecodingReader(aClass.Assembly.GetManifestResourceStream(resource), Encoding.UTF8);
-                return WordlistLoader.GetWordSet(reader, comment, new CharArraySet(LuceneVersion.LUCENE_CURRENT, 16, ignoreCase));
+                return WordlistLoader.GetWordSet(reader, comment, new CharArraySet<string>(LuceneVersion.LUCENE_CURRENT, 16, ignoreCase));
             }
             finally
             {
@@ -120,7 +120,7 @@ namespace Lucene.Net.Analysis.Util
         ///         file </returns>
         /// <exception cref="IOException">
         ///           if loading the stopwords throws an <seealso cref="IOException"/> </exception>
-        protected internal static CharArraySet LoadStopwordSet(FileInfo stopwords, LuceneVersion matchVersion)
+        protected internal static CharArraySet<string> LoadStopwordSet(FileInfo stopwords, LuceneVersion matchVersion)
         {
             TextReader reader = null;
             try
@@ -146,7 +146,7 @@ namespace Lucene.Net.Analysis.Util
         ///         reader </returns>
         /// <exception cref="IOException">
         ///           if loading the stopwords throws an <seealso cref="IOException"/> </exception>
-        protected internal static CharArraySet LoadStopwordSet(TextReader stopwords, LuceneVersion matchVersion)
+        protected internal static CharArraySet<string> LoadStopwordSet(TextReader stopwords, LuceneVersion matchVersion)
         {
             try
             {

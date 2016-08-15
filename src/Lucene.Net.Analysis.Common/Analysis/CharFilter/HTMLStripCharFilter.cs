@@ -30779,7 +30779,7 @@ namespace Lucene.Net.Analysis.CharFilters
         private static readonly char STYLE_REPLACEMENT = '\n';
         private static readonly char REPLACEMENT_CHARACTER = '\uFFFD';
 
-        private CharArraySet escapedTags = null;
+        private CharArraySet<string> escapedTags = null;
         private int inputStart;
         private int cumulativeDiff;
         private bool escapeBR = false;
@@ -30836,7 +30836,7 @@ namespace Lucene.Net.Analysis.CharFilters
                     {
                         if (null == this.escapedTags)
                         {
-                            this.escapedTags = new CharArraySet(LuceneVersion.LUCENE_CURRENT, 16, true);
+                            this.escapedTags = new CharArraySet<string>(LuceneVersion.LUCENE_CURRENT, 16, true);
                         }
                         this.escapedTags.Add(tag);
                     }

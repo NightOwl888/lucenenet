@@ -295,16 +295,16 @@ namespace Lucene.Net.Analysis.Util
         /// Returns as <seealso cref="CharArraySet"/> from wordFiles, which
         /// can be a comma-separated list of filenames
         /// </summary>
-        protected internal CharArraySet GetWordSet(IResourceLoader loader, string wordFiles, bool ignoreCase)
+        protected internal CharArraySet<string> GetWordSet(IResourceLoader loader, string wordFiles, bool ignoreCase)
         {
             AssureMatchVersion();
             IEnumerable<string> files = SplitFileNames(wordFiles);
-            CharArraySet words = null;
+            CharArraySet<string> words = null;
             if (files.Count() > 0)
             {
                 // default stopwords list has 35 or so words, but maybe don't make it that
                 // big to start
-                words = new CharArraySet(luceneMatchVersion, files.Count() * 10, ignoreCase);
+                words = new CharArraySet<string>(luceneMatchVersion, files.Count() * 10, ignoreCase);
                 foreach (string file in files)
                 {
                     var wlist = GetLines(loader, file.Trim());
@@ -326,16 +326,16 @@ namespace Lucene.Net.Analysis.Util
         /// same as <seealso cref="#getWordSet(ResourceLoader, String, boolean)"/>,
         /// except the input is in snowball format. 
         /// </summary>
-        protected internal CharArraySet GetSnowballWordSet(IResourceLoader loader, string wordFiles, bool ignoreCase)
+        protected internal CharArraySet<string> GetSnowballWordSet(IResourceLoader loader, string wordFiles, bool ignoreCase)
         {
             AssureMatchVersion();
             IEnumerable<string> files = SplitFileNames(wordFiles);
-            CharArraySet words = null;
+            CharArraySet<string> words = null;
             if (files.Count() > 0)
             {
                 // default stopwords list has 35 or so words, but maybe don't make it that
                 // big to start
-                words = new CharArraySet(luceneMatchVersion, files.Count() * 10, ignoreCase);
+                words = new CharArraySet<string>(luceneMatchVersion, files.Count() * 10, ignoreCase);
                 foreach (string file in files)
                 {
                     using (Stream stream = loader.OpenResource(file.Trim()))

@@ -35,7 +35,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
         private readonly bool ignoreCase;
         private readonly bool enablePositionIncrements;
         private readonly string wordFiles;
-        private CharArraySet words;
+        private CharArraySet<string> words;
 
         /// <summary>
         /// Creates a new KeepWordFilterFactory </summary>
@@ -76,7 +76,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
             }
         }
 
-        public virtual CharArraySet Words
+        public virtual CharArraySet<string> Words
         {
             get
             {

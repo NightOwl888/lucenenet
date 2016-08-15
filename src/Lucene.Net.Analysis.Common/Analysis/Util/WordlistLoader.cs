@@ -51,7 +51,7 @@ namespace Lucene.Net.Analysis.Util
         /// <param name="reader"> Reader containing the wordlist </param>
         /// <param name="result"> the <seealso cref="CharArraySet"/> to fill with the readers words </param>
         /// <returns> the given <seealso cref="CharArraySet"/> with the reader's words </returns>
-        public static CharArraySet GetWordSet(TextReader reader, CharArraySet result)
+        public static CharArraySet<string> GetWordSet(TextReader reader, CharArraySet<string> result)
         {
             try
             {
@@ -78,9 +78,9 @@ namespace Lucene.Net.Analysis.Util
         /// <param name="reader"> Reader containing the wordlist </param>
         /// <param name="matchVersion"> the <seealso cref="LuceneVersion"/> </param>
         /// <returns> A <seealso cref="CharArraySet"/> with the reader's words </returns>
-        public static CharArraySet GetWordSet(TextReader reader, LuceneVersion matchVersion)
+        public static CharArraySet<string> GetWordSet(TextReader reader, LuceneVersion matchVersion)
         {
-            return GetWordSet(reader, new CharArraySet(matchVersion, INITIAL_CAPACITY, false));
+            return GetWordSet(reader, new CharArraySet<string>(matchVersion, INITIAL_CAPACITY, false));
         }
 
         /// <summary>
@@ -93,9 +93,9 @@ namespace Lucene.Net.Analysis.Util
         /// <param name="comment"> The string representing a comment. </param>
         /// <param name="matchVersion"> the <seealso cref="LuceneVersion"/> </param>
         /// <returns> A CharArraySet with the reader's words </returns>
-        public static CharArraySet GetWordSet(TextReader reader, string comment, LuceneVersion matchVersion)
+        public static CharArraySet<string> GetWordSet(TextReader reader, string comment, LuceneVersion matchVersion)
         {
-            return GetWordSet(reader, comment, new CharArraySet(matchVersion, INITIAL_CAPACITY, false));
+            return GetWordSet(reader, comment, new CharArraySet<string>(matchVersion, INITIAL_CAPACITY, false));
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Lucene.Net.Analysis.Util
         /// <param name="comment"> The string representing a comment. </param>
         /// <param name="result"> the <seealso cref="CharArraySet"/> to fill with the readers words </param>
         /// <returns> the given <seealso cref="CharArraySet"/> with the reader's words </returns>
-        public static CharArraySet GetWordSet(TextReader reader, string comment, CharArraySet result)
+        public static CharArraySet<string> GetWordSet(TextReader reader, string comment, CharArraySet<string> result)
         {
             try
             {
@@ -143,7 +143,7 @@ namespace Lucene.Net.Analysis.Util
         /// <param name="reader"> Reader containing a Snowball stopword list </param>
         /// <param name="result"> the <seealso cref="CharArraySet"/> to fill with the readers words </param>
         /// <returns> the given <seealso cref="CharArraySet"/> with the reader's words </returns>
-        public static CharArraySet GetSnowballWordSet(TextReader reader, CharArraySet result)
+        public static CharArraySet<string> GetSnowballWordSet(TextReader reader, CharArraySet<string> result)
         {
             try
             { 
@@ -186,9 +186,9 @@ namespace Lucene.Net.Analysis.Util
         /// <param name="reader"> TextReader containing a Snowball stopword list </param>
         /// <param name="matchVersion"> the Lucene <seealso cref="Version"/> </param>
         /// <returns> A <seealso cref="CharArraySet"/> with the reader's words </returns>
-        public static CharArraySet GetSnowballWordSet(TextReader reader, LuceneVersion matchVersion)
+        public static CharArraySet<string> GetSnowballWordSet(TextReader reader, LuceneVersion matchVersion)
         {
-            return GetSnowballWordSet(reader, new CharArraySet(matchVersion, INITIAL_CAPACITY, false));
+            return GetSnowballWordSet(reader, new CharArraySet<string>(matchVersion, INITIAL_CAPACITY, false));
         }
 
 

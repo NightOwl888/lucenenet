@@ -70,7 +70,7 @@ namespace Lucene.Net.Analysis.Core
         public const string FORMAT_WORDSET = "wordset";
         public const string FORMAT_SNOWBALL = "snowball";
 
-        private CharArraySet stopWords;
+        private CharArraySet<string> stopWords;
         private readonly string stopWordFiles;
         private readonly string format;
         private readonly bool ignoreCase;
@@ -115,7 +115,7 @@ namespace Lucene.Net.Analysis.Core
                 {
                     throw new System.ArgumentException("'format' can not be specified w/o an explicit 'words' file: " + format);
                 }
-                stopWords = new CharArraySet(luceneMatchVersion, StopAnalyzer.ENGLISH_STOP_WORDS_SET, ignoreCase);
+                stopWords = new CharArraySet<string>(luceneMatchVersion, StopAnalyzer.ENGLISH_STOP_WORDS_SET, ignoreCase);
             }
         }
 
@@ -135,7 +135,7 @@ namespace Lucene.Net.Analysis.Core
             }
         }
 
-        public virtual CharArraySet StopWords
+        public virtual CharArraySet<string> StopWords
         {
             get
             {

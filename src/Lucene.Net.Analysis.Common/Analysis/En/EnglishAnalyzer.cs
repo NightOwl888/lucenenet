@@ -30,12 +30,12 @@ namespace Lucene.Net.Analysis.En
     /// </summary>
     public sealed class EnglishAnalyzer : StopwordAnalyzerBase
 	{
-	  private readonly CharArraySet stemExclusionSet;
+	  private readonly CharArraySet<string> stemExclusionSet;
 
 	  /// <summary>
 	  /// Returns an unmodifiable instance of the default stop words set. </summary>
 	  /// <returns> default stop words set. </returns>
-	  public static CharArraySet DefaultStopSet
+	  public static CharArraySet<string> DefaultStopSet
 	  {
 		  get
 		  {
@@ -49,7 +49,7 @@ namespace Lucene.Net.Analysis.En
 	  /// </summary>
 	  private class DefaultSetHolder
 	  {
-		internal static readonly CharArraySet DEFAULT_STOP_SET = StandardAnalyzer.STOP_WORDS_SET;
+		internal static readonly CharArraySet<string> DEFAULT_STOP_SET = StandardAnalyzer.STOP_WORDS_SET;
 	  }
 
 	  /// <summary>
@@ -65,8 +65,8 @@ namespace Lucene.Net.Analysis.En
 	  /// </summary>
 	  /// <param name="matchVersion"> lucene compatibility version </param>
 	  /// <param name="stopwords"> a stopword set </param>
-	  public EnglishAnalyzer(LuceneVersion matchVersion, CharArraySet stopwords) 
-            : this(matchVersion, stopwords, CharArraySet.EMPTY_SET)
+	  public EnglishAnalyzer(LuceneVersion matchVersion, CharArraySet<string> stopwords) 
+            : this(matchVersion, stopwords, CharArraySet.EmptySet<string>())
 	  {
 	  }
 
@@ -78,10 +78,10 @@ namespace Lucene.Net.Analysis.En
 	  /// <param name="matchVersion"> lucene compatibility version </param>
 	  /// <param name="stopwords"> a stopword set </param>
 	  /// <param name="stemExclusionSet"> a set of terms not to be stemmed </param>
-	  public EnglishAnalyzer(LuceneVersion matchVersion, CharArraySet stopwords, CharArraySet stemExclusionSet) 
+	  public EnglishAnalyzer(LuceneVersion matchVersion, CharArraySet<string> stopwords, CharArraySet<string> stemExclusionSet) 
             : base(matchVersion, stopwords)
 	  {
-		this.stemExclusionSet = CharArraySet.UnmodifiableSet(CharArraySet.Copy(matchVersion, stemExclusionSet));
+		this.stemExclusionSet = CharArraySet.UnmodifiableSet<string>(CharArraySet.Copy(matchVersion, stemExclusionSet));
 	  }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Lucene.Net.Analysis.En
             }
             result = new LowerCaseFilter(matchVersion, result);
             result = new StopFilter(matchVersion, result, stopwords);
-            if (stemExclusionSet.Any())
+            if (stemExclusionSet.Count > 0)
             {
                 result = new SetKeywordMarkerFilter(result, stemExclusionSet);
             }
