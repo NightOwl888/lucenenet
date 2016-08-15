@@ -33,11 +33,11 @@ namespace Lucene.Net.Analysis.Miscellaneous
         [Test]
         public virtual void TestSetFilterIncrementToken()
         {
-            CharArraySet set = new CharArraySet(TEST_VERSION_CURRENT, 5, true);
+            CharArraySet<string> set = new CharArraySet<string>(TEST_VERSION_CURRENT, 5, true);
             set.add("lucenefox");
             string[] output = new string[] { "the", "quick", "brown", "LuceneFox", "jumps" };
             AssertTokenStreamContents(new LowerCaseFilterMock(new SetKeywordMarkerFilter(new MockTokenizer(new StringReader("The quIck browN LuceneFox Jumps"), MockTokenizer.WHITESPACE, false), set)), output);
-            CharArraySet mixedCaseSet = new CharArraySet(TEST_VERSION_CURRENT, AsSet("LuceneFox"), false);
+            CharArraySet<string> mixedCaseSet = new CharArraySet<string>(TEST_VERSION_CURRENT, AsSet("LuceneFox"), false);
             AssertTokenStreamContents(new LowerCaseFilterMock(new SetKeywordMarkerFilter(new MockTokenizer(new StringReader("The quIck browN LuceneFox Jumps"), MockTokenizer.WHITESPACE, false), mixedCaseSet)), output);
             CharArraySet set2 = set;
             AssertTokenStreamContents(new LowerCaseFilterMock(new SetKeywordMarkerFilter(new MockTokenizer(new StringReader("The quIck browN LuceneFox Jumps"), MockTokenizer.WHITESPACE, false), set2)), output);
@@ -58,7 +58,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
         [Test]
         public virtual void TestComposition()
         {
-            TokenStream ts = new LowerCaseFilterMock(new SetKeywordMarkerFilter(new SetKeywordMarkerFilter(new MockTokenizer(new StringReader("Dogs Trees Birds Houses"), MockTokenizer.WHITESPACE, false), new CharArraySet(TEST_VERSION_CURRENT, AsSet("Birds", "Houses"), false)), new CharArraySet(TEST_VERSION_CURRENT, AsSet("Dogs", "Trees"), false)));
+            TokenStream ts = new LowerCaseFilterMock(new SetKeywordMarkerFilter(new SetKeywordMarkerFilter(new MockTokenizer(new StringReader("Dogs Trees Birds Houses"), MockTokenizer.WHITESPACE, false), new CharArraySet<string>(TEST_VERSION_CURRENT, AsSet("Birds", "Houses"), false)), new CharArraySet<string>(TEST_VERSION_CURRENT, AsSet("Dogs", "Trees"), false)));
 
             AssertTokenStreamContents(ts, new string[] { "Dogs", "Trees", "Birds", "Houses" });
 
@@ -66,7 +66,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
 
             AssertTokenStreamContents(ts, new string[] { "Dogs", "Trees", "Birds", "Houses" });
 
-            ts = new LowerCaseFilterMock(new SetKeywordMarkerFilter(new PatternKeywordMarkerFilter(new MockTokenizer(new StringReader("Dogs Trees Birds Houses"), MockTokenizer.WHITESPACE, false), new Regex("Birds|Houses", RegexOptions.Compiled)), new CharArraySet(TEST_VERSION_CURRENT, AsSet("Dogs", "Trees"), false)));
+            ts = new LowerCaseFilterMock(new SetKeywordMarkerFilter(new PatternKeywordMarkerFilter(new MockTokenizer(new StringReader("Dogs Trees Birds Houses"), MockTokenizer.WHITESPACE, false), new Regex("Birds|Houses", RegexOptions.Compiled)), new CharArraySet<string>(TEST_VERSION_CURRENT, AsSet("Dogs", "Trees"), false)));
 
             AssertTokenStreamContents(ts, new string[] { "Dogs", "Trees", "Birds", "Houses" });
         }

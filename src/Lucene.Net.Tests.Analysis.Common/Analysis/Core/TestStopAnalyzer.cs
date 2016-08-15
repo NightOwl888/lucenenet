@@ -66,7 +66,7 @@ namespace Lucene.Net.Analysis.Core
         [Test]
         public virtual void TestStopList()
         {
-            CharArraySet stopWordsSet = new CharArraySet(TEST_VERSION_CURRENT, new string[] { "good", "test", "analyzer" }, false);
+            CharArraySet<string> stopWordsSet = new CharArraySet<string>(TEST_VERSION_CURRENT, new string[] { "good", "test", "analyzer" }, false);
             StopAnalyzer newStop = new StopAnalyzer(TEST_VERSION_CURRENT, stopWordsSet);
             TokenStream stream = newStop.TokenStream("test", "This is a good test of the english stop analyzer");
             try
@@ -91,7 +91,7 @@ namespace Lucene.Net.Analysis.Core
         [Test]
         public virtual void TestStopListPositions()
         {
-            CharArraySet stopWordsSet = new CharArraySet(TEST_VERSION_CURRENT, new string[] { "good", "test", "analyzer" }, false);
+            CharArraySet<string> stopWordsSet = new CharArraySet<string>(TEST_VERSION_CURRENT, new string[] { "good", "test", "analyzer" }, false);
             StopAnalyzer newStop = new StopAnalyzer(TEST_VERSION_CURRENT, stopWordsSet);
             string s = "This is a good test of the english stop analyzer with positions";
             int[] expectedIncr = new int[] { 1, 1, 1, 3, 1, 1, 1, 2, 1 };

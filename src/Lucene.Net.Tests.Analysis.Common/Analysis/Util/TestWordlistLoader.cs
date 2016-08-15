@@ -32,7 +32,7 @@ namespace Lucene.Net.Analysis.Util
         public virtual void TestWordlistLoading()
         {
             string s = "ONE\n  two \nthree";
-            CharArraySet wordSet1 = WordlistLoader.GetWordSet(new StringReader(s), TEST_VERSION_CURRENT);
+            CharArraySet<string> wordSet1 = WordlistLoader.GetWordSet(new StringReader(s), TEST_VERSION_CURRENT);
             CheckSet(wordSet1);
             // TODO: Do we need to check for a "buffered reader" in .NET?
             //CharArraySet wordSet2 = WordlistLoader.GetWordSet(new System.IO.StreamReader(new StringReader(s)), TEST_VERSION_CURRENT);
@@ -43,13 +43,13 @@ namespace Lucene.Net.Analysis.Util
         public virtual void TestComments()
         {
             string s = "ONE\n  two \nthree\n#comment";
-            CharArraySet wordSet1 = WordlistLoader.GetWordSet(new StringReader(s), "#", TEST_VERSION_CURRENT);
+            CharArraySet<string> wordSet1 = WordlistLoader.GetWordSet(new StringReader(s), "#", TEST_VERSION_CURRENT);
             CheckSet(wordSet1);
             assertFalse(wordSet1.contains("#comment"));
             assertFalse(wordSet1.contains("comment"));
         }
 
-        private void CheckSet(CharArraySet wordset)
+        private void CheckSet(CharArraySet<string> wordset)
         {
             assertEquals(3, wordset.size());
             assertTrue(wordset.contains("ONE")); // case is not modified
@@ -65,7 +65,7 @@ namespace Lucene.Net.Analysis.Util
         public virtual void TestSnowballListLoading()
         {
             string s = "|comment\n" + " |comment\n" + "\n" + "  \t\n" + " |comment | comment\n" + "ONE\n" + "   two   \n" + " three   four five \n" + "six seven | comment\n"; //multiple stopwords + comment -  multiple stopwords -  stopword with leading/trailing space -  stopword, in uppercase -  commented line with comment -  line with only whitespace -  blank line -  commented line with leading whitespace -  commented line
-            CharArraySet wordset = WordlistLoader.GetSnowballWordSet(new StringReader(s), TEST_VERSION_CURRENT);
+            CharArraySet<string> wordset = WordlistLoader.GetSnowballWordSet(new StringReader(s), TEST_VERSION_CURRENT);
             assertEquals(7, wordset.size());
             assertTrue(wordset.contains("ONE"));
             assertTrue(wordset.contains("two"));

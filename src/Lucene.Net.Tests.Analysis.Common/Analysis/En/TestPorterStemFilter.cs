@@ -55,7 +55,7 @@ namespace Lucene.Net.Analysis.En
         [Test]
         public virtual void TestWithKeywordAttribute()
         {
-            CharArraySet set = new CharArraySet(TEST_VERSION_CURRENT, 1, true);
+            CharArraySet<string> set = new CharArraySet<string>(TEST_VERSION_CURRENT, 1, true);
             set.add("yourselves");
             Tokenizer tokenizer = new MockTokenizer(new StringReader("yourselves yours"), MockTokenizer.WHITESPACE, false);
             TokenStream filter = new PorterStemFilter(new SetKeywordMarkerFilter(tokenizer, set));

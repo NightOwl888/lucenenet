@@ -35,7 +35,7 @@ namespace Lucene.Net.Analysis.Core
         public virtual void TestExactCase()
         {
             StringReader reader = new StringReader("Now is The Time");
-            CharArraySet stopWords = new CharArraySet(TEST_VERSION_CURRENT, new string[] { "is", "the", "Time" }, false);
+            CharArraySet stopWords = new CharArraySet<string>(TEST_VERSION_CURRENT, new string[] { "is", "the", "Time" }, false);
             TokenStream stream = new StopFilter(TEST_VERSION_CURRENT, new MockTokenizer(reader, MockTokenizer.WHITESPACE, false), stopWords);
             AssertTokenStreamContents(stream, new string[] { "Now", "The" });
         }

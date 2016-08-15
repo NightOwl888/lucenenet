@@ -38,7 +38,7 @@ namespace Lucene.Net.Analysis.CommonGrams
             IResourceLoader loader = new ClasspathResourceLoader(typeof(TestAnalyzers), "Lucene.Net"); // LUCENENET: Need to set to a type that is in the same path as the files
             assertTrue("loader is null and it shouldn't be", loader != null);
             CommonGramsQueryFilterFactory factory = (CommonGramsQueryFilterFactory)TokenFilterFactory("CommonGramsQuery", TEST_VERSION_CURRENT, loader, "words", "stop-1.txt", "ignoreCase", "true");
-            CharArraySet words = factory.CommonWords;
+            CharArraySet<string> words = factory.CommonWords;
             assertTrue("words is null and it shouldn't be", words != null);
             assertTrue("words Size: " + words.size() + " is not: " + 2, words.size() == 2);
             assertTrue(factory.IgnoreCase + " does not equal: " + true, factory.IgnoreCase == true);
@@ -69,7 +69,7 @@ namespace Lucene.Net.Analysis.CommonGrams
         public virtual void TestDefaults()
         {
             CommonGramsQueryFilterFactory factory = (CommonGramsQueryFilterFactory)TokenFilterFactory("CommonGramsQuery");
-            CharArraySet words = factory.CommonWords;
+            CharArraySet<string> words = factory.CommonWords;
             assertTrue("words is null and it shouldn't be", words != null);
             assertTrue(words.contains("the"));
             Tokenizer tokenizer = new MockTokenizer(new StringReader("testing the factory"), MockTokenizer.WHITESPACE, false);

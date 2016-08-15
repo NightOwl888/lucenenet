@@ -53,7 +53,7 @@ namespace Lucene.Net.Analysis.En
         [Test]
         public virtual void TestExclude()
         {
-            CharArraySet exclusionSet = new CharArraySet(TEST_VERSION_CURRENT, AsSet("books"), false);
+            CharArraySet<string> exclusionSet = new CharArraySet<string>(TEST_VERSION_CURRENT, AsSet("books"), false);
             Analyzer a = new EnglishAnalyzer(TEST_VERSION_CURRENT, EnglishAnalyzer.DefaultStopSet, exclusionSet);
             CheckOneTerm(a, "books", "books");
             CheckOneTerm(a, "book", "book");

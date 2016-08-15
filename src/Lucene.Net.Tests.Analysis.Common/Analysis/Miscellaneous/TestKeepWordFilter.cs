@@ -39,22 +39,22 @@ namespace Lucene.Net.Analysis.Miscellaneous
 
             // Test Stopwords
             TokenStream stream = new MockTokenizer(new StringReader(input), MockTokenizer.WHITESPACE, false);
-            stream = new KeepWordFilter(TEST_VERSION_CURRENT, stream, new CharArraySet(TEST_VERSION_CURRENT, words, true));
+            stream = new KeepWordFilter(TEST_VERSION_CURRENT, stream, new CharArraySet<string>(TEST_VERSION_CURRENT, words, true));
             AssertTokenStreamContents(stream, new string[] { "aaa", "BBB" }, new int[] { 3, 2 });
 
             // Now force case
             stream = new MockTokenizer(new StringReader(input), MockTokenizer.WHITESPACE, false);
-            stream = new KeepWordFilter(TEST_VERSION_CURRENT, stream, new CharArraySet(TEST_VERSION_CURRENT, words, false));
+            stream = new KeepWordFilter(TEST_VERSION_CURRENT, stream, new CharArraySet<string>(TEST_VERSION_CURRENT, words, false));
             AssertTokenStreamContents(stream, new string[] { "aaa" }, new int[] { 3 });
 
             // Test Stopwords
             stream = new MockTokenizer(new StringReader(input), MockTokenizer.WHITESPACE, false);
-            stream = new KeepWordFilter(LuceneVersion.LUCENE_43, false, stream, new CharArraySet(TEST_VERSION_CURRENT, words, true));
+            stream = new KeepWordFilter(LuceneVersion.LUCENE_43, false, stream, new CharArraySet<string>(TEST_VERSION_CURRENT, words, true));
             AssertTokenStreamContents(stream, new string[] { "aaa", "BBB" }, new int[] { 1, 1 });
 
             // Now force case
             stream = new MockTokenizer(new StringReader(input), MockTokenizer.WHITESPACE, false);
-            stream = new KeepWordFilter(LuceneVersion.LUCENE_43, false, stream, new CharArraySet(TEST_VERSION_CURRENT, words, false));
+            stream = new KeepWordFilter(LuceneVersion.LUCENE_43, false, stream, new CharArraySet<string>(TEST_VERSION_CURRENT, words, false));
             AssertTokenStreamContents(stream, new string[] { "aaa" }, new int[] { 1 });
         }
 
@@ -87,7 +87,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
             public override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)
             {
                 Tokenizer tokenizer = new MockTokenizer(reader, MockTokenizer.WHITESPACE, false);
-                TokenStream stream = new KeepWordFilter(TEST_VERSION_CURRENT, tokenizer, new CharArraySet(TEST_VERSION_CURRENT, words, true));
+                TokenStream stream = new KeepWordFilter(TEST_VERSION_CURRENT, tokenizer, new CharArraySet<string>(TEST_VERSION_CURRENT, words, true));
                 return new TokenStreamComponents(tokenizer, stream);
             }
         }

@@ -32,7 +32,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
         [Test]
         public virtual void TestCapitalization()
         {
-            CharArraySet keep = new CharArraySet(TEST_VERSION_CURRENT, Arrays.AsList("and", "the", "it", "BIG"), false);
+            CharArraySet keep = new CharArraySet<string>(TEST_VERSION_CURRENT, Arrays.AsList("and", "the", "it", "BIG"), false);
 
             AssertCapitalizesTo("kiTTEN", new string[] { "Kitten" }, true, keep, true, null, 0, CapitalizationFilter.DEFAULT_MAX_WORD_COUNT, CapitalizationFilter.DEFAULT_MAX_TOKEN_LENGTH);
 

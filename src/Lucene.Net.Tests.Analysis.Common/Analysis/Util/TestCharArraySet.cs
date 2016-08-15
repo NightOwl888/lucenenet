@@ -546,7 +546,7 @@ namespace Lucene.Net.Tests.Analysis.Common.Analysis.Util
         [Test]
         public virtual void TestCopyEmptySet()
         {
-            assertSame(CharArraySet.EMPTY_SET, CharArraySet.Copy(TEST_VERSION_CURRENT, CharArraySet.EMPTY_SET));
+            assertSame(CharArraySet.EmptySet<string>(), CharArraySet.Copy(TEST_VERSION_CURRENT, CharArraySet.EmptySet<string>()));
         }
 
         /// <summary>
@@ -555,17 +555,17 @@ namespace Lucene.Net.Tests.Analysis.Common.Analysis.Util
         [Test]
         public virtual void TestEmptySet()
         {
-            assertEquals(0, CharArraySet.EMPTY_SET.size());
+            assertEquals(0, CharArraySet.EmptySet<string>().size());
 
-            assertTrue(CharArraySet.EMPTY_SET.Count == 0);
+            assertTrue(CharArraySet.EmptySet<string>().Count == 0);
             foreach (string stopword in TEST_STOP_WORDS)
             {
-                assertFalse(CharArraySet.EMPTY_SET.contains(stopword));
+                assertFalse(CharArraySet.EmptySet<string>().contains(stopword));
             }
-            assertFalse(CharArraySet.EMPTY_SET.contains("foo"));
-            assertFalse(CharArraySet.EMPTY_SET.contains((object)"foo"));
-            assertFalse(CharArraySet.EMPTY_SET.contains("foo".ToCharArray()));
-            assertFalse(CharArraySet.EMPTY_SET.Contains("foo".ToCharArray(), 0, 3));
+            assertFalse(CharArraySet.EmptySet<string>().Contains("foo"));
+            assertFalse(CharArraySet.EmptySet<string>().Contains((object)"foo"));
+            assertFalse(CharArraySet.EmptySet<string>().Contains("foo".ToCharArray()));
+            assertFalse(CharArraySet.EmptySet<string>().Contains("foo".ToCharArray(), 0, 3));
         }
 
         /// <summary>

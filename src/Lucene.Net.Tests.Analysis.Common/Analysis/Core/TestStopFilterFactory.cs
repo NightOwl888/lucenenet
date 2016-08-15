@@ -28,7 +28,7 @@ namespace Lucene.Net.Analysis.Core
             IResourceLoader loader = new ClasspathResourceLoader(this.GetType());
             assertTrue("loader is null and it shouldn't be", loader != null);
             StopFilterFactory factory = (StopFilterFactory)TokenFilterFactory("Stop", "words", "stop-1.txt", "ignoreCase", "true");
-            CharArraySet words = factory.StopWords;
+            CharArraySet<string> words = factory.StopWords;
             assertTrue("words is null and it shouldn't be", words != null);
             assertTrue("words Size: " + words.size() + " is not: " + 2, words.size() == 2);
             assertTrue(factory.IgnoreCase + " does not equal: " + true, factory.IgnoreCase == true);

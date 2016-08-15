@@ -290,8 +290,8 @@ namespace Lucene.Net.Analysis.Cz
         [Test]
         public virtual void TestWithKeywordAttribute()
         {
-            CharArraySet set = new CharArraySet(TEST_VERSION_CURRENT, 1, true);
-            set.add("hole");
+            CharArraySet set = new CharArraySet<string>(TEST_VERSION_CURRENT, 1, true);
+            set.Add("hole");
             CzechStemFilter filter = new CzechStemFilter(new SetKeywordMarkerFilter(new MockTokenizer(new StringReader("hole desek"), MockTokenizer.WHITESPACE, false), set));
             AssertTokenStreamContents(filter, new string[] { "hole", "desk" });
         }

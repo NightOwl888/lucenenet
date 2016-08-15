@@ -201,7 +201,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
         {
             int flags = WordDelimiterFilter.GENERATE_WORD_PARTS | WordDelimiterFilter.GENERATE_NUMBER_PARTS | WordDelimiterFilter.CATENATE_ALL | WordDelimiterFilter.SPLIT_ON_CASE_CHANGE | WordDelimiterFilter.SPLIT_ON_NUMERICS | WordDelimiterFilter.STEM_ENGLISH_POSSESSIVE;
 
-            CharArraySet protWords = new CharArraySet(TEST_VERSION_CURRENT, new string[] { "NUTCH" }, false);
+            CharArraySet protWords = new CharArraySet<string>(TEST_VERSION_CURRENT, new string[] { "NUTCH" }, false);
 
             /* analyzer that uses whitespace + wdf */
             Analyzer a = new AnalyzerAnonymousInnerClassHelper(this, flags, protWords);
@@ -375,7 +375,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
                 CharArraySet protectedWords;
                 if (Random().nextBoolean())
                 {
-                    protectedWords = new CharArraySet(TEST_VERSION_CURRENT, new string[] { "a", "b", "cd" }, false);
+                    protectedWords = new CharArraySet<string>(TEST_VERSION_CURRENT, new string[] { "a", "b", "cd" }, false);
                 }
                 else
                 {
@@ -420,7 +420,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
                 CharArraySet protectedWords;
                 if (Random().nextBoolean())
                 {
-                    protectedWords = new CharArraySet(TEST_VERSION_CURRENT, new string[] { "a", "b", "cd" }, false);
+                    protectedWords = new CharArraySet<string>(TEST_VERSION_CURRENT, new string[] { "a", "b", "cd" }, false);
                 }
                 else
                 {
@@ -464,7 +464,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
                 CharArraySet protectedWords;
                 if (random.nextBoolean())
                 {
-                    protectedWords = new CharArraySet(TEST_VERSION_CURRENT, new string[] { "a", "b", "cd" }, false);
+                    protectedWords = new CharArraySet<string>(TEST_VERSION_CURRENT, new string[] { "a", "b", "cd" }, false);
                 }
                 else
                 {

@@ -29,7 +29,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
             IResourceLoader loader = new ClasspathResourceLoader(this.GetType());
             assertTrue("loader is null and it shouldn't be", loader != null);
             KeepWordFilterFactory factory = (KeepWordFilterFactory)TokenFilterFactory("KeepWord", "words", "keep-1.txt", "ignoreCase", "true");
-            CharArraySet words = factory.Words;
+            CharArraySet<string> words = factory.Words;
             assertTrue("words is null and it shouldn't be", words != null);
             assertTrue("words Size: " + words.size() + " is not: " + 2, words.size() == 2);
 
