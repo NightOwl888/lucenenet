@@ -50,7 +50,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lucene.Net.Tests.Codecs", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lucene.Net.Misc", "src\Lucene.Net.Misc\Lucene.Net.Misc.csproj", "{A3A0D943-B91A-4B7A-9FCB-6160EA575D95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lucene.Net.Tests.Misc", "Lucene.Net.Tests.Misc\Lucene.Net.Tests.Misc.csproj", "{7895E023-EB91-401C-B2B3-754EEC42134B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lucene.Net.Tests.Misc", "src\Lucene.Net.Tests.Misc\Lucene.Net.Tests.Misc.csproj", "{7895E023-EB91-401C-B2B3-754EEC42134B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
