@@ -44,6 +44,7 @@ using System.Runtime.CompilerServices;
                                                          "72aebfac5f7284e1d5f2c82012a804a140f06d7d043d83e830cdb606a04da2ad5374cc92c0a495" +
                                                          "08437802fb4f8fb80a05e59f80afb99f4ccd0dfe44065743543c4b053b669509d29d332cd32a0c" +
                                                          "b1e97e84")]
+[assembly: InternalsVisibleTo("Lucene.Net.Misc")]
 
 //
 // Version information for an assembly consists of the following four values:
