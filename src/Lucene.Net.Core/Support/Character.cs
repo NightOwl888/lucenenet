@@ -373,7 +373,7 @@ namespace Lucene.Net.Support
         /// This mimics the behavior of the Java Character.GetType class, but returns the .NET UnicodeCategory
         /// enumeration for easy consumption.
         /// </summary>
-        /// <param name="c"></param>
+        /// <param name="codePoint"></param>
         /// <returns></returns>
         public static UnicodeCategory GetType(int codePoint)
         {
@@ -381,6 +381,18 @@ namespace Lucene.Net.Support
                 return char.GetUnicodeCategory((char)codePoint);
             else
                 return char.GetUnicodeCategory(char.ConvertFromUtf32(codePoint), 0);
+        }
+
+        /// <summary>
+        /// Determines whether the specified character (Unicode code point) is in the supplementary character range. The method call is equivalent to the expression: 
+        /// codePoint >= 0x10000 && codePoint <= 0x10FFFF
+        /// </summary>
+        /// <param name="codePoint"></param>
+        /// <returns></returns>
+        public static bool IsSupplementaryCodePoint(int codePoint)
+        {
+            return codePoint >= MIN_SUPPLEMENTARY_CODE_POINT
+                && codePoint <= MAX_CODE_POINT;
         }
     }
 }
