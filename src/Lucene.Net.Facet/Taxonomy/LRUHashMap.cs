@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -37,7 +39,7 @@ namespace Lucene.Net.Facet.Taxonomy
     /// @lucene.experimental
     /// </para>
     /// </summary>
-    public class LRUHashMap<TKey, TValue> where TValue : class //this is implementation of LRU Cache
+    public class LRUHashMap<TKey, TValue> : IDictionary<TKey, TValue>
     {
         private readonly Dictionary<TKey, CacheDataObject> cache;
         // We can't use a ReaderWriterLockSlim because every read is also a 
@@ -62,7 +64,7 @@ namespace Lucene.Net.Facet.Taxonomy
         /// allows changing the map's maximal number of elements
         /// which was defined at construction time.
         /// <para>
-        /// Note that if the map is already larger than maxSize, the current 
+        /// Note that if the map is already larger than <see cref="Capacity"/>, the current 
         /// implementation does not shrink it (by removing the oldest elements);
         /// Rather, the map remains in its current size as new elements are
         /// added, and will only start shrinking (until settling again on the
@@ -123,7 +125,7 @@ namespace Lucene.Net.Facet.Taxonomy
                     return cdo.value;
                 }
             }
-            return null;
+            return default(TValue);
         }
 
         public bool TryGetValue(TKey key, out TValue value)
@@ -140,7 +142,7 @@ namespace Lucene.Net.Facet.Taxonomy
                     return true;
                 }
 
-                value = null;
+                value = default(TValue);
                 return false;
             }
         }
@@ -154,7 +156,49 @@ namespace Lucene.Net.Facet.Taxonomy
         {
             get
             {
-                return cache.Count;
+                lock (syncLock)
+                {
+                    return cache.Count;
+                }
+            }
+        }
+
+        public ICollection<TKey> Keys
+        {
+            get
+            {
+                lock (syncLock)
+                {
+                    return cache.Keys;
+                }
+            }
+        }
+
+        public ICollection<TValue> Values
+        {
+            get
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public TValue this[TKey key]
+        {
+            get
+            {
+                return Get(key);
+            }
+            set
+            {
+                Put(key, value);
             }
         }
 
@@ -174,7 +218,58 @@ namespace Lucene.Net.Facet.Taxonomy
             }
             return ticks;
         }
-        
+
+        public void Add(TKey key, TValue value)
+        {
+            Put(key, value);
+        }
+
+        public bool Remove(TKey key)
+        {
+            lock (syncLock)
+            {
+                return cache.Remove(key);
+            }
+        }
+
+        public void Add(KeyValuePair<TKey, TValue> item)
+        {
+            Put(item.Key, item.Value);
+        }
+
+        public void Clear()
+        {
+            lock (syncLock)
+            {
+                cache.Clear();
+            }
+        }
+
+        public bool Contains(KeyValuePair<TKey, TValue> item)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+        {
+            throw new NotSupportedException();
+        }
+
+        public bool Remove(KeyValuePair<TKey, TValue> item)
+        {
+            throw new NotSupportedException();
+        }
+
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            throw new NotSupportedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
 
         #region Nested type: CacheDataObject
 
