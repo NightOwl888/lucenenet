@@ -67,11 +67,17 @@ namespace Lucene.Net.Facet.Taxonomy.WriterCache
 
         private void CreateCache(int maxSize)
         {
-            if (maxSize < int.MaxValue)
-            {
-                cache = new LRUHashMap<object, int>(1000); //for LRU
-            }
-            else
+            // LUCENENET TODO: We don't have a LinkedHashMap in .NET (which is what the original implementation used), 
+            // and our LRUHashMap implementation doesn't pass the TestDirectoryTaxonomyWriter.TestConcurrency() test 
+            // (note that the test is testing more than one cache so you need to comment out all but the 
+            // NameIntCacheLRU to see it fail 100% of the time).
+            // This class can probably use less RAM if LRUHashMap can be made to work, but for now using
+            // the plain old generic Dictionary seems to work.
+            //if (maxSize < int.MaxValue)
+            //{
+            //    cache = new LRUHashMap<object, int>(1000); //for LRU
+            //}
+            //else
             {
                 cache = new Dictionary<object, int>(1000); //no need for LRU
             }
@@ -165,8 +171,17 @@ namespace Lucene.Net.Facet.Taxonomy.WriterCache
                 return false;
             }
 
-            lock (cache)
+            lock (this)
             {
+                // Double-check that another thread didn't beat us to the operation
+                n = cache.Count - (2 * capacity) / 3;
+                if (n <= 0)
+                {
+                    return false;
+                }
+
+                //System.Diagnostics.Debug.WriteLine("Removing cache entries in MakeRoomLRU");
+
                 // LUCENENET: Loop in reverse so we can safely delete
                 // a range of items (0 - n) without a 
                 // "Collection was modified" conflict
