@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Lucene.Net.Facet.Taxonomy
 {
@@ -42,9 +42,7 @@ namespace Lucene.Net.Facet.Taxonomy
     public class LRUHashMap<TKey, TValue> : IDictionary<TKey, TValue>
     {
         private readonly Dictionary<TKey, CacheDataObject> cache;
-        // We can't use a ReaderWriterLockSlim because every read is also a 
-        // write, so we gain nothing by doing so
-        private readonly object syncLock = new object();
+        private readonly ReaderWriterLockSlim syncLock = new ReaderWriterLockSlim();
         // Record last access so we can tie break if 2 calls make it in within
         // the same millisecond.
         private long lastAccess;
@@ -73,20 +71,40 @@ namespace Lucene.Net.Facet.Taxonomy
         /// </summary>
         public virtual int Capacity
         {
-            get { return capacity; }
+            get
+            {
+                syncLock.EnterReadLock();
+                try
+                {
+                    return capacity;
+                }
+                finally
+                {
+                    syncLock.ExitReadLock();
+                }
+            }
             set
             {
-                if (value < 1)
+                syncLock.EnterWriteLock();
+                try
                 {
-                    throw new ArgumentOutOfRangeException("Capacity must be at least 1");
+                    if (value < 1)
+                    {
+                        throw new ArgumentOutOfRangeException("Capacity must be at least 1");
+                    }
+                    capacity = value;
                 }
-                capacity = value;
+                finally
+                {
+                    syncLock.ExitWriteLock();
+                }
             }
         }
 
         public bool Put(TKey key, TValue value)
         {
-            lock (syncLock)
+            syncLock.EnterWriteLock();
+            try
             { 
                 CacheDataObject cdo;
                 if (cache.TryGetValue(key, out cdo))
@@ -102,19 +120,25 @@ namespace Lucene.Net.Facet.Taxonomy
                         timestamp = GetTimestamp()
                     };
                     // We have added a new item, so we may need to remove the eldest
-                    if (cache.Count > Capacity)
+                    if (cache.Count > capacity)
                     {
                         // Remove the eldest item (lowest timestamp) from the cache
                         cache.Remove(cache.OrderBy(x => x.Value.timestamp).First().Key);
                     }
                 }
+
+                return true;
             }
-            return true;
+            finally
+            {
+                syncLock.ExitWriteLock();
+            }
         }
 
         public TValue Get(TKey key)
         {
-            lock (syncLock)
+            syncLock.EnterWriteLock();
+            try
             {
                 CacheDataObject cdo;
                 if (cache.TryGetValue(key, out cdo))
@@ -124,13 +148,19 @@ namespace Lucene.Net.Facet.Taxonomy
 
                     return cdo.value;
                 }
+
+                return default(TValue);
             }
-            return default(TValue);
+            finally
+            {
+                syncLock.ExitWriteLock();
+            }
         }
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            lock (syncLock)
+            syncLock.EnterWriteLock();
+            try
             {
                 CacheDataObject cdo;
                 if (cache.TryGetValue(key, out cdo))
@@ -145,20 +175,37 @@ namespace Lucene.Net.Facet.Taxonomy
                 value = default(TValue);
                 return false;
             }
+            finally
+            {
+                syncLock.ExitWriteLock();
+            }
         }
 
         public bool ContainsKey(TKey key)
         {
-            return cache.ContainsKey(key);
+            syncLock.EnterReadLock();
+            try
+            {
+                return cache.ContainsKey(key);
+            }
+            finally
+            {
+                syncLock.ExitReadLock();
+            }
         }
 
         public int Count
         {
             get
             {
-                lock (syncLock)
+                syncLock.EnterReadLock();
+                try
                 {
                     return cache.Count;
+                }
+                finally
+                {
+                    syncLock.ExitReadLock();
                 }
             }
         }
@@ -167,9 +214,14 @@ namespace Lucene.Net.Facet.Taxonomy
         {
             get
             {
-                lock (syncLock)
+                syncLock.EnterReadLock();
+                try
                 {
                     return cache.Keys;
+                }
+                finally
+                {
+                    syncLock.ExitReadLock();
                 }
             }
         }
@@ -239,9 +291,14 @@ namespace Lucene.Net.Facet.Taxonomy
 
         public void Clear()
         {
-            lock (syncLock)
+            syncLock.EnterWriteLock();
+            try
             {
                 cache.Clear();
+            }
+            finally
+            {
+                syncLock.ExitWriteLock();
             }
         }
 
