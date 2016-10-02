@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CSharpTest.Net.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Lucene.Net.Facet.Taxonomy.WriterCache
@@ -67,17 +68,11 @@ namespace Lucene.Net.Facet.Taxonomy.WriterCache
 
         private void CreateCache(int maxSize)
         {
-            // LUCENENET TODO: We don't have a LinkedHashMap in .NET (which is what the original implementation used), 
-            // and our LRUHashMap implementation doesn't pass the TestDirectoryTaxonomyWriter.TestConcurrency() test 
-            // (note that the test is testing more than one cache so you need to comment out all but the 
-            // NameIntCacheLRU to see it fail 100% of the time).
-            // This class can probably use less RAM if LRUHashMap can be made to work, but for now using
-            // the plain old generic Dictionary seems to work.
-            //if (maxSize < int.MaxValue)
-            //{
-            //    cache = new LRUHashMap<object, int>(1000); //for LRU
-            //}
-            //else
+            if (maxSize < int.MaxValue)
+            {
+                cache = new LurchTable<object, int>(1000, LurchTableOrder.Access); //for LRU
+            }
+            else
             {
                 cache = new Dictionary<object, int>(1000); //no need for LRU
             }

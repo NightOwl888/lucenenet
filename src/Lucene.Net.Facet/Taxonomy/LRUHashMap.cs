@@ -1,8 +1,7 @@
-﻿using System;
+﻿using CSharpTest.Net.Collections;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 
 namespace Lucene.Net.Facet.Taxonomy
 {
@@ -41,21 +40,11 @@ namespace Lucene.Net.Facet.Taxonomy
     /// </summary>
     public class LRUHashMap<TKey, TValue> : IDictionary<TKey, TValue>
     {
-        private readonly Dictionary<TKey, CacheDataObject> cache;
-        private readonly ReaderWriterLockSlim syncLock = new ReaderWriterLockSlim();
-        // Record last access so we can tie break if 2 calls make it in within
-        // the same millisecond.
-        private long lastAccess;
-        private int capacity;
+        private LurchTable<TKey, TValue> cache;
 
         public LRUHashMap(int capacity)
         {
-            if (capacity < 1)
-            {
-                throw new ArgumentOutOfRangeException("capacity must be at least 1");
-            }
-            this.capacity = capacity;
-            this.cache = new Dictionary<TKey, CacheDataObject>(capacity);
+            cache = new LurchTable<TKey, TValue>(LurchTableOrder.Access, capacity);
         }
 
         /// <summary>
@@ -73,124 +62,51 @@ namespace Lucene.Net.Facet.Taxonomy
         {
             get
             {
-                syncLock.EnterReadLock();
-                try
-                {
-                    return capacity;
-                }
-                finally
-                {
-                    syncLock.ExitReadLock();
-                }
+                return cache.Limit;
             }
             set
             {
-                syncLock.EnterWriteLock();
-                try
-                {
-                    if (value < 1)
-                    {
-                        throw new ArgumentOutOfRangeException("Capacity must be at least 1");
-                    }
-                    capacity = value;
-                }
-                finally
-                {
-                    syncLock.ExitWriteLock();
-                }
+                // LUCENENET TODO: Set cache size (LurchTable.Limit is readonly)
+                throw new NotImplementedException();
+                //if (value < 1)
+                //{
+                //    throw new ArgumentOutOfRangeException("Capacity must be at least 1");
+                //}
             }
         }
 
-        public bool Put(TKey key, TValue value)
+        public TValue Put(TKey key, TValue value)
         {
-            syncLock.EnterWriteLock();
-            try
-            { 
-                CacheDataObject cdo;
-                if (cache.TryGetValue(key, out cdo))
-                {
-                    // Item already exists, update our last access time
-                    cdo.timestamp = GetTimestamp();
-                }
-                else
-                {
-                    cache[key] = new CacheDataObject
-                    {
-                        value = value,
-                        timestamp = GetTimestamp()
-                    };
-                    // We have added a new item, so we may need to remove the eldest
-                    if (cache.Count > capacity)
-                    {
-                        // Remove the eldest item (lowest timestamp) from the cache
-                        cache.Remove(cache.OrderBy(x => x.Value.timestamp).First().Key);
-                    }
-                }
-
-                return true;
-            }
-            finally
+            TValue oldValue = default(TValue);
+            cache.AddOrUpdate(key, value, (k, v) =>
             {
-                syncLock.ExitWriteLock();
-            }
+                oldValue = cache[key];
+                return value;
+            });
+            return oldValue;
         }
 
         public TValue Get(TKey key)
         {
-            syncLock.EnterWriteLock();
-            try
+            TValue result;
+            if (!cache.TryGetValue(key, out result))
             {
-                CacheDataObject cdo;
-                if (cache.TryGetValue(key, out cdo))
-                {
-                    // Write our last access time
-                    cdo.timestamp = GetTimestamp();
-
-                    return cdo.value;
-                }
-
                 return default(TValue);
             }
-            finally
-            {
-                syncLock.ExitWriteLock();
-            }
+            return result;
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        #region IDictionary<TKey, TValue> members
+
+        public TValue this[TKey key]
         {
-            syncLock.EnterWriteLock();
-            try
+            get
             {
-                CacheDataObject cdo;
-                if (cache.TryGetValue(key, out cdo))
-                {
-                    // Write our last access time
-                    cdo.timestamp = GetTimestamp();
-                    value = cdo.value;
-
-                    return true;
-                }
-
-                value = default(TValue);
-                return false;
+                return cache[key];
             }
-            finally
+            set
             {
-                syncLock.ExitWriteLock();
-            }
-        }
-
-        public bool ContainsKey(TKey key)
-        {
-            syncLock.EnterReadLock();
-            try
-            {
-                return cache.ContainsKey(key);
-            }
-            finally
-            {
-                syncLock.ExitReadLock();
+                cache[key] = value;
             }
         }
 
@@ -198,39 +114,7 @@ namespace Lucene.Net.Facet.Taxonomy
         {
             get
             {
-                syncLock.EnterReadLock();
-                try
-                {
-                    return cache.Count;
-                }
-                finally
-                {
-                    syncLock.ExitReadLock();
-                }
-            }
-        }
-
-        public ICollection<TKey> Keys
-        {
-            get
-            {
-                syncLock.EnterReadLock();
-                try
-                {
-                    return cache.Keys;
-                }
-                finally
-                {
-                    syncLock.ExitReadLock();
-                }
-            }
-        }
-
-        public ICollection<TValue> Values
-        {
-            get
-            {
-                throw new NotSupportedException();
+                return cache.Count;
             }
         }
 
@@ -242,64 +126,35 @@ namespace Lucene.Net.Facet.Taxonomy
             }
         }
 
-        public TValue this[TKey key]
+        public ICollection<TKey> Keys
         {
             get
             {
-                return Get(key);
-            }
-            set
-            {
-                Put(key, value);
+                return cache.Keys;
             }
         }
 
-        private long GetTimestamp()
+        public ICollection<TValue> Values
         {
-            long ticks = DateTime.UtcNow.Ticks;
-            if (ticks <= lastAccess)
+            get
             {
-                // Tie break by incrementing
-                // when 2 calls happen within the
-                // same millisecond
-                ticks = ++lastAccess;
-            }
-            else
-            {
-                lastAccess = ticks;
-            }
-            return ticks;
-        }
-
-        public void Add(TKey key, TValue value)
-        {
-            Put(key, value);
-        }
-
-        public bool Remove(TKey key)
-        {
-            lock (syncLock)
-            {
-                return cache.Remove(key);
+                return cache.Values;
             }
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            Put(item.Key, item.Value);
+            throw new NotSupportedException();
+        }
+
+        public void Add(TKey key, TValue value)
+        {
+            cache.Add(key, value);
         }
 
         public void Clear()
         {
-            syncLock.EnterWriteLock();
-            try
-            {
-                cache.Clear();
-            }
-            finally
-            {
-                syncLock.ExitWriteLock();
-            }
+            cache.Clear();
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
@@ -307,9 +162,19 @@ namespace Lucene.Net.Facet.Taxonomy
             throw new NotSupportedException();
         }
 
+        public bool ContainsKey(TKey key)
+        {
+            return cache.ContainsKey(key);
+        }
+
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
             throw new NotSupportedException();
+        }
+
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            return cache.GetEnumerator();
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
@@ -317,29 +182,19 @@ namespace Lucene.Net.Facet.Taxonomy
             throw new NotSupportedException();
         }
 
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        public bool Remove(TKey key)
         {
-            throw new NotSupportedException();
+            return cache.Remove(key);
+        }
+
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            return cache.TryGetValue(key, out value);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
-        }
-
-
-        #region Nested type: CacheDataObject
-
-        private class CacheDataObject
-        {
-            // Ticks representing the last access time
-            public long timestamp;
-            public TValue value;
-
-            public override string ToString()
-            {
-                return "Last Access: " + timestamp.ToString() + " - " + value.ToString();
-            }
+            return cache.GetEnumerator();
         }
 
         #endregion
