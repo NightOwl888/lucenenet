@@ -67,7 +67,7 @@ namespace Lucene.Net.Codecs.Compressing
             // make sure that #writeField will fail to trigger an abort
             Document invalidDoc = new Document();
             FieldType fieldType = new FieldType();
-            fieldType.Stored = true;
+            fieldType.IsStored = true;
             invalidDoc.Add(new FieldAnonymousInnerClassHelper(this, fieldType));
 
             Assert.Throws<ArgumentException>(() =>
