@@ -163,7 +163,7 @@ namespace Lucene.Net.Util.Packed
                         for (int i = 0; i < valueCount; i++)
                         {
                             Assert.AreEqual(values[i], r.Next(), "index=" + i + " valueCount=" + valueCount + " nbits=" + nbits + " for " + r.GetType().Name);
-                            Assert.AreEqual(i, r.Ord());
+                            Assert.AreEqual(i, r.Ord);
                         }
                         Assert.AreEqual(fp, @in.FilePointer);
                         @in.Dispose();
@@ -1330,12 +1330,12 @@ namespace Lucene.Net.Util.Packed
                 BlockPackedWriter writer = new BlockPackedWriter(@out, blockSize);
                 for (int i = 0; i < valueCount; ++i)
                 {
-                    Assert.AreEqual(i, writer.Ord());
+                    Assert.AreEqual(i, writer.Ord);
                     writer.Add(values[i]);
                 }
-                Assert.AreEqual(valueCount, writer.Ord());
+                Assert.AreEqual(valueCount, writer.Ord);
                 writer.Finish();
-                Assert.AreEqual(valueCount, writer.Ord());
+                Assert.AreEqual(valueCount, writer.Ord);
                 long fp = @out.FilePointer;
                 @out.Dispose();
 
@@ -1362,7 +1362,7 @@ namespace Lucene.Net.Util.Packed
                         }
                         i += nextValues.Length;
                     }
-                    Assert.AreEqual(i, it.Ord());
+                    Assert.AreEqual(i, it.Ord);
                 }
                 Assert.AreEqual(fp, @in is ByteArrayDataInput ? ((ByteArrayDataInput)@in).Position : ((IndexInput)@in).FilePointer);
                 try
@@ -1390,7 +1390,7 @@ namespace Lucene.Net.Util.Packed
                     int skip = TestUtil.NextInt(Random(), 0, valueCount - k);
                     it2.Skip(skip);
                     k += skip;
-                    Assert.AreEqual(k, it2.Ord());
+                    Assert.AreEqual(k, it2.Ord);
                     if (k == valueCount)
                     {
                         break;
@@ -1452,12 +1452,12 @@ namespace Lucene.Net.Util.Packed
                 MonotonicBlockPackedWriter writer = new MonotonicBlockPackedWriter(@out, blockSize);
                 for (int i = 0; i < valueCount; ++i)
                 {
-                    Assert.AreEqual(i, writer.Ord());
+                    Assert.AreEqual(i, writer.Ord);
                     writer.Add(values[i]);
                 }
-                Assert.AreEqual(valueCount, writer.Ord());
+                Assert.AreEqual(valueCount, writer.Ord);
                 writer.Finish();
-                Assert.AreEqual(valueCount, writer.Ord());
+                Assert.AreEqual(valueCount, writer.Ord);
                 long fp = @out.FilePointer;
                 @out.Dispose();
 
@@ -1489,7 +1489,7 @@ namespace Lucene.Net.Util.Packed
             long valueOffset = TestUtil.NextLong(Random(), 0, valueCount - 1);
             for (long i = 0; i < valueCount; )
             {
-                Assert.AreEqual(i, writer.Ord());
+                Assert.AreEqual(i, writer.Ord);
                 if ((i & (blockSize - 1)) == 0 && (i + blockSize < valueOffset || i > valueOffset && i + blockSize < valueCount))
                 {
                     writer.AddBlockOfZeros();
