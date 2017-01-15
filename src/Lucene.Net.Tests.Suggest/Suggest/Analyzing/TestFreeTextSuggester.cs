@@ -146,7 +146,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                 }
             }
 
-            public IComparer<BytesRef> Comparator
+            public IComparer<BytesRef> Comparer
             {
                 get
                 {
@@ -334,7 +334,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                          ToString(sug.DoLookup("wizard of of", 10)));
         }
 
-        internal class ByScoreThenKeyComparator : IComparer<Lookup.LookupResult>
+        internal class ByScoreThenKeyComparer : IComparer<Lookup.LookupResult>
         {
             public int Compare(Lookup.LookupResult a, Lookup.LookupResult b)
             {
@@ -354,7 +354,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
             }
         }
 
-        private static IComparer<Lookup.LookupResult> byScoreThenKey = new ByScoreThenKeyComparator();
+        private static IComparer<Lookup.LookupResult> byScoreThenKey = new ByScoreThenKeyComparer();
 
         internal class TestRandomInputIterator : IInputIterator
         {
@@ -368,7 +368,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                 this.docs = docs;
             }
 
-            public IComparer<BytesRef> Comparator
+            public IComparer<BytesRef> Comparer
             {
                 get
                 {
