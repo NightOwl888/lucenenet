@@ -669,6 +669,8 @@
     <Compile Include="Support\PriorityQueue.cs" />
     <Compile Include="Support\ReaderWriterLockSlimExtensions.cs" />
     <Compile Include="Support\ReentrantLock.cs" />
+    <Compile Include="Support\Reference.cs" />
+    <Compile Include="Support\ReferenceQueue.cs" />
     <Compile Include="Support\SafeTextWriterWrapper.cs" />
     <Compile Include="Support\SetExtensions.cs" />
     <Compile Include="Support\SignedZeroComparer.cs" />
@@ -712,6 +714,7 @@
     <Compile Include="Support\ValueHashSet.cs" />
     <Compile Include="Support\ValueList.cs" />
     <Compile Include="Support\WeakDictionary.cs" />
+    <Compile Include="Support\WeakReference.cs" />
     <Compile Include="Support\WritableArrayAttribute.cs" />
     <Compile Include="Util\Accountable.cs" />
     <Compile Include="Util\ArrayInPlaceMergeSorter.cs" />
