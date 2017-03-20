@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Collections;
+using System.Diagnostics;
 
 namespace Lucene.Net.Util
 {
@@ -177,7 +178,7 @@ namespace Lucene.Net.Util
         /// event there are no more values left (instead of returning
         /// a null value in an extra enumeration).
         /// </summary>
-        private class KeyWrapper : IEnumerable<TKey>
+        internal class KeyWrapper : IEnumerable<TKey>
         {
             private readonly WeakIdentityMap<TKey, TValue> outerInstance;
             public KeyWrapper(WeakIdentityMap<TKey, TValue> outerInstance)
@@ -187,12 +188,116 @@ namespace Lucene.Net.Util
             public IEnumerator<TKey> GetEnumerator()
             {
                 outerInstance.Reap();
-                return new IteratorAnonymousInnerClassHelper(outerInstance);
+
+                // Get a clone of the iterator, so we can delete items from our backingStore
+                // without having to worry about "collection modified" exceptions.
+                IEnumerator<IdentityWeakReference> iterator = outerInstance.backingStore.Keys.ToList().GetEnumerator();
+                return new KeyEnumerator(this, iterator);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
                 return GetEnumerator();
+            }
+
+            private class KeyEnumerator : IEnumerator<TKey>
+            {
+                private readonly KeyWrapper outerInstance;
+                private readonly IEnumerator<IdentityWeakReference> iterator;
+                public KeyEnumerator(KeyWrapper outerInstance, IEnumerator<IdentityWeakReference> iterator)
+                {
+                    this.outerInstance = outerInstance;
+                    this.iterator = iterator;
+                }
+
+                private IdentityWeakReference nextRef = null;
+                // holds strong reference to next element in backing iterator:
+                private object next = null;
+                // the backing iterator was already consumed:
+                private bool nextIsSet = false;
+
+                internal bool HasNext()
+                {
+                    return nextIsSet || SetNext();
+                }
+
+                public TKey Current
+                {
+                    get
+                    {
+                        if (!HasNext())
+                        {
+                            // LUCENENET NOTE: This is unusual for .NET, but
+                            // to ensure that another thread didn't eat our last item,
+                            // we need to test for its presence here. The only logical thing to do
+                            // in this case is throw an exception (since it is already too late
+                            // to return false from MoveNext()) and expect that the caller will
+                            // catch the exception and skip over the loop if it happens.
+                            //throw new NoSuchElementException();
+                            return null;
+                        }
+
+                        try
+                        {
+                            return (TKey)next;
+                        }
+                        finally
+                        {
+                            // release strong reference and invalidate current value:
+                            nextIsSet = false;
+                            nextRef = null;
+                            next = null;
+                        }
+                    }
+                }
+
+                object IEnumerator.Current
+                {
+                    get
+                    {
+                        return Current;
+                    }
+                }
+
+                public void Dispose()
+                {
+                }
+
+                public bool MoveNext()
+                {
+                    return HasNext();
+                }
+
+                private bool SetNext()
+                {
+                    Debug.Assert(!nextIsSet);
+
+                    while (iterator.MoveNext())
+                    {
+                        nextRef = iterator.Current;
+                        next = nextRef.Target;
+                        if (next == null || (nextRef != null && !nextRef.IsAlive))
+                        {
+                            // the key was already GCed, we can remove it from backing map:
+                            outerInstance.outerInstance.backingStore.Remove(nextRef);
+                        }
+                        else
+                        {
+                            // unfold "null" special value:
+                            if (next == NULL)
+                            {
+                                next = null;
+                            }
+                            return nextIsSet = true;
+                        }
+                    }
+                    return false;
+                }
+
+                public void Reset()
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
 
@@ -250,88 +355,6 @@ namespace Lucene.Net.Util
             }
         }
 
-        private class IteratorAnonymousInnerClassHelper : IEnumerator<TKey>
-        {
-            private readonly WeakIdentityMap<TKey,TValue> outerInstance;
-
-            public IteratorAnonymousInnerClassHelper(WeakIdentityMap<TKey,TValue> outerInstance)
-            {
-                this.outerInstance = outerInstance;
-            }
-
-            // holds strong reference to next element in backing iterator:
-            private object next = null;
-            private int position = -1; // start before the beginning of the set
-
-            public TKey Current
-            {
-                get
-                {
-                    return (TKey)next;
-                }
-            }
-
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return Current;
-                }
-            }
-
-            public void Dispose()
-            {
-                // Nothing to do
-            }
-
-            
-            public bool MoveNext()
-            {
-                while (true)
-                {
-                    IdentityWeakReference key;
-
-                    // If the next position doesn't exist, exit
-                    if (++position >= outerInstance.backingStore.Count)
-                    {
-                        position--;
-                        return false;
-                    }
-                    try
-                    {
-                        key = outerInstance.backingStore.Keys.ElementAt(position);
-                    }
-                    catch (ArgumentOutOfRangeException)
-                    {
-                        // some other thread beat us to the last element (or removed a prior element) - fail gracefully.
-                        position--;
-                        return false;
-                    }
-                    if (!key.IsAlive)
-                    {
-                        outerInstance.backingStore.Remove(key);
-                        position--;
-                        continue;
-                    }
-                    // unfold "null" special value:
-                    if (key.Target == NULL)
-                    {
-                        next = null;
-                    }
-                    else
-                    {
-                        next = key.Target;
-                    }
-                    return true;
-                }
-            }
-
-            public void Reset()
-            {
-                throw new NotSupportedException();
-            }
-        }
-
         /// <summary>
         /// Returns an iterator over all values of this map.
         /// this iterator may return values whose key is already
@@ -357,18 +380,12 @@ namespace Lucene.Net.Util
         /// <seealso cref= <a href="#reapInfo">Information about the <code>reapOnRead</code> setting</a> </seealso>
         public void Reap()
         {
-            List<IdentityWeakReference> keysToRemove = new List<IdentityWeakReference>();
-            foreach (IdentityWeakReference zombie in backingStore.Keys)
+            foreach (IdentityWeakReference zombie in backingStore.Keys.ToArray())
             {
                 if (!zombie.IsAlive)
                 {
-                    keysToRemove.Add(zombie);
+                    backingStore.Remove(zombie);
                 }
-            }
-
-            foreach (var key in keysToRemove)
-            {
-                backingStore.Remove(key);
             }
         }
 
