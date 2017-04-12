@@ -199,6 +199,97 @@ namespace Lucene.Net.Analysis.Th
             }
         }
 
+        [Test]
+        public void TestAccessViolationException2()
+        {
+            int repeatCount = 100;
+
+            for (int i = 0; i < repeatCount; i++)
+            {
+                using (var stream = new System.IO.FileStream(@"F:\fail-scenario-2.log", System.IO.FileMode.Open))
+                {
+                    using (System.IO.StreamReader reader = new System.IO.StreamReader(stream))
+                    {
+                        string line;
+                        while (!string.IsNullOrEmpty((line = reader.ReadLine())))
+                        {
+                            var logItem = new LogItem(line);
+                            if (logItem.Method == LogItem.MethodEnum.GetWordBoundaries)
+                            {
+                                Icu.BreakIterator.GetWordBoundaries(logItem.Locale, logItem.Text, true);
+                            }
+                            else
+                            {
+                                Icu.BreakIterator.GetBoundaries(logItem.Type, logItem.Locale, logItem.Text);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        private class LogItem
+        {
+            public LogItem()
+            { }
+
+            public LogItem(string line)
+            {
+                int tabIndex;
+                string value;
+                string newLine = line;
+
+                try
+                {
+                    tabIndex = newLine.IndexOf('\t');
+                    value = newLine.Substring(0, tabIndex);
+                    this.Method = (MethodEnum)Enum.Parse(typeof(MethodEnum), value);
+                    newLine = newLine.Substring(tabIndex + 1);
+
+                    tabIndex = newLine.IndexOf('\t');
+                    value = newLine.Substring(0, tabIndex);
+                    this.Type = (Icu.BreakIterator.UBreakIteratorType)Enum.Parse(typeof(Icu.BreakIterator.UBreakIteratorType), value);
+                    newLine = newLine.Substring(tabIndex + 1);
+
+                    tabIndex = newLine.IndexOf('\t');
+                    value = newLine.Substring(0, tabIndex);
+                    this.Locale = new Icu.Locale(value.TrimStart('{').TrimEnd('}'));
+                    newLine = newLine.Substring(tabIndex + 1);
+
+                    this.Text = newLine;
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+
+            public enum MethodEnum
+            {
+                GetWordBoundaries,
+                GetBoundaries
+            }
+
+            public MethodEnum Method { get; set; }
+            public string Text { get; set; }
+            public Icu.Locale Locale { get; set; }
+            public Icu.BreakIterator.UBreakIteratorType Type { get; set; }
+
+            public override string ToString()
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.Append(Method.ToString());
+                sb.Append('\t');
+                sb.Append(Type.ToString());
+                sb.Append('\t');
+                sb.Append(Locale.ToString());
+                sb.Append('\t');
+                sb.Append(Text);
+                return sb.ToString();
+            }
+        }
+
 
         // LUCENE-3044
         [Test]
