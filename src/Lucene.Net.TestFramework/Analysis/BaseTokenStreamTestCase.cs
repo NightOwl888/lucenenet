@@ -918,7 +918,7 @@ namespace Lucene.Net.Analysis
             CheckAnalysisConsistency(random, a, useCharFilter, text, offsetsAreCorrect, null);
         }
 
-        private static void CheckAnalysisConsistency(Random random, Analyzer a, bool useCharFilter, string text, bool offsetsAreCorrect, Field field)
+        public static void CheckAnalysisConsistency(Random random, Analyzer a, bool useCharFilter, string text, bool offsetsAreCorrect, Field field)
         {
             if (VERBOSE)
             {

@@ -130,10 +130,10 @@ namespace Lucene.Net.Analysis.Th
 
         /// <summary>
         /// blast some random strings through the analyzer </summary>
-        [Test]
+        [Test, Repeat(15)]
         public virtual void TestRandomStrings()
         {
-            fail("LUCENENET TODO: AccessViolationException being thrown from icu-dotnet");
+            //fail("LUCENENET TODO: AccessViolationException being thrown from icu-dotnet");
             CheckRandomData(Random(), new ThaiAnalyzer(TEST_VERSION_CURRENT), 1000 * RANDOM_MULTIPLIER);
         }
 
@@ -143,10 +143,62 @@ namespace Lucene.Net.Analysis.Th
         [Test]
         public virtual void TestRandomHugeStrings()
         {
-            fail("LUCENENET TODO: AccessViolationException being thrown from icu-dotnet");
+            //fail("LUCENENET TODO: AccessViolationException being thrown from icu-dotnet");
             Random random = Random();
             CheckRandomData(random, new ThaiAnalyzer(TEST_VERSION_CURRENT), 100 * RANDOM_MULTIPLIER, 8192);
         }
+
+        [Test, LuceneNetSpecific]
+        public virtual void TestFixedStrings()
+        {
+            Random random = Random();
+            Analyzer a = new ThaiAnalyzer(TEST_VERSION_CURRENT);
+            bool useCharFilter = false;
+            bool offsetsAreCorrect = true;
+
+            Documents.FieldType ft = new Documents.FieldType();
+            ft.IndexOptions = Index.IndexOptions.DOCS_ONLY;
+            Documents.Field currentField = new Documents.Field("dummy", new System.IO.StringReader(""), ft);
+
+            string text = "Die Kommission mu├ƒ daher gew├ñhrleisten, da├ƒ jedes chemische Produkt verst├ñndlich gekennzeichnet ist, was den Gehalt an umweltfremden Stoffen anbelangt, und sie mu├ƒ sicherstellen, da├ƒ die Risikokategorie angegeben wird.";
+
+            CheckAnalysisConsistency(random, a, useCharFilter, text, offsetsAreCorrect, currentField);
+        }
+
+        [Test]
+        public void TestAccessViolationException()
+        {
+            try
+            {
+                int repeatCount = 100;
+
+                for (int i = 0; i < repeatCount; i++)
+                {
+                    var locale = new Icu.Locale("en_US");
+
+                    using (var stream = new System.IO.FileStream(@"F:\fail-scenario-1.log", System.IO.FileMode.Open))
+                    {
+                        using (System.IO.StreamReader reader = new System.IO.StreamReader(stream))
+                        {
+                            string text;
+                            while ((text = reader.ReadLine()) != null)
+                            {
+                                Icu.BreakIterator.GetWordBoundaries(locale, text, true);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (System.Reflection.TargetInvocationException tie)
+            {
+                Assert.Fail(tie.ToString());
+            }
+            catch (AccessViolationException ave)
+            {
+                Assert.Fail(ave.ToString());
+            }
+        }
+
 
         // LUCENE-3044
         [Test]

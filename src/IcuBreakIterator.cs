@@ -287,6 +287,8 @@ namespace Lucene.Net
             LoadBoundaries(m_start, m_end);
         }
 
+        private static List<LogItem> scenario = new List<LogItem>();
+
         private void LoadBoundaries(int start, int end)
         {
             IEnumerable<Icu.Boundary> icuBoundaries;
@@ -304,6 +306,25 @@ namespace Lucene.Net
                         offsetText = offsetText.Replace("-", "a");
                     }
 
+                    //var theString = "></p> djsmk '뿀붿꫟쑲 nfvpff uoaoa 𐬗𐬬𐬖 ޑv'ᚸ 蹖ￍ%\t qzzixz \u17fc\u17df៧ឌ 育⫫\u007f覺Ȥ zpetvk pdbfu miayv kakaox rapz ીળ૩વે emvm 𐑹𐑢 qd-vj ѹ󑣠鷖 oyrw ➸\u0017񃠛ʖP 㾐a󱩑Ο⛁ o|-s? ";
+                    //var br = new Util.BytesRef();
+
+                    //Util.UnicodeUtil.UTF16toUTF8(theString, 0, theString.Length, br);
+
+                    //string newString = br.Utf8ToString();
+
+
+                    //var newChars = Util.UnicodeUtil.(chars, 0, chars.Length);
+
+
+                    scenario.Add(new LogItem
+                    {
+                        Locale = locale,
+                        Method = LogItem.MethodEnum.GetWordBoundaries,
+                        Text = offsetText,
+                        Type = Icu.BreakIterator.UBreakIteratorType.WORD
+                    });
+
                     icuBoundaries = Icu.BreakIterator.GetWordBoundaries(locale, offsetText, true);
                 }
                 else
@@ -317,12 +338,22 @@ namespace Lucene.Net
                         offsetText = CapitalizeFirst(offsetText);
                     }
 
+                    scenario.Add(new LogItem
+                    {
+                        Locale = locale,
+                        Method = LogItem.MethodEnum.GetBoundaries,
+                        Text = offsetText,
+                        Type = type
+                    });
+
                     icuBoundaries = Icu.BreakIterator.GetBoundaries(type, locale, offsetText);
                 }
 #if !NETSTANDARD
             }
             catch (AccessViolationException ace)
             {
+                CreateLogFile(scenario);
+
                 // LUCENENET TODO: Find a reliable way to reproduce and report the 
                 // AccessViolationException that happens here to the icu-dotnet project team
                 throw new Exception("Hit AccessViolationException: " + ace.ToString(), ace);
@@ -334,6 +365,44 @@ namespace Lucene.Net
                 .SelectMany(b => b)
                 .Distinct()
                 .ToList();
+        }
+
+        private class LogItem
+        {
+            public enum MethodEnum
+            {
+                GetWordBoundaries,
+                GetBoundaries
+            }
+
+            public MethodEnum Method { get; set; }
+            public string Text { get; set; }
+            public Icu.Locale Locale { get; set; }
+            public Icu.BreakIterator.UBreakIteratorType Type { get; set; }
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder();
+                sb.Append(Method.ToString());
+                sb.Append('\t');
+                sb.Append(Type.ToString());
+                sb.Append('\t');
+                sb.Append(Locale.ToString());
+                sb.Append('\t');
+                sb.Append(Text);
+                return sb.ToString();
+            }
+        }
+
+        private void CreateLogFile(List<LogItem> list)
+        {
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"F:\fail-scenario.log", false, Encoding.UTF8))
+            {
+                foreach (var item in list)
+                {
+                    file.WriteLine(item.ToString());
+                }
+            } 
         }
 
         /// <summary>
