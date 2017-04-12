@@ -731,7 +731,7 @@ namespace Lucene.Net.Support
                 CheckBounds(offset, length, dst.Length);
                 if (length > Remaining)
                     throw new BufferUnderflowException();
-                System.Buffer.BlockCopy(hb, Ix(Position), dst, offset, length);
+                System.Array.Copy(hb, Ix(Position), dst, offset, length);
                 SetPosition(Position + length);
                 return this;
             }
@@ -763,7 +763,7 @@ namespace Lucene.Net.Support
                 CheckBounds(offset, length, src.Length);
                 if (length > Remaining)
                     throw new BufferOverflowException();
-                System.Buffer.BlockCopy(src, offset, hb, Ix(Position), length);
+                System.Array.Copy(src, offset, hb, Ix(Position), length);
                 SetPosition(Position + length);
                 return this;
             }
@@ -778,7 +778,7 @@ namespace Lucene.Net.Support
                     int n = sb.Remaining;
                     if (n > Remaining)
                         throw new BufferOverflowException();
-                    System.Buffer.BlockCopy(sb.hb, sb.Ix(sb.Position),
+                    System.Array.Copy(sb.hb, sb.Ix(sb.Position),
                                      hb, Ix(Position), n);
                     sb.SetPosition(sb.Position + n);
                     SetPosition(Position + n);
@@ -800,7 +800,7 @@ namespace Lucene.Net.Support
 
             public override ByteBuffer Compact()
             {
-                System.Buffer.BlockCopy(hb, Ix(Position), hb, Ix(0), Remaining);
+                System.Array.Copy(hb, Ix(Position), hb, Ix(0), Remaining);
                 SetPosition(Remaining);
                 SetLimit(Capacity);
                 DiscardMark();

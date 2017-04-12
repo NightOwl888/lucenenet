@@ -168,7 +168,7 @@ namespace Lucene.Net.Store
             {
                 IndexInput copiedData = d.OpenInput("copy" + i, IOContext.DEFAULT);
                 byte[] dataCopy = new byte[datalen];
-                System.Buffer.BlockCopy(data, 0, dataCopy, 0, 100); // copy the header for easy testing
+                System.Array.Copy(data, 0, dataCopy, 0, 100); // copy the header for easy testing
                 copiedData.ReadBytes(dataCopy, 100, datalen - 100);
                 Assert.AreEqual(data, dataCopy);
                 copiedData.Dispose();

@@ -83,7 +83,7 @@ namespace Lucene.Net.Store
         public override void WriteBytes(byte[] b, int offset, int length)
         {
             Debug.Assert(pos + length <= limit);
-            System.Buffer.BlockCopy(b, offset, bytes, pos, length);
+            System.Array.Copy(b, offset, bytes, pos, length);
             pos += length;
         }
     }

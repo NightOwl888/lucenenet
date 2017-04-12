@@ -101,7 +101,7 @@ namespace Lucene.Net.Store
                 {
                     length = (int)(end - pos);
                 }
-                System.Buffer.BlockCopy(file.GetBuffer(buffer++), 0, bytes, bytesUpto, length);
+                System.Array.Copy(file.GetBuffer(buffer++), 0, bytes, bytesUpto, length);
                 bytesUpto += length;
                 pos = nextPos;
             }
@@ -179,7 +179,7 @@ namespace Lucene.Net.Store
 
                 int remainInBuffer = currentBuffer.Length - bufferPosition;
                 int bytesToCopy = len < remainInBuffer ? len : remainInBuffer;
-                System.Buffer.BlockCopy(b, offset, currentBuffer, bufferPosition, bytesToCopy);
+                System.Array.Copy(b, offset, currentBuffer, bufferPosition, bytesToCopy);
                 offset += bytesToCopy;
                 len -= bytesToCopy;
                 bufferPosition += bytesToCopy;

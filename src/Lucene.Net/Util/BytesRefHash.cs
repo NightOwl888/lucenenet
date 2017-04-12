@@ -342,7 +342,7 @@ namespace Lucene.Net.Util
                     buffer[bufferUpto] = (byte)length;
                     pool.ByteUpto += length + 1;
                     Debug.Assert(length >= 0, "Length must be positive: " + length);
-                    System.Buffer.BlockCopy(bytes.Bytes, bytes.Offset, buffer, bufferUpto + 1, length);
+                    System.Array.Copy(bytes.Bytes, bytes.Offset, buffer, bufferUpto + 1, length);
                 }
                 else
                 {
@@ -350,7 +350,7 @@ namespace Lucene.Net.Util
                     buffer[bufferUpto] = unchecked((byte)(0x80 | (length & 0x7f)));
                     buffer[bufferUpto + 1] = unchecked((byte)((length >> 7) & 0xff));
                     pool.ByteUpto += length + 2;
-                    System.Buffer.BlockCopy(bytes.Bytes, bytes.Offset, buffer, bufferUpto + 2, length);
+                    System.Array.Copy(bytes.Bytes, bytes.Offset, buffer, bufferUpto + 2, length);
                 }
                 Debug.Assert(ids[hashPos] == -1);
                 ids[hashPos] = e;

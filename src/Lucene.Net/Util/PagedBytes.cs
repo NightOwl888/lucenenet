@@ -393,14 +393,14 @@ namespace Lucene.Net.Util
                     int left = offsetEnd - offset;
                     if (blockLeft < left)
                     {
-                        System.Buffer.BlockCopy(currentBlock, currentBlockUpto, b, offset, blockLeft);
+                        System.Array.Copy(currentBlock, currentBlockUpto, b, offset, blockLeft);
                         NextBlock();
                         offset += blockLeft;
                     }
                     else
                     {
                         // Last block
-                        System.Buffer.BlockCopy(currentBlock, currentBlockUpto, b, offset, left);
+                        System.Array.Copy(currentBlock, currentBlockUpto, b, offset, left);
                         currentBlockUpto += left;
                         break;
                     }
@@ -465,7 +465,7 @@ namespace Lucene.Net.Util
                     int blockLeft = outerInstance.blockSize - outerInstance.upto;
                     if (blockLeft < left)
                     {
-                        System.Buffer.BlockCopy(b, offset, outerInstance.currentBlock, outerInstance.upto, blockLeft);
+                        System.Array.Copy(b, offset, outerInstance.currentBlock, outerInstance.upto, blockLeft);
                         outerInstance.blocks.Add(outerInstance.currentBlock);
                         outerInstance.blockEnd.Add(outerInstance.blockSize);
                         outerInstance.currentBlock = new byte[outerInstance.blockSize];
@@ -475,7 +475,7 @@ namespace Lucene.Net.Util
                     else
                     {
                         // Last block
-                        System.Buffer.BlockCopy(b, offset, outerInstance.currentBlock, outerInstance.upto, left);
+                        System.Array.Copy(b, offset, outerInstance.currentBlock, outerInstance.upto, left);
                         outerInstance.upto += left;
                         break;
                     }

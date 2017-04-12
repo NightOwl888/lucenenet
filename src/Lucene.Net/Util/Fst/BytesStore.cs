@@ -102,7 +102,7 @@ namespace Lucene.Net.Util.Fst
                 int chunk = blockSize - nextWrite;
                 if (len <= chunk)
                 {
-                    System.Buffer.BlockCopy(b, offset, current, nextWrite, len);
+                    System.Array.Copy(b, offset, current, nextWrite, len);
                     nextWrite += len;
                     break;
                 }

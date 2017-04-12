@@ -307,7 +307,7 @@ namespace Lucene.Net.Index
             string s = TestUtil.RandomFixedByteLengthUnicodeString(Random(), data.Length);
             var b = s.GetBytes(Utf8);
             Debug.Assert(b.Length == data.Length);
-            System.Buffer.BlockCopy(b, 0, data, 0, b.Length);
+            System.Array.Copy(b, 0, data, 0, b.Length);
         }
 
         private byte[] GenerateRandomData(int n)

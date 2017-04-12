@@ -846,7 +846,7 @@ namespace Lucene.Net.Codecs
                             {
                                 this.floorData = new byte[ArrayUtil.Oversize(frameIndexData.Length, 1)];
                             }
-                            System.Buffer.BlockCopy(frameIndexData.Bytes, frameIndexData.Offset, floorData, 0, frameIndexData.Length);
+                            System.Array.Copy(frameIndexData.Bytes, frameIndexData.Offset, floorData, 0, frameIndexData.Length);
                             floorDataReader.Reset(floorData, 0, frameIndexData.Length);
                             // Skip first long -- has redundant fp, hasTerms
                             // flag, isFloor flag
@@ -1253,7 +1253,7 @@ namespace Lucene.Net.Codecs
                             {
                                 term.Bytes = ArrayUtil.Grow(term.Bytes, term.Length);
                             }
-                            System.Buffer.BlockCopy(currentFrame.suffixBytes, currentFrame.startBytePos, term.Bytes, currentFrame.prefix, currentFrame.suffix);
+                            System.Array.Copy(currentFrame.suffixBytes, currentFrame.startBytePos, term.Bytes, currentFrame.prefix, currentFrame.suffix);
 
                             if (isSubBlock && StringHelper.StartsWith(target, term))
                             {
@@ -1299,7 +1299,7 @@ namespace Lucene.Net.Codecs
                                     currentFrame.suffix = saveSuffix;
                                     currentFrame.suffixesReader.Position = savePos;
                                     currentFrame.termState.TermBlockOrd = saveTermBlockOrd;
-                                    System.Buffer.BlockCopy(currentFrame.suffixBytes, currentFrame.startBytePos, term.Bytes, currentFrame.prefix, currentFrame.suffix);
+                                    System.Array.Copy(currentFrame.suffixBytes, currentFrame.startBytePos, term.Bytes, currentFrame.prefix, currentFrame.suffix);
                                     term.Length = currentFrame.prefix + currentFrame.suffix;
                                     // If the last entry was a block we don't
                                     // need to bother recursing and pushing to
@@ -1496,7 +1496,7 @@ namespace Lucene.Net.Codecs
                     {
                         term.Bytes = ArrayUtil.Grow(term.Bytes, len);
                     }
-                    System.Buffer.BlockCopy(currentFrame.suffixBytes, currentFrame.startBytePos, term.Bytes, currentFrame.prefix, currentFrame.suffix);
+                    System.Array.Copy(currentFrame.suffixBytes, currentFrame.startBytePos, term.Bytes, currentFrame.prefix, currentFrame.suffix);
                     term.Length = len;
                 }
 
@@ -2780,7 +2780,7 @@ namespace Lucene.Net.Codecs
                         {
                             floorData = new byte[ArrayUtil.Oversize(numBytes, 1)];
                         }
-                        System.Buffer.BlockCopy(source.Bytes, source.Offset + @in.Position, floorData, 0, numBytes);
+                        System.Array.Copy(source.Bytes, source.Offset + @in.Position, floorData, 0, numBytes);
                         floorDataReader.Reset(floorData, 0, numBytes);
                         numFollowFloorBlocks = floorDataReader.ReadVInt32();
                         nextFloorLabel = floorDataReader.ReadByte() & 0xff;
@@ -3505,7 +3505,7 @@ namespace Lucene.Net.Codecs
                         {
                             outerInstance.term.Grow(termLength);
                         }
-                        System.Buffer.BlockCopy(suffixBytes, startBytePos, outerInstance.term.Bytes, prefix, suffix);
+                        System.Array.Copy(suffixBytes, startBytePos, outerInstance.term.Bytes, prefix, suffix);
                     }
                 }
             }

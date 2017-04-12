@@ -76,7 +76,7 @@ namespace Lucene.Net.Store
             if (bytesLeft >= length)
             {
                 // we add the data to the end of the buffer
-                System.Buffer.BlockCopy(b, offset, buffer, bufferPosition, length);
+                System.Array.Copy(b, offset, buffer, bufferPosition, length);
                 bufferPosition += length;
                 // if the buffer is full, flush it
                 if (bufferSize - bufferPosition == 0)
@@ -107,7 +107,7 @@ namespace Lucene.Net.Store
                     while (pos < length)
                     {
                         pieceLength = (length - pos < bytesLeft) ? length - pos : bytesLeft;
-                        System.Buffer.BlockCopy(b, pos + offset, buffer, bufferPosition, pieceLength);
+                        System.Array.Copy(b, pos + offset, buffer, bufferPosition, pieceLength);
                         pos += pieceLength;
                         bufferPosition += pieceLength;
                         // if the buffer is full, flush it

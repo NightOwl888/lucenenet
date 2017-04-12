@@ -64,7 +64,7 @@ namespace Lucene.Net.Util
         {
             int newLength = Length + len;
             bytes = ArrayUtil.Grow(bytes, newLength);
-            System.Buffer.BlockCopy(b, off, bytes, Length, len);
+            System.Array.Copy(b, off, bytes, Length, len);
             Length = newLength;
         }
     }

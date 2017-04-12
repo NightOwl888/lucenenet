@@ -1384,7 +1384,7 @@ namespace Lucene.Net.Util
         public static byte[] ToByteArray(this sbyte[] arr)
         {
             var unsigned = new byte[arr.Length];
-            System.Buffer.BlockCopy(arr, 0, unsigned, 0, arr.Length);
+            System.Array.Copy(arr, 0, unsigned, 0, arr.Length);
             return unsigned;
         }
     }
