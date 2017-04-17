@@ -1,105 +1,59 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{35C347F4-24B2-4BE5-8117-A0E3001551CE}</ProjectGuid>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Lucene.Net.Spatial</RootNamespace>
+    <VersionPrefix>4.8.0</VersionPrefix>
+    <TargetFrameworks>netstandard1.5;net451</TargetFrameworks>
     <AssemblyName>Lucene.Net.Spatial</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <PackageId>Lucene.Net.Spatial</PackageId>
+    <PackageTags>lucene.net;core;text;search;information;retrieval;lucene;apache;analysis;index;query</PackageTags>
+    <PackageIconUrl>https://github.com/apache/lucenenet/blob/master/branding/logo/lucene-net-icon-128x128.png?raw=true</PackageIconUrl>
+    <PackageLicenseUrl>https://github.com/apache/lucenenet/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/apache/lucenenet</RepositoryUrl>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.5' ">$(PackageTargetFallback);dnxcore50;portable-net403+sl5+win8+wp8+wpa81</PackageTargetFallback>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.5' ">1.6.0</NetStandardImplicitPackageVersion>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);FEATURE_SERIALIZABLE</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
+
   <ItemGroup>
+    <ProjectReference Include="..\Lucene.Net.Queries\Lucene.Net.Queries.csproj" />
+    <ProjectReference Include="..\Lucene.Net\Lucene.Net.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
+    <ProjectReference Include="..\Lucene.Net\Lucene.Net.csproj" />
     <Reference Include="System" />
-    <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="DisjointSpatialFilter.cs" />
-    <Compile Include="Prefix\AbstractPrefixTreeFilter.cs" />
-    <Compile Include="Prefix\AbstractVisitingPrefixTreeFilter.cs" />
-    <Compile Include="Prefix\ContainsPrefixTreeFilter.cs" />
-    <Compile Include="Prefix\IntersectsPrefixTreeFilter.cs" />
-    <Compile Include="Prefix\PointPrefixTreeFieldCacheProvider.cs" />
-    <Compile Include="Prefix\PrefixTreeStrategy.cs" />
-    <Compile Include="Prefix\RecursivePrefixTreeStrategy.cs" />
-    <Compile Include="Prefix\TermQueryPrefixTreeStrategy.cs" />
-    <Compile Include="Prefix\Tree\Cell.cs" />
-    <Compile Include="Prefix\Tree\GeohashPrefixTree.cs" />
-    <Compile Include="Prefix\Tree\QuadPrefixTree.cs" />
-    <Compile Include="Prefix\Tree\SpatialPrefixTree.cs" />
-    <Compile Include="Prefix\Tree\SpatialPrefixTreeFactory.cs" />
-    <Compile Include="Prefix\WithinPrefixTreeFilter.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Query\SpatialArgs.cs" />
-    <Compile Include="Query\SpatialArgsParser.cs" />
-    <Compile Include="Query\SpatialOperation.cs" />
-    <Compile Include="Query\UnsupportedSpatialOperation.cs" />
-    <Compile Include="Serialized\SerializedDVStrategy.cs" />
-    <Compile Include="SpatialStrategy.cs" />
-    <Compile Include="Util\DistanceToShapeValueSource.cs" />
-    <Compile Include="Util\ShapeFieldCacheDistanceValueSource.cs" />
-    <Compile Include="Util\CachingDoubleValueSource.cs" />
-    <Compile Include="Util\ShapeFieldCache.cs" />
-    <Compile Include="Util\ShapeFieldCacheProvider.cs" />
-    <Compile Include="Util\ShapePredicateValueSource.cs" />
-    <Compile Include="Util\ValueSourceFilter.cs" />
-    <Compile Include="Vector\DistanceValueSource.cs" />
-    <Compile Include="Vector\PointVectorStrategy.cs" />
-	<Compile Include="..\CommonAssemblyInfo.cs">
-      <Link>Properties\CommonAssemblyInfo.cs</Link>
-    </Compile>
+    <PackageReference Include="GeoAPI" Version="1.7.4" />
+    <PackageReference Include="NetTopologySuite" Version="1.14" />
+    <PackageReference Include="Spatial4n.Core" Version="0.4.1.1-beta" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Lucene.Net\Lucene.Net.csproj">
-      <Project>{5d4ad9be-1ffb-41ab-9943-25737971bf57}</Project>
-      <Name>Lucene.Net</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Lucene.Net.Queries\Lucene.Net.Queries.csproj">
-      <Project>{69D7956C-C2CC-4708-B399-A188FEC384C4}</Project>
-      <Name>Lucene.Net.Queries</Name>
-    </ProjectReference>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
+    <DefineConstants>$(DefineConstants);NETSTANDARD</DefineConstants>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
+    <Compile Include="..\CommonAssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Lucene.Net.Spatial.project.json" />
-    <None Include="project.json" />
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
+    <DefineConstants>$(DefineConstants);FEATURE_SERIALIZABLE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
+    <Compile Include="..\CommonAssemblyInfo.cs" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>
