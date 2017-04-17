@@ -1,12 +1,11 @@
 ﻿#if FEATURE_BREAKITERATOR
-using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace Lucene.Net
+namespace Lucene.Net.Support
 {
     /*
 	 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -32,7 +31,7 @@ namespace Lucene.Net
     /// defined by the <see cref="Icu.BreakIterator.UBreakIteratorType"/> enumeration.
     /// </summary>
     // LUCENENET specific type
-    public class IcuBreakIterator : BreakIterator
+    internal class IcuBreakIterator : BreakIterator
     {
         private readonly Icu.Locale locale;
         private readonly Icu.BreakIterator.UBreakIteratorType type;
