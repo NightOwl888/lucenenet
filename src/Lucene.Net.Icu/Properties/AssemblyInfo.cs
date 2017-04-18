@@ -3,18 +3,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("Lucene.Net.Icu")]
-[assembly: AssemblyDescription(
-    "International Components for Unicode-based features including Thai analyzer support, " +
-    "an international postings highlighter, and BreakIterator support for the vector highlighter in Lucene.Net.Highlighter " +
-    "for the Lucene.Net full-text search engine library from The Apache Software Foundation.")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyDefaultAlias("Lucene.Net.Icu")]
-[assembly: AssemblyCulture("")]
-
 [assembly: CLSCompliant(true)]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -27,5 +15,3 @@ using System.Runtime.InteropServices;
 
 // for testing
 [assembly: InternalsVisibleTo("Lucene.Net.Tests.Icu")]
-
-// NOTE: Version information is in CommonAssemblyInfo.cs

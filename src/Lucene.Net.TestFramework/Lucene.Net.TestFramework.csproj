@@ -1,21 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>4.8.0</VersionPrefix>
     <TargetFrameworks>netstandard1.6;net451</TargetFrameworks>
-    <AssemblyName>Lucene.Net.TestFramework</AssemblyName>
-    <PackageId>Lucene.Net.TestFramework</PackageId>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.6' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.6' ">1.6.0</NetStandardImplicitPackageVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
+
+  <Import Project="..\Common.csproj" />
+
+  <PropertyGroup>
+    <AssemblyName>Lucene.Net.TestFramework</AssemblyName>
+    <Description>Framework for testing Lucene.Net-based applications from The Apache Software Foundation.</Description>
+    <GeneratePackageOnBuild Condition=" '$(GeneratePackageOnBuild)' != '' ">False</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,10 +32,6 @@
     <Compile Remove="Util\TestRuleStoreClassName.cs" />
     <Compile Remove="Util\TestRuleThreadAndTestName.cs" />
     <Compile Remove="Util\TestSecurityManager.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\CommonAssemblyInfo.cs" />
   </ItemGroup>
 
   <ItemGroup>

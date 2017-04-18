@@ -1,39 +1,8 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-//
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-//
-[assembly: AssemblyTitle("Lucene.Net")]
-[assembly: AssemblyDescription(
-    "Lucene.Net is a full-text search engine library capable of advanced text analysis, indexing, and searching. "
-    + "It can be used to easily add search capabilities to applications. " 
-    + "Lucene.Net is a C# port of the popular Java Lucene search engine framework from " 
-    + "The Apache Software Foundation, targeted at .NET Framework and .NET Core users.")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyDefaultAlias("Lucene.Net")]
-[assembly: AssemblyCulture("")]
 [assembly: CLSCompliant(true)]
 
 // LUCENENET NOTE: This attribute is required to disable optimizations so the 
@@ -63,8 +32,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Lucene.Net.Tests.Icu")] // For Analysis.Util.TestSegmentingTokenizerBase
 [assembly: InternalsVisibleTo("Lucene.Net.Tests.Misc")]
 [assembly: InternalsVisibleTo("Lucene.Net.Tests.QueryParser")]
-
-// NOTE: Version information is in CommonAssemblyInfo.cs
 
 //
 // In order to sign your assembly you must specify a key to use. Refer to the 

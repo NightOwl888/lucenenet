@@ -1,26 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>4.8.0</VersionPrefix>
     <TargetFrameworks>net451</TargetFrameworks>
-    <DebugType Condition="'$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp1.0'">Full</DebugType>
-    <AssemblyName>Lucene.Net.Tests</AssemblyName>
-    <PackageId>Lucene.Net.Tests</PackageId>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <RuntimeIdentifiers>win7-x86;win7-x64</RuntimeIdentifiers>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
-    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">1.0.4</RuntimeFrameworkVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <TargetFrameworks Condition=" '$(TestTargetFrameworks)' != ''">$(TestTargetFrameworks)</TargetFrameworks>
+    <PackageTargetFallback Condition=" $(TargetFramework.StartsWith('netcoreapp')) ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <RuntimeFrameworkVersion Condition=" $(TargetFramework.StartsWith('netcoreapp')) ">1.0.4</RuntimeFrameworkVersion>
+    <DebugType Condition="!$(TargetFramework.StartsWith('netcoreapp'))">Full</DebugType>
   </PropertyGroup>
 
+  <Import Project="..\Common.csproj" />
+
+  <PropertyGroup>
+    <AssemblyName>Lucene.Net.Tests</AssemblyName>
+    <GeneratePackageOnBuild Condition=" '$(GeneratePackageOnBuild)' != '' ">False</GeneratePackageOnBuild>
+  </PropertyGroup>
+  
   <ItemGroup>
     <None Remove="TestResult.xml" />
   </ItemGroup>
@@ -43,6 +37,10 @@
     <PackageReference Include="NUnit" Version="3.6.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Index\bogus24.upgraded.to.36.zip;Index\index.30.cfs.zip;Index\index.30.nocfs.zip;Index\index.31.cfs.zip;Index\index.31.nocfs.zip;Index\index.31.optimized.cfs.zip;Index\index.31.optimized.nocfs.zip;Index\index.32.cfs.zip;Index\index.32.nocfs.zip;Index\index.34.cfs.zip;Index\index.34.nocfs.zip;Index\index.36.surrogates.zip;Index\index.40.cfs.zip;Index\index.40.nocfs.zip;Index\index.40.optimized.cfs.zip;Index\index.40.optimized.nocfs.zip;Index\index.41.cfs.zip;Index\index.41.nocfs.zip;Index\index.42.cfs.zip;Index\index.42.nocfs.zip;Index\index.45.cfs.zip;Index\index.45.nocfs.zip;Index\index.461.cfs.zip;Index\index.461.nocfs.zip;Index\moreterms.40.zip;Index\unsupported.19.cfs.zip;Index\unsupported.19.nocfs.zip;Index\unsupported.20.cfs.zip;Index\unsupported.20.nocfs.zip;Index\unsupported.21.cfs.zip;Index\unsupported.21.nocfs.zip;Index\unsupported.22.cfs.zip;Index\unsupported.22.nocfs.zip;Index\unsupported.23.cfs.zip;Index\unsupported.23.nocfs.zip;Index\unsupported.24.cfs.zip;Index\unsupported.24.nocfs.zip;Index\unsupported.29.cfs.zip;Index\unsupported.29.nocfs.zip;Support\ReadFully.txt" />
+  </ItemGroup>
+
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
     <DefineConstants>$(DefineConstants);NETSTANDARD;FEATURE_TASKMERGESCHEDULER</DefineConstants>
     <DebugType>portable</DebugType>
@@ -50,8 +48,6 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
     <Compile Remove="Util\JunitCompat\**\*;Support\TestApiConsistency.cs;Support\TestCase.cs;Util\TestMaxFailuresRule.cs" />
-    <Compile Include="..\CommonAssemblyInfo.cs" Exclude="Support\TestApiConsistency.cs;Support\TestCase.cs;Util\TestMaxFailuresRule.cs" />
-    <EmbeddedResource Include="Index\bogus24.upgraded.to.36.zip;Index\index.30.cfs.zip;Index\index.30.nocfs.zip;Index\index.31.cfs.zip;Index\index.31.nocfs.zip;Index\index.31.optimized.cfs.zip;Index\index.31.optimized.nocfs.zip;Index\index.32.cfs.zip;Index\index.32.nocfs.zip;Index\index.34.cfs.zip;Index\index.34.nocfs.zip;Index\index.36.surrogates.zip;Index\index.40.cfs.zip;Index\index.40.nocfs.zip;Index\index.40.optimized.cfs.zip;Index\index.40.optimized.nocfs.zip;Index\index.41.cfs.zip;Index\index.41.nocfs.zip;Index\index.42.cfs.zip;Index\index.42.nocfs.zip;Index\index.45.cfs.zip;Index\index.45.nocfs.zip;Index\index.461.cfs.zip;Index\index.461.nocfs.zip;Index\moreterms.40.zip;Index\unsupported.19.cfs.zip;Index\unsupported.19.nocfs.zip;Index\unsupported.20.cfs.zip;Index\unsupported.20.nocfs.zip;Index\unsupported.21.cfs.zip;Index\unsupported.21.nocfs.zip;Index\unsupported.22.cfs.zip;Index\unsupported.22.nocfs.zip;Index\unsupported.23.cfs.zip;Index\unsupported.23.nocfs.zip;Index\unsupported.24.cfs.zip;Index\unsupported.24.nocfs.zip;Index\unsupported.29.cfs.zip;Index\unsupported.29.nocfs.zip;Support\ReadFully.txt" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
@@ -60,8 +56,6 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Compile Remove="Util\JunitCompat\**\*;Util\TestMaxFailuresRule.cs" />
-    <Compile Include="..\CommonAssemblyInfo.cs" Exclude="Util\TestMaxFailuresRule.cs" />
-    <EmbeddedResource Include="Index\bogus24.upgraded.to.36.zip;Index\index.30.cfs.zip;Index\index.30.nocfs.zip;Index\index.31.cfs.zip;Index\index.31.nocfs.zip;Index\index.31.optimized.cfs.zip;Index\index.31.optimized.nocfs.zip;Index\index.32.cfs.zip;Index\index.32.nocfs.zip;Index\index.34.cfs.zip;Index\index.34.nocfs.zip;Index\index.36.surrogates.zip;Index\index.40.cfs.zip;Index\index.40.nocfs.zip;Index\index.40.optimized.cfs.zip;Index\index.40.optimized.nocfs.zip;Index\index.41.cfs.zip;Index\index.41.nocfs.zip;Index\index.42.cfs.zip;Index\index.42.nocfs.zip;Index\index.45.cfs.zip;Index\index.45.nocfs.zip;Index\index.461.cfs.zip;Index\index.461.nocfs.zip;Index\moreterms.40.zip;Index\unsupported.19.cfs.zip;Index\unsupported.19.nocfs.zip;Index\unsupported.20.cfs.zip;Index\unsupported.20.nocfs.zip;Index\unsupported.21.cfs.zip;Index\unsupported.21.nocfs.zip;Index\unsupported.22.cfs.zip;Index\unsupported.22.nocfs.zip;Index\unsupported.23.cfs.zip;Index\unsupported.23.nocfs.zip;Index\unsupported.24.cfs.zip;Index\unsupported.24.nocfs.zip;Index\unsupported.29.cfs.zip;Index\unsupported.29.nocfs.zip;Support\ReadFully.txt" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">

@@ -1,25 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>4.8.0</VersionPrefix>
     <TargetFrameworks>netstandard1.5;net451</TargetFrameworks>
-    <AssemblyName>Lucene.Net.Grouping</AssemblyName>
-    <PackageId>Lucene.Net.Grouping</PackageId>
-    <PackageTags>lucene.net;core;text;search;information;retrieval;lucene;apache;analysis;index;query</PackageTags>
-    <PackageIconUrl>https://github.com/apache/lucenenet/blob/master/branding/logo/lucene-net-icon-128x128.png?raw=true</PackageIconUrl>
-    <PackageLicenseUrl>https://github.com/apache/lucenenet/blob/master/LICENSE.txt</PackageLicenseUrl>
-    <RepositoryUrl>https://github.com/apache/lucenenet</RepositoryUrl>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.5' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.5' ">1.6.0</NetStandardImplicitPackageVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
+
+  <Import Project="..\Common.csproj" />
+
+  <PropertyGroup>
+    <AssemblyName>Lucene.Net.Grouping</AssemblyName>
+    <Description>Collectors for grouping search results for the Lucene.Net full-text search engine library from The Apache Software Foundation.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,17 +22,9 @@
     <DebugType>portable</DebugType>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
-    <Compile Include="..\CommonAssemblyInfo.cs" />
-  </ItemGroup>
-
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <DefineConstants>$(DefineConstants);FEATURE_SERIALIZABLE</DefineConstants>
   </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
-    <Compile Include="..\CommonAssemblyInfo.cs" />
-  </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Reference Include="System" />

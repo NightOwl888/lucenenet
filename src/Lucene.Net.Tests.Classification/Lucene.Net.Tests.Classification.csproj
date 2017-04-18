@@ -1,24 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>4.8.0</VersionPrefix>
     <TargetFrameworks>net451</TargetFrameworks>
-    <DebugType Condition="'$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp1.0'">Full</DebugType>
+    <TargetFrameworks Condition=" '$(TestTargetFrameworks)' != ''">$(TestTargetFrameworks)</TargetFrameworks>
+    <PackageTargetFallback Condition=" $(TargetFramework.StartsWith('netcoreapp')) ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <RuntimeFrameworkVersion Condition=" $(TargetFramework.StartsWith('netcoreapp')) ">1.0.4</RuntimeFrameworkVersion>
+    <DebugType Condition="!$(TargetFramework.StartsWith('netcoreapp'))">Full</DebugType>
+  </PropertyGroup>
+
+  <Import Project="..\Common.csproj" />
+
+  <PropertyGroup>
     <AssemblyName>Lucene.Net.Tests.Classification</AssemblyName>
-    <PackageId>Lucene.Net.Tests.Classification</PackageId>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <RuntimeIdentifiers>win7-x86;win7-x64</RuntimeIdentifiers>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
-    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">1.0.4</RuntimeFrameworkVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <GeneratePackageOnBuild Condition=" '$(GeneratePackageOnBuild)' != '' ">False</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -43,16 +37,11 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
     <Compile Remove="Support\TestApiConsistency.cs" />
-    <Compile Include="..\CommonAssemblyInfo.cs" Exclude="Support\TestApiConsistency.cs" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <DefineConstants>$(DefineConstants);FEATURE_SERIALIZABLE</DefineConstants>
   </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
-    <Compile Include="..\CommonAssemblyInfo.cs" />
-  </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Reference Include="System" />

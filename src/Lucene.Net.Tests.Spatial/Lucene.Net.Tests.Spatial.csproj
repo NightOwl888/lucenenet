@@ -1,25 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>4.8.0</VersionPrefix>
     <TargetFrameworks>net451</TargetFrameworks>
-    <DebugType Condition="'$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp1.0'">Full</DebugType>
+    <TargetFrameworks Condition=" '$(TestTargetFrameworks)' != ''">$(TestTargetFrameworks)</TargetFrameworks>
+    <PackageTargetFallback Condition=" $(TargetFramework.StartsWith('netcoreapp')) ">$(PackageTargetFallback);dnxcore50;portable-net403+sl5+win8+wp8+wpa81</PackageTargetFallback>
+    <RuntimeFrameworkVersion Condition=" $(TargetFramework.StartsWith('netcoreapp')) ">1.0.4</RuntimeFrameworkVersion>
+    <DebugType Condition="!$(TargetFramework.StartsWith('netcoreapp'))">Full</DebugType>
+  </PropertyGroup>
+
+  <Import Project="..\Common.csproj" />
+
+  <PropertyGroup>
     <AssemblyName>Lucene.Net.Tests.Spatial</AssemblyName>
-    <PackageId>Lucene.Net.Tests.Spatial</PackageId>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <RuntimeIdentifiers>win7-x86;win7-x64</RuntimeIdentifiers>
-    <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);dnxcore50;portable-net403+sl5+win8+wp8+wpa81</PackageTargetFallback>
-    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">1.0.4</RuntimeFrameworkVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <GeneratePackageOnBuild Condition=" '$(GeneratePackageOnBuild)' != '' ">False</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,6 +30,10 @@
     <PackageReference Include="NUnit" Version="3.6.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Test-Files\cities-Intersects-BBox.txt;Test-Files\Data\countries-bbox.txt;Test-Files\Data\countries-poly.txt;Test-Files\Data\geonames-IE.txt;Test-Files\Data\LUCENE-4464.txt;Test-Files\Data\simple-bbox.txt;Test-Files\Data\states-bbox.txt;Test-Files\Data\states-poly.txt;Test-Files\Data\world-cities-points.txt;Test-Files\simple-Queries-BBox.txt;Test-Files\states-Intersects-BBox.txt;Test-Files\states-IsWithin-BBox.txt" />
+  </ItemGroup>
+
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
     <DefineConstants>$(DefineConstants);NETSTANDARD</DefineConstants>
     <DebugType>portable</DebugType>
@@ -44,18 +41,11 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
     <Compile Remove="Support\TestApiConsistency.cs" />
-    <Compile Include="..\CommonAssemblyInfo.cs" Exclude="Support\TestApiConsistency.cs" />
-    <EmbeddedResource Include="Test-Files\cities-Intersects-BBox.txt;Test-Files\Data\countries-bbox.txt;Test-Files\Data\countries-poly.txt;Test-Files\Data\geonames-IE.txt;Test-Files\Data\LUCENE-4464.txt;Test-Files\Data\simple-bbox.txt;Test-Files\Data\states-bbox.txt;Test-Files\Data\states-poly.txt;Test-Files\Data\world-cities-points.txt;Test-Files\simple-Queries-BBox.txt;Test-Files\states-Intersects-BBox.txt;Test-Files\states-IsWithin-BBox.txt" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <DefineConstants>$(DefineConstants);FEATURE_SERIALIZABLE</DefineConstants>
   </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
-    <Compile Include="..\CommonAssemblyInfo.cs" />
-    <EmbeddedResource Include="Test-Files\cities-Intersects-BBox.txt;Test-Files\Data\countries-bbox.txt;Test-Files\Data\countries-poly.txt;Test-Files\Data\geonames-IE.txt;Test-Files\Data\LUCENE-4464.txt;Test-Files\Data\simple-bbox.txt;Test-Files\Data\states-bbox.txt;Test-Files\Data\states-poly.txt;Test-Files\Data\world-cities-points.txt;Test-Files\simple-Queries-BBox.txt;Test-Files\states-Intersects-BBox.txt;Test-Files\states-IsWithin-BBox.txt" />
-  </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <PackageReference Include="Spatial4n.Core.NTS" Version="0.4.1.1-beta" />

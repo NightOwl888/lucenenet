@@ -1,7 +1,6 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26114.2
+VisualStudioVersion = 15.0.26403.3
 MinimumVisualStudioVersion = 15.0.26114.2
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{EFA10A77-2975-493E-A360-677686B52EAA}"
 	ProjectSection(SolutionItems) = preProject
@@ -82,6 +81,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lucene.Net.Icu", "src\Lucene.Net.Icu\Lucene.Net.Icu.csproj", "{44A5341B-0F52-429D-977A-C35E10ECCADF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lucene.Net.Tests.Icu", "src\Lucene.Net.Tests.Icu\Lucene.Net.Tests.Icu.csproj", "{32FD3471-E862-4055-B969-79C12A656366}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{DADBD8D4-4701-4F0F-9497-D5BD3843A7D3}"
+	ProjectSection(SolutionItems) = preProject
+		src\Common.csproj = src\Common.csproj
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

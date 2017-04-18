@@ -1,25 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>4.8.0</VersionPrefix>
     <TargetFrameworks>netstandard1.5;net451</TargetFrameworks>
-    <AssemblyName>Lucene.Net</AssemblyName>
-    <PackageId>Lucene.Net</PackageId>
-    <PackageTags>lucene.net;core;text;search;information;retrieval;lucene;apache;analysis;index;query</PackageTags>
-    <PackageIconUrl>https://github.com/apache/lucenenet/blob/master/branding/logo/lucene-net-icon-128x128.png?raw=true</PackageIconUrl>
-    <PackageLicenseUrl>https://github.com/apache/lucenenet/blob/master/LICENSE.txt</PackageLicenseUrl>
-    <RepositoryUrl>https://github.com/apache/lucenenet</RepositoryUrl>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.5' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.5' ">1.6.0</NetStandardImplicitPackageVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
+
+  <Import Project="..\Common.csproj" />
+  
+  <PropertyGroup>
+    <AssemblyName>Lucene.Net</AssemblyName>
+    <Description>Lucene.Net is a full-text search engine library capable of advanced text analysis, indexing, and searching. It can be used to easily add search capabilities to applications. Lucene.Net is a C# port of the popular Java Lucene search engine framework from The Apache Software Foundation, targeted at .NET Framework and .NET Core users.</Description>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
@@ -42,10 +33,6 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.0.0-rc2-final" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\CommonAssemblyInfo.cs" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">

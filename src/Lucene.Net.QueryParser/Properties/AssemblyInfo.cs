@@ -3,17 +3,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("Lucene.Net.QueryParser")]
-[assembly: AssemblyDescription(
-    "Query parsers and parsing framework " +
-    "for the Lucene.Net full-text search engine library from The Apache Software Foundation.")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyDefaultAlias("Lucene.Net.QueryParser")]
-[assembly: AssemblyCulture("")]
-
 [assembly: CLSCompliant(true)]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -26,5 +15,3 @@ using System.Runtime.InteropServices;
 
 // for testing
 [assembly: InternalsVisibleTo("Lucene.Net.Tests.QueryParser")]
-
-// NOTE: Version information is in CommonAssemblyInfo.cs
