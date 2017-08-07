@@ -46,7 +46,8 @@
     "nowarn": [ "1591", "1573" ]
   },
   "dependencies": {
-    "icu.net": "54.1.1-alpha",
+    "icu-dotnet": "2.2.0-netcore0078",
+    "Icu4c.Win.Full.Lib": "59.1.7-beta",
     "Lucene.Net": "4.8.0",
     "Lucene.Net.Analysis.Common": "4.8.0",
     "Lucene.Net.Highlighter": "4.8.0"
