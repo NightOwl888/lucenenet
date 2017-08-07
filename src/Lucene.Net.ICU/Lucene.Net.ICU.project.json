@@ -3,7 +3,8 @@
     "win": {}
   },
   "dependencies": {
-    "icu-dotnet": "2.2.0-netcore0078"
+    "icu-dotnet": "2.2.0-netcore0078",
+    "Icu4c.Win.Full.Lib": "59.1.7-beta"
   },
   "frameworks": {
     "net451": {}
