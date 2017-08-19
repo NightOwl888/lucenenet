@@ -1,7 +1,4 @@
-﻿using Lucene.Net.Replicator.Http;
-using Microsoft.AspNetCore.Http;
-
-namespace Lucene.Net.Replicator.AspNetCore
+﻿namespace Lucene.Net.Replicator.Http.Abstractions
 {
     /*
      * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,15 +17,15 @@ namespace Lucene.Net.Replicator.AspNetCore
      * limitations under the License.
      */
 
-    //Note: LUCENENET specific
-    public static class AspNetCoreReplicationServiceExtentions
+    /// <summary>
+    /// Contract for a replication service.
+    /// </summary>
+    public interface IReplicationService
     {
         /// <summary>
-        /// Extension method that mirrors the signature of <see cref="ReplicationService.Perform"/> using AspNetCore as implementation.
+        /// Executes the replication task.
         /// </summary>
-        public static void Perform(this ReplicationService self, Microsoft.AspNetCore.Http.HttpRequest request, HttpResponse response)
-        {
-            self.Perform(new AspNetCoreReplicationRequest(request), new AspNetCoreReplicationResponse(response));
-        }
+        /// <exception cref="InvalidOperationException">required parameters are missing</exception>
+        void Perform(IReplicationRequest request, IReplicationResponse response);
     }
 }

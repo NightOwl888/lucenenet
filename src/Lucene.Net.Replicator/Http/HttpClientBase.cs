@@ -224,6 +224,7 @@ namespace Lucene.Net.Replicator.Http
             EnsureOpen();
             //Note: No headers? No ContentType?... Bad use of Http?
             HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, QueryString(request, parameters));
+
             //.NET Note: Bridging from Async to Sync, this is not ideal and we could consider changing the interface to be Async or provide Async overloads
             //      and have these Sync methods with their caveats.
             HttpResponseMessage response = httpc.SendAsync(req).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -292,7 +293,7 @@ namespace Lucene.Net.Replicator.Http
             }
             catch (Exception e)
             {
-                error = new IOException(e.Message, e);
+                error = new IOException(e.ToString(), e);
             }
             finally
             {

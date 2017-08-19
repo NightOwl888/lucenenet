@@ -1,7 +1,7 @@
-﻿using Lucene.Net.Replicator.Http;
-using Microsoft.AspNetCore.Http;
+﻿using System.Collections.Specialized;
+using System.Net.Http;
 
-namespace Lucene.Net.Replicator.AspNetCore
+namespace Lucene.Net.Replicator.Http.Abstractions
 {
     /*
      * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,15 +20,14 @@ namespace Lucene.Net.Replicator.AspNetCore
      * limitations under the License.
      */
 
-    //Note: LUCENENET specific
-    public static class AspNetCoreReplicationServiceExtentions
+    /// <summary>
+    /// An HTTP request with only the properties that the <see cref="ReplicationHttpListener"/>
+    /// utilizes.
+    /// </summary>
+    public interface IHttpRequest
     {
-        /// <summary>
-        /// Extension method that mirrors the signature of <see cref="ReplicationService.Perform"/> using AspNetCore as implementation.
-        /// </summary>
-        public static void Perform(this ReplicationService self, Microsoft.AspNetCore.Http.HttpRequest request, HttpResponse response)
-        {
-            self.Perform(new AspNetCoreReplicationRequest(request), new AspNetCoreReplicationResponse(response));
-        }
+        HttpMethod Method { get; }
+        string Path { get; }
+        NameValueCollection QueryString { get; }
     }
 }
