@@ -449,13 +449,13 @@ namespace Lucene.Net.Replicator
         public virtual void UpdateNow() 
         {
             EnsureOpen();
-            if (updateThread != null)
-            {
-                //NOTE: We have a worker running, we use that to perform the work instead by requesting it to run
-                //      it's cycle immidiately.
-                updateThread.ExecuteImmediately();
-                return;
-            }
+            //if (updateThread != null)
+            //{
+            //    //NOTE: We have a worker running, we use that to perform the work instead by requesting it to run
+            //    //      it's cycle immidiately.
+            //    updateThread.ExecuteImmediately();
+            //    return;
+            //}
 
             //NOTE: We don't have a worker running, so we just do the work.
             updateLock.Lock();

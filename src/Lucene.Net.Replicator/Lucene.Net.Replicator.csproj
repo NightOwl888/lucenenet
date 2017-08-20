@@ -85,6 +85,13 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Support\Http\Abstractions\IReplicationService.cs" />
+    <Compile Include="Support\Http\Abstractions\IRequest.cs" />
+    <Compile Include="Support\Http\ReplicationHttpListener.cs" />
+    <Compile Include="Support\Http\ReplicationHttpRequest.cs" />
+    <Compile Include="Support\Http\ReplicationHttpResponse.cs" />
+    <Compile Include="Support\Http\Request.cs" />
+    <Compile Include="Support\Http\StreamExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lucene.Net.Facet\Lucene.Net.Facet.csproj">

@@ -94,7 +94,7 @@ namespace Lucene.Net.Replicator.Http
         [Test]
         public void TestBasic()
         {
-            IReplicator replicator = new HttpReplicator(host, port, ReplicationService.REPLICATION_CONTEXT + "/s1", server.CreateHandler());
+            IReplicator replicator = new HttpReplicator(host, port, ReplicationService.REPLICATION_CONTEXT + "/s1"/*, server.CreateHandler()*/);
             ReplicationClient client = new ReplicationClient(replicator, new IndexReplicationHandler(handlerIndexDir, null),
                 new PerSessionDirectoryFactory(clientWorkDir.FullName));
 
