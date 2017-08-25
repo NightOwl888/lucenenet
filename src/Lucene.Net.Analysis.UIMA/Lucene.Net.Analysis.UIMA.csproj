@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net451</TargetFramework>
+    <RootNamespace>Lucene.Net.Analysis.Uima</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Ae\AggregateSentenceAE.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Tagger.Net" Version="2.3.1-alpha00002" />
+    <PackageReference Include="WhitespaceTokenizer.Net" Version="2.3.1-alpha00002" />
+    <PackageReference Include="uiman-core" Version="2.3.1-alpha00002" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lucene.Net.Analysis.Common\Lucene.Net.Analysis.Common.csproj" />
+    <ProjectReference Include="..\Lucene.Net\Lucene.Net.csproj" />
+  </ItemGroup>
+
+</Project>

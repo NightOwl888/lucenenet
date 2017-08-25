@@ -120,6 +120,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lucene.Net.Tests.ICU", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lucene.Net.Tests.Cli", "src\dotnet\tools\Lucene.Net.Tests.Cli\Lucene.Net.Tests.Cli.csproj", "{1F5574FE-19F7-4F10-9B88-76A938621F5B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lucene.Net.Analysis.UIMA", "src\Lucene.Net.Analysis.UIMA\Lucene.Net.Analysis.UIMA.csproj", "{17341B77-A037-4079-9A59-437E3F8BFE94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lucene.Net.Tests.Analysis.UIMA", "src\Lucene.Net.Tests.Analysis.UIMA\Lucene.Net.Tests.Analysis.UIMA.csproj", "{EEF4AE95-3EB1-4715-B4BF-3E64ABCDFB8D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -334,6 +338,14 @@ Global
 		{1F5574FE-19F7-4F10-9B88-76A938621F5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F5574FE-19F7-4F10-9B88-76A938621F5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F5574FE-19F7-4F10-9B88-76A938621F5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17341B77-A037-4079-9A59-437E3F8BFE94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17341B77-A037-4079-9A59-437E3F8BFE94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17341B77-A037-4079-9A59-437E3F8BFE94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17341B77-A037-4079-9A59-437E3F8BFE94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEF4AE95-3EB1-4715-B4BF-3E64ABCDFB8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEF4AE95-3EB1-4715-B4BF-3E64ABCDFB8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEF4AE95-3EB1-4715-B4BF-3E64ABCDFB8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEF4AE95-3EB1-4715-B4BF-3E64ABCDFB8D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
