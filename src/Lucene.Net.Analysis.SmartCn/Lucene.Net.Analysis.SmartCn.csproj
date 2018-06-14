@@ -57,7 +57,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="icu.net" Version="54.1.1-alpha" />
+    <PackageReference Include="ICU4N" Version="1.0.0" />
   </ItemGroup>
 
   <!--<ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">

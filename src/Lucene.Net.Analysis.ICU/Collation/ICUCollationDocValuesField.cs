@@ -1,13 +1,8 @@
-﻿using Icu.Collation;
+﻿// lucene version compatibility level: 4.8.1
+using ICU4N.Text;
 using Lucene.Net.Documents;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
-#if NETSTANDARD
-using SortKey = Icu.ObjectModel.SortKey;
-#else
-using SortKey = System.Globalization.SortKey;
-#endif
-
 
 namespace Lucene.Net.Collation
 {
@@ -44,7 +39,7 @@ namespace Lucene.Net.Collation
         private readonly string name;
         private readonly Collator collator;
         private readonly BytesRef bytes = new BytesRef();
-        private SortKey key;
+        private RawCollationKey key = new RawCollationKey();
 
         /// <summary>
         /// Create a new <see cref="ICUCollationDocValuesField"/>.
@@ -75,10 +70,10 @@ namespace Lucene.Net.Collation
 
         public override void SetStringValue(string value)
         {
-            key = collator.GetSortKey(value);
-            bytes.Bytes = key.KeyData;
+            key = collator.GetRawCollationKey(value, key);
+            bytes.Bytes = key.bytes;
             bytes.Offset = 0;
-            bytes.Length = key.KeyData.Length;
+            bytes.Length = key.Count;
         }
     }
 }

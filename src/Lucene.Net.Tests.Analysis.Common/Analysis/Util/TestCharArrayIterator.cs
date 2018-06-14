@@ -1,10 +1,10 @@
 ﻿#if FEATURE_BREAKITERATOR
 using System;
-using Icu;
-using Lucene.Net.Analysis.Util;
 using Lucene.Net.Util;
 using NUnit.Framework;
-using CharacterIterator = Lucene.Net.Support.CharacterIterator;
+using ICU4N.Text;
+using ICU4N.Support.Text;
+using System.Globalization;
 
 namespace Lucene.Net.Analysis.Util
 {
@@ -38,14 +38,13 @@ namespace Lucene.Net.Analysis.Util
         public virtual void TestConsumeWordInstance()
         {
             // we use the default locale, as its randomized by LuceneTestCase
-            var iteratorType = BreakIterator.UBreakIteratorType.WORD;
-            var locale = new Locale("en", "US");
+            BreakIterator bi = BreakIterator.GetWordInstance(CultureInfo.CurrentCulture);
             var ci = CharArrayIterator.NewWordInstance();
             for (var i = 0; i < 10000; i++)
             {
                 var text = TestUtil.RandomUnicodeString(Random()).toCharArray();
                 ci.SetText(text, 0, text.Length);
-                Consume(iteratorType, locale, ci);
+                Consume(bi, ci);
             }
         }
 
@@ -74,14 +73,13 @@ namespace Lucene.Net.Analysis.Util
         public virtual void TestConsumeSentenceInstance()
         {
             // we use the default locale, as its randomized by LuceneTestCase
-            var iteratorType = BreakIterator.UBreakIteratorType.SENTENCE;
-            var locale = new Locale("en-US");
+            BreakIterator bi = BreakIterator.GetSentenceInstance(CultureInfo.CurrentCulture);
             var ci = CharArrayIterator.NewSentenceInstance();
             for (var i = 0; i < 10000; i++)
             {
                 var text = TestUtil.RandomUnicodeString(Random()).toCharArray();
                 ci.SetText(text, 0, text.Length);
-                Consume(iteratorType, locale, ci);
+                Consume(bi, ci);
             }
         }
 
@@ -175,13 +173,11 @@ namespace Lucene.Net.Analysis.Util
             assertEquals(ci.Last(), ci2.Last());
         }
 
-        private void Consume(BreakIterator.UBreakIteratorType iteratorType, Locale locale, CharacterIterator ci)
+        private void Consume(BreakIterator bi, CharacterIterator ci)
         {
-            var contents = BreakIterator.Split(iteratorType, locale, ci.ToString());
-
-            foreach (var token in contents)
+            bi.SetText(ci);
+            while (bi.Next() != BreakIterator.DONE)
             {
-                ;
             }
         }
     }

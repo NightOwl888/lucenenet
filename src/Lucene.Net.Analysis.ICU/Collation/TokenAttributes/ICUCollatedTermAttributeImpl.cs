@@ -1,12 +1,8 @@
-﻿using Icu.Collation;
+﻿// lucene version compatibility level: 4.8.1
+using ICU4N.Text;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
-#if NETSTANDARD
-using SortKey = Icu.ObjectModel.SortKey;
-#else
-using SortKey = System.Globalization.SortKey;
-#endif
 
 namespace Lucene.Net.Collation.TokenAttributes
 {
@@ -35,13 +31,12 @@ namespace Lucene.Net.Collation.TokenAttributes
     public class ICUCollatedTermAttribute : CharTermAttribute
     {
         private readonly Collator collator;
-        //private readonly RawCollationKey key = new RawCollationKey();
-        private SortKey key;
+        private readonly RawCollationKey key = new RawCollationKey();
 
         /// <summary>
         /// Create a new ICUCollatedTermAttribute
         /// </summary>
-        /// <param name="collator"><see cref="SortKey"/> generator.</param>
+        /// <param name="collator">Collation key generator.</param>
         public ICUCollatedTermAttribute(Collator collator)
         {
             // clone the collator: see http://userguide.icu-project.org/collation/architecture
@@ -51,10 +46,10 @@ namespace Lucene.Net.Collation.TokenAttributes
         public override void FillBytesRef()
         {
             BytesRef bytes = this.BytesRef;
-            key = collator.GetSortKey(ToString());
-            bytes.Bytes = key.KeyData;
+            collator.GetRawCollationKey(ToString(), key);
+            bytes.Bytes = key.bytes;
             bytes.Offset = 0;
-            bytes.Length = key.KeyData.Length;
+            bytes.Length = key.Count;
         }
     }
 }

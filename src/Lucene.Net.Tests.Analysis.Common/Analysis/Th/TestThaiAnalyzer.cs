@@ -37,7 +37,8 @@ namespace Lucene.Net.Analysis.Th
         public override void SetUp()
         {
             base.SetUp();
-            AssumeTrue("JRE does not support Thai dictionary-based BreakIterator", ThaiTokenizer.DBBI_AVAILABLE);
+            // LUCENENET specific - ICU always has a dictionary-based BreakIterator in .NET.
+            //AssumeTrue("JRE does not support Thai dictionary-based BreakIterator", ThaiTokenizer.DBBI_AVAILABLE);
         }
         /*
          * testcase for offsets
@@ -138,9 +139,9 @@ namespace Lucene.Net.Analysis.Th
         [Test, HasTimeout]
         public virtual void TestRandomStrings()
         {
-#if NETSTANDARD
-            fail("LUCENENET TODO: AccessViolationException being thrown from icu-dotnet");
-#endif
+//#if NETSTANDARD
+//            fail("LUCENENET TODO: AccessViolationException being thrown from icu-dotnet");
+//#endif
             CheckRandomData(Random(), new ThaiAnalyzer(TEST_VERSION_CURRENT), 1000 * RANDOM_MULTIPLIER);
         }
 
@@ -154,9 +155,9 @@ namespace Lucene.Net.Analysis.Th
         [Test, HasTimeout]
         public virtual void TestRandomHugeStrings()
         {
-#if NETSTANDARD
-            fail("LUCENENET TODO: AccessViolationException being thrown from icu-dotnet");
-#endif
+//#if NETSTANDARD
+//            fail("LUCENENET TODO: AccessViolationException being thrown from icu-dotnet");
+//#endif
             Random random = Random();
             CheckRandomData(random, new ThaiAnalyzer(TEST_VERSION_CURRENT), 100 * RANDOM_MULTIPLIER, 8192);
         }

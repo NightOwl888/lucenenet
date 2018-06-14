@@ -1,6 +1,6 @@
 ﻿#if FEATURE_BREAKITERATOR
+using ICU4N.Text;
 using Lucene.Net.Analysis.TokenAttributes;
-using Lucene.Net.Support;
 using System;
 using System.Diagnostics;
 using System.IO;

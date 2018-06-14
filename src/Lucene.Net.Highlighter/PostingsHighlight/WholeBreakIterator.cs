@@ -1,6 +1,7 @@
 ﻿#if FEATURE_BREAKITERATOR
-using Lucene.Net.Support;
+using ICU4N.Text;
 using System;
+using ICU4N.Support.Text;
 
 namespace Lucene.Net.Search.PostingsHighlight
 {
@@ -24,8 +25,7 @@ namespace Lucene.Net.Search.PostingsHighlight
     /// <summary>Just produces one single fragment for the entire text</summary>
     public sealed class WholeBreakIterator : BreakIterator
     {
-        //private CharacterIterator text;
-        private string text;
+        private CharacterIterator text;
         private int start; 
         private int end; 
         private int current;
@@ -59,14 +59,9 @@ namespace Lucene.Net.Search.PostingsHighlight
             }
         }
 
-        //public override CharacterIterator GetText()
-        //{
-        //    return new StringCharacterIterator( text);
-        //}
-
-        public override string Text
+        public override CharacterIterator GetText()
         {
-            get { return text; }
+            return text;
         }
 
         public override int Last()
@@ -150,22 +145,11 @@ namespace Lucene.Net.Search.PostingsHighlight
             return boundary == offset;
         }
 
-        public override void SetText(string newText)
-        {
-            if (newText == null)
-                throw new ArgumentNullException("newText");
-            this.text = newText;
-
-            this.start = 0;
-            this.end = newText.Length;
-            this.current = start;
-        }
-
         public override void SetText(CharacterIterator newText)
         {
             start = newText.BeginIndex;
             end = newText.EndIndex;
-            text = newText.GetTextAsString();
+            text = newText;
             current = start;
         }
     }
