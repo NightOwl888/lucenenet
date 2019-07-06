@@ -33,13 +33,9 @@
     <PackageTags>$(PackageTags);analysis;japanese</PackageTags>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <NoWarn>$(NoWarn);1591;1573</NoWarn>
-
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <!--<Configurations>Debug;Release;Debug_NetCoreApp1_0;Release_NetCoreApp1_0</Configurations>-->
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\CommonAssemblyInfo.cs" Link="Properties\CommonAssemblyInfo.cs" />
     <EmbeddedResource Include="stoptags.txt;stopwords.txt;Dict\CharacterDefinition.dat;Dict\ConnectionCosts.dat;Dict\TokenInfoDictionary$buffer.dat;Dict\TokenInfoDictionary$fst.dat;Dict\TokenInfoDictionary$posDict.dat;Dict\TokenInfoDictionary$targetMap.dat;Dict\UnknownDictionary$buffer.dat;Dict\UnknownDictionary$posDict.dat;Dict\UnknownDictionary$targetMap.dat" />
   </ItemGroup>
 

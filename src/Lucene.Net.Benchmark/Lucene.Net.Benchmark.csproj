@@ -34,14 +34,7 @@
     <PackageReleaseNotes>This package depends on a temporary version of icu.net hosted on MyGet until official .NET Core support is added. To install, copy the NuGet.config file from https://github.com/apache/lucenenet/blob/master/NuGet.config into your project and then install this package via Package Manager Console as usual.</PackageReleaseNotes>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <NoWarn>$(NoWarn);1591;1573</NoWarn>
-
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <!--<Configurations>Debug;Release;Debug_NetCoreApp1_0;Release_NetCoreApp1_0</Configurations>-->
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\CommonAssemblyInfo.cs" Link="Properties\CommonAssemblyInfo.cs" />
-  </ItemGroup>
 
   <ItemGroup>
 	<ProjectReference Include="..\dotnet\Lucene.Net.ICU\Lucene.Net.ICU.csproj" />
