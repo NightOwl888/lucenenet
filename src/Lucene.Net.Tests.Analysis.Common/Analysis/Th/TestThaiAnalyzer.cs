@@ -138,9 +138,6 @@ namespace Lucene.Net.Analysis.Th
         [Test, HasTimeout]
         public virtual void TestRandomStrings()
         {
-#if NETSTANDARD
-            fail("LUCENENET TODO: AccessViolationException being thrown from icu-dotnet");
-#endif
             CheckRandomData(Random(), new ThaiAnalyzer(TEST_VERSION_CURRENT), 1000 * RANDOM_MULTIPLIER);
         }
 
@@ -154,9 +151,6 @@ namespace Lucene.Net.Analysis.Th
         [Test, HasTimeout]
         public virtual void TestRandomHugeStrings()
         {
-#if NETSTANDARD
-            fail("LUCENENET TODO: AccessViolationException being thrown from icu-dotnet");
-#endif
             Random random = Random();
             CheckRandomData(random, new ThaiAnalyzer(TEST_VERSION_CURRENT), 100 * RANDOM_MULTIPLIER, 8192);
         }
