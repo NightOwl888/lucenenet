@@ -34,7 +34,7 @@ namespace Lucene.Net.Support
     /// <typeparam name="T">The type of objects to compare.</typeparam>
     public sealed class EqualityComparer<T>
     {
-        private static readonly bool IsValueType = typeof(T).GetTypeInfo().IsValueType;
+        private static readonly bool isValueType = typeof(T).GetTypeInfo().IsValueType;
 
         /// <summary>
         /// Returns a default equality comparer for the type specified by the generic argument.
@@ -55,7 +55,7 @@ namespace Lucene.Net.Support
                 }
                 else
                 {
-                    return IsValueType ?
+                    return isValueType ?
                         new ValueTypeEqualityComparer() :
                         System.Collections.Generic.EqualityComparer<T>.Default;
                 }
@@ -71,7 +71,7 @@ namespace Lucene.Net.Support
                 EqualityComparerConstants.ValueTypesSupported = true;
                 return result;
             }
-            catch when (IsValueType)
+            catch when (isValueType)
             {
                 EqualityComparerConstants.ValueTypesSupported = false;
                 return new ValueTypeEqualityComparer();
