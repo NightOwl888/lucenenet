@@ -51,7 +51,7 @@
     <PackageReference Include="Spatial4n.Core.NTS" Version="$(Spatial4nCoreNTSPackageVersion)" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DebugType>portable</DebugType>
   </PropertyGroup>
 
