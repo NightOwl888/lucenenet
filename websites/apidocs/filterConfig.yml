@@ -1,4 +1,0 @@
-apiRules:
-- exclude:
-    uidRegex: ^Lucene\.Net\.Support\.Character\.\w*SURROGATE
-    type: Field

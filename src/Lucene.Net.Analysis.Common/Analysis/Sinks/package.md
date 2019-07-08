@@ -15,10 +15,13 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-
-
-
-<xref:Lucene.Net.Analysis.Sinks.TeeSinkTokenFilter> and implementations
-of <xref:Lucene.Net.Analysis.Sinks.TeeSinkTokenFilter.SinkFilter> that
+<HTML>
+<HEAD>
+   <TITLE>org.apache.lucene.analysis.sinks</TITLE>
+</HEAD>
+<BODY>
+[](xref:Lucene.Net.Analysis.Sinks.TeeSinkTokenFilter) and implementations
+of [](xref:Lucene.Net.Analysis.Sinks.TeeSinkTokenFilter.SinkFilter) that
 might be useful.
-
+</BODY>
+</HTML>

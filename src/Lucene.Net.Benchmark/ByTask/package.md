@@ -15,9 +15,11 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-
-
-
+<html>
+<head>
+    <title>Benchmarking Lucene By Tasks</title>
+</head>
+<body>
 Benchmarking Lucene By Tasks.
 <div>
 
@@ -493,4 +495,5 @@ Example: max.buffered=buf:10:10:100:100 -
 
 </div>
 <div> </div>
-
+</body>
+</html>

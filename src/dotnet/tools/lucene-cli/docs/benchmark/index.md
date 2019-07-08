@@ -1,9 +1,4 @@
-﻿---
-uid: Lucene.Net.Cli.Benchmark
-summary: *content
----
-
-# benchmark
+﻿# benchmark
 
 ## Description
 
