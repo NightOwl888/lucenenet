@@ -1,5 +1,4 @@
-﻿using Lucene.Net.Support;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -23,6 +22,7 @@ namespace Lucene.Net.Facet.Taxonomy.Directory
      * limitations under the License.
      */
 
+    using Lucene.Net.Facet.Taxonomy;
     using BytesRef = Lucene.Net.Util.BytesRef;
     using Directory = Lucene.Net.Store.Directory;
     using DirectoryReader = Lucene.Net.Index.DirectoryReader;
@@ -83,8 +83,8 @@ namespace Lucene.Net.Facet.Taxonomy.Directory
             this.taxoEpoch = taxoWriter == null ? -1 : taxoWriter.TaxonomyEpoch;
 
             // use the same instance of the cache, note the protective code in getOrdinal and getPath
-            this.ordinalCache = ordinalCache ?? new LRUHashMap<FacetLabel, Int32Class>(DEFAULT_CACHE_VALUE);
-            this.categoryCache = categoryCache ?? new LRUHashMap<int, FacetLabel>(DEFAULT_CACHE_VALUE);
+            this.ordinalCache = ordinalCache == null ? new LRUHashMap<FacetLabel, Int32Class>(DEFAULT_CACHE_VALUE) : ordinalCache;
+            this.categoryCache = categoryCache == null ? new LRUHashMap<int, FacetLabel>(DEFAULT_CACHE_VALUE) : categoryCache;
 
             this.taxoArrays = taxoArrays != null ? new TaxonomyIndexArrays(indexReader, taxoArrays) : null;
         }
