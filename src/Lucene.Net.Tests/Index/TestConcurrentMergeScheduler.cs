@@ -91,6 +91,9 @@ namespace Lucene.Net.Index
         [Test]
         public virtual void TestFlushExceptions()
         {
+#if NETCOREAPP2_0
+            fail("LUCENENET TODO: Causing fatal crashes intermittently on NETCOREAPP2.0");
+#endif
             MockDirectoryWrapper directory = NewMockDirectory();
             FailOnlyOnFlush failure = new FailOnlyOnFlush(this);
             directory.FailOn(failure);
