@@ -58,6 +58,7 @@ task default -depends Pack
 
 task Clean -description "This task cleans up the build directory" {
 	Write-Host "##teamcity[progressMessage 'Cleaning']"
+	Write-Host "##vso[task.setprogress]'Cleaning'"
 	Remove-Item $release_directory -Force -Recurse -ErrorAction SilentlyContinue
 	Get-ChildItem $base_directory -Include *.bak -Recurse | foreach ($_) {Remove-Item $_.FullName}
 }
@@ -71,6 +72,7 @@ task UpdateLocalSDKVersion -description "Backs up the project.json file and pins
 
 task InstallSDK -description "This task makes sure the correct SDK version is installed to build" -ContinueOnError {
 	Write-Host "##teamcity[progressMessage 'Installing SDK $sdkVersion']"
+	Write-Host "##vso[task.setprogress]'Installing SDK $sdkVersion'"
 	$installed = Is-Sdk-Version-Installed $sdkVersion
 	if (!$installed) {
 		Write-Host "Requires SDK version $sdkVersion, installing..." -ForegroundColor Red
@@ -86,9 +88,10 @@ task InstallSDK -description "This task makes sure the correct SDK version is in
 }
 
 task Init -depends InstallSDK, UpdateLocalSDKVersion -description "This task makes sure the build environment is correctly setup" {
-	#Update TeamCity or MyGet with packageVersion
+	#Update TeamCity, MyGet, or Azure Pipelines with packageVersion
 	Write-Output "##teamcity[buildNumber '$packageVersion']"
 	Write-Output "##myget[buildNumber '$packageVersion']"
+	Write-Host "##vso[task.setvariable variable=Build.BuildNumber;]$packageVersion"
 
 	& dotnet.exe --version
 	& dotnet.exe --info
@@ -109,6 +112,7 @@ task Init -depends InstallSDK, UpdateLocalSDKVersion -description "This task mak
 
 task Restore -description "This task restores the dependencies" {
 	Write-Host "##teamcity[progressMessage 'Restoring']"
+	Write-Host "##vso[task.setprogress]'Restoring'"
 	Exec { 
 		& dotnet.exe restore $solutionFile --no-dependencies /p:TestFrameworks=true
 	}
@@ -116,6 +120,7 @@ task Restore -description "This task restores the dependencies" {
 
 task Compile -depends Clean, Init, Restore -description "This task compiles the solution" {
 	Write-Host "##teamcity[progressMessage 'Compiling']"
+	Write-Host "##vso[task.setprogress]'Compiling'"
 	try {
 		if ($prepareForBuild -eq $true) {
 			Prepare-For-Build
@@ -136,6 +141,11 @@ task Compile -depends Clean, Init, Restore -description "This task compiles the 
 			$gitCommit = ((git rev-parse --verify --short=10 head) | Out-String).Trim()
 			$pv = "$packageVersion commit:[$gitCommit]"
 		}
+
+		Write-Host "##vso[task.setvariable variable=InformationalVersion;]$pv"
+		Write-Host "##vso[task.setvariable variable=FileVersion;]$version"
+		Write-Host "##vso[task.setvariable variable=AssemblyVersion;]$assemblyVersion"
+		Write-Host "##vso[task.setvariable variable=PackageVersion;]$packageVersion"
 
 		Write-Host "Assembly informational version set to: $pv" -ForegroundColor Green
 
@@ -165,6 +175,7 @@ task Compile -depends Clean, Init, Restore -description "This task compiles the 
 
 task Pack -depends Compile -description "This task creates the NuGet packages" {
 	Write-Host "##teamcity[progressMessage 'Packing']"
+	Write-Host "##vso[task.setprogress]'Packing'"
 	#create the nuget package output directory
 	Ensure-Directory-Exists "$nuget_package_directory"
 
@@ -183,6 +194,7 @@ task Pack -depends Compile -description "This task creates the NuGet packages" {
 
 task Test -depends InstallSDK, UpdateLocalSDKVersion, Restore -description "This task runs the tests" {
 	Write-Host "##teamcity[progressMessage 'Testing']"
+	Write-Host "##vso[task.setprogress]'Testing'"
 	Write-Host "Running tests..." -ForegroundColor DarkCyan
 
 	pushd $base_directory
