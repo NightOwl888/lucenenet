@@ -1,0 +1,82 @@
+name: '$(rev:r)' # Format for build number (will be overridden)
+
+# DevOps Setup: Define the following pipeline level variables in Azure DevOps build pipeline
+#
+# ArtifactFeedID set to your Azure DevOps Artifact (NuGet) feed
+# BuildConfiguration: 'Release'
+# BuildPlatform: 'Any CPU'
+# PreReleaseCounterPattern: '0000000000' (in ci pipeline only)
+# VersionSuffix 'ci' (or 'beta' or 'rc' in production pipeline)
+
+variables:
+- name: BuildCounter
+  value: '$[counter('',1250)]'
+- name: TestTargetFrameworks
+  value: 'netcoreapp2.1;netcoreapp1.0;net451'
+- name: BinaryArtifactName
+  value: 'testbinaries'
+- name: NuGetArtifactName
+  value: 'nuget'
+- name: TestResultsArtifactName
+  value: 'testresults'
+
+stages:
+- stage: Build_Stage
+  displayName: 'Build Stage:'
+  jobs:
+
+  - job: Build
+    pool:
+      vmImage: 'windows-2019'
+
+    steps:
+    - powershell: |
+        Import-Module ".\build\psake.psm1"
+        Invoke-psake .\build\build.ps1 -properties @{backup_files='false'}
+        exit !($psake.build_success)
+      displayName: 'PSake Build'
+#    - template: 'common/gitversioning-increment-and-persist-versions.yml@templates'
+#      parameters:
+#        versionArtifactName: '$(VersionArtifactName)'
+#        packageVersionFileName: '$(PackageVersionFileName)'
+#        fileVersionFileName: '$(FileVersionFileName)'
+#        buildNumberFileName: '$(BuildNumberFileName)'
+#
+#    - template: 'class-libraries/build-pack-and-publish-libraries.yml@templates'
+#      parameters:
+#        artifactFeedID: '$(ArtifactFeedID)'
+#        testTargetFrameworks: '$(TestTargetFrameworks)'
+#        informationalVersion: '$(InformationalVersion)' # Output from gitversioning-increment-and-persist-versions.yml
+#        fileVersion: '$(FileVersion)' # Output from gitversioning-increment-and-persist-versions.yml
+#        assemblyVersion: '$(AssemblyVersion)' # Output from gitversioning-increment-and-persist-versions.yml
+#        packageVersion: '$(PackageVersion)' # Output from gitversioning-increment-and-persist-versions.yml
+#        buildConfiguration: '$(BuildConfiguration)'
+#        buildPlatform: '$(BuildPlatform)'
+#        nugetArtifactName: '$(NuGetArtifactName)'
+#        binaryArtifactName: '$(BinaryArtifactName)'
+
+
+#- stage: Test_Stage
+#  displayName: 'Test Stage:'
+#  jobs:
+#  - job: Test
+#    strategy:
+#      matrix:
+#        Windows:
+#          osName: 'Windows'
+#          imageName: 'windows-2019'
+#        Linux:
+#          osName: 'Linux'
+#          imageName: 'ubuntu-16.04'
+#        macOS:
+#          osName: 'macOS'
+#          imageName: 'macOS-10.14'
+#    displayName: 'Test on'
+#    pool:
+#      vmImage: $(imageName)
+#    steps:
+#    - template: 'common/run-tests-on-os.yml@templates'
+#      parameters:
+#        osName: $(osName)
+#        testTargetFrameworks: '$(TestTargetFrameworks)'
+#        testResultsArtifactName: '$(TestResultsArtifactName)'

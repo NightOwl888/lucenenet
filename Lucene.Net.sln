@@ -28,6 +28,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet", "dotnet", "{8CA61D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{4016BDAB-6C33-4D1E-9439-57B416EA45D5}"
 	ProjectSection(SolutionItems) = preProject
+		azure-pipelines.yml = azure-pipelines.yml
 		build.bat = build.bat
 		build\build.ps1 = build\build.ps1
 		build\Dependencies.props = build\Dependencies.props
