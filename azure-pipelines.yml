@@ -10,7 +10,7 @@ name: '$(rev:r)' # Format for build number (will be overridden)
 
 variables:
 - name: BuildCounter
-  value: '$[counter('',1250)]'
+  value: $[counter('',1250)]
 - name: TestTargetFrameworks
   value: 'netcoreapp2.1;netcoreapp1.0;net451'
 - name: BinaryArtifactName
