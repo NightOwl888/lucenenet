@@ -6,11 +6,13 @@ name: '$(rev:r)' # Format for build number (will be overridden)
 # BuildConfiguration: 'Release'
 # BuildPlatform: 'Any CPU'
 # PreReleaseCounterPattern: '0000000000' (in ci pipeline only)
-# VersionSuffix 'ci' (or 'beta' or 'rc' in production pipeline)
+# VersionSuffix 'ci' (or 'beta' or 'rc' or '' in production pipeline)
 
 variables:
+- name: BuildCounterPrefix # Hack to get the counter() expression to work
+  value: ''
 - name: BuildCounter
-  value: $[counter('',1250)]
+  value: $[counter(variables['BuildCounterPrefix'],1250)]
 - name: TestTargetFrameworks
   value: 'netcoreapp2.1;netcoreapp1.0;net451'
 - name: BinaryArtifactName
