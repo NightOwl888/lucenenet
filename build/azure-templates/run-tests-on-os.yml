@@ -25,7 +25,8 @@ parameters:
   binaryArtifactName: 'testbinaries' # The name of the Azure DevOps build artifact where the test assemblies will be downloaded from. Default 'testbinaries'.
   testResultsArtifactName: 'testresults' # The name of the Azure DevOps build artifact where the test results will be published. Default 'testresults'.
   vsTestPlatform: 'x64' # Target platform architecture used for test execution. Valid values are x86, x64, and ARM.
-  testBinaryFilesConvention: '**/*.Tests*.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types.
+  fastTestBinaryFilesConvention: '**/*.Tests.*.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types. These should be the faster tests.
+  slowTestBinaryFilesConvention: '**/*.Tests.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types. These should be the slower tests, so we can queue them as soon as possible.
   maximumParallelJobs: 8
 
 steps:
@@ -41,7 +42,9 @@ steps:
     EnsureNotNullOrEmpty('${{ parameters.binaryArtifactName }}', 'binaryArtifactName')
     EnsureNotNullOrEmpty('${{ parameters.testResultsArtifactName }}', 'testResultsArtifactName')
     EnsureNotNullOrEmpty('${{ parameters.vsTestPlatform }}', 'vsTestPlatform')
-    EnsureNotNullOrEmpty('${{ parameters.testBinaryFilesConvention }}', 'testBinaryFilesConvention')
+    EnsureNotNullOrEmpty('${{ parameters.fastTestBinaryFilesConvention }}', 'fastTestBinaryFilesConvention')
+    EnsureNotNullOrEmpty('${{ parameters.slowTestBinaryFilesConvention }}', 'slowTestBinaryFilesConvention')
+    EnsureNotNullOrEmpty('${{ parameters.maximumParallelJobs }}', 'maximumParallelJobs')
   displayName: 'Validate Template Parameters'
 
 - task: DownloadBuildArtifacts@0
@@ -56,7 +59,8 @@ steps:
     $testResultsArtifactDirectory = "${{ format('$(Build.ArtifactStagingDirectory)/{0}',parameters.testResultsArtifactName) }}"
     $testPlatform = '${{ parameters.vsTestPlatform }}'
     $testOSName = '${{ parameters.osName }}'
-    $testBinaryFilesConvention = '${{ parameters.testBinaryFilesConvention }}'
+    $fastTestBinaryFilesConvention = '${{ parameters.fastTestBinaryFilesConvention }}'
+    $slowTestBinaryFilesConvention = '${{ parameters.slowTestBinaryFilesConvention }}'
     $maximumParalellJobs = '${{ parameters.maximumParallelJobs }}'
     $testTargetFrameworks = $testTargetFrameworksString.Split([char]',',[char]';')
     
@@ -94,16 +98,17 @@ steps:
         }
         return $true
     }
-    
-    foreach ($framework in $testTargetFrameworks) {
+
+    function RunTests([string]$framework, [string]$fileConvention) {
         if (!(IsSupportedFramework($framework))) { continue }
-        $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$testBinaryFilesConvention" -Recurse 
+
+        $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$slowTestBinaryFilesConvention" -Recurse
         foreach ($testBinary in $testBinaries) {
             # Pause if we have queued too many parallel jobs
-            #$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-            #if ($running.Count -ge $maximumParalellJobs) {
-            #    $running | Wait-Job
-            #}
+            $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+            if ($running.Count -ge $maximumParalellJobs) {
+                $running | Wait-Job -Any | Out-Null
+            }
 
             $projectName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
             # Special case - our CLI tool only supports .NET Core 2.1
@@ -113,8 +118,6 @@ steps:
 
             $fwork = ConvertFrameworkName($framework)
             $combinedTestInfo = "$framework-$testOSName-$projectName"
-            Write-Host "Testing '$testBinary' on framework '$fwork'..."
-            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
 
             $scriptBlock = {
                 param([string]$testBinary, [string]$fwork, [string]$combinedTestInfo, [string]$testPlatform, [string]$testResultsArtifactDirectory)
@@ -123,14 +126,26 @@ steps:
             }
 
             # Execute the jobs in parallel
-            #Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$combinedTestInfo,$testPlatform,$testResultsArtifactDirectory
+            Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$combinedTestInfo,$testPlatform,$testResultsArtifactDirectory
         }
     }
 
+    if (!(Test-Path "$testResultsArtifactDirectory")) {
+        New-Item $testResultsArtifactDirectory -ItemType Directory -Force
+    }
+
+    foreach ($framework in $testTargetFrameworks) {
+        RunTests($framework, $slowTestBinaryFilesConvention)
+    }
+
+    foreach ($framework in $testTargetFrameworks) {
+        RunTests($framework, $fastTestBinaryFilesConvention)
+    }
+
     # Wait for it all to complete
-    #While (Get-Job -State "Running") {
-    #    Start-Sleep 10
-    #}
+    While (Get-Job -State "Running") {
+        Start-Sleep 10
+    }
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
 
 - task: knom.vsts-debughelper-tasks.print-fs-structure-task.print-fs-structure-task@1
