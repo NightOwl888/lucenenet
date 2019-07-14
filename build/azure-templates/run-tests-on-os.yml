@@ -15,7 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# Downloads test binaries and executes tests using dotnet vstest, 
+# Downloads test binaries and executes tests using dotnet vstest,
+# runs the tests for each project on a background job in parallel,
 # then uploads the results to Azure DevOps pipelines
 
 parameters:
@@ -25,7 +26,7 @@ parameters:
   testResultsArtifactName: 'testresults' # The name of the Azure DevOps build artifact where the test results will be published. Default 'testresults'.
   vsTestPlatform: 'x64' # Target platform architecture used for test execution. Valid values are x86, x64, and ARM.
   testBinaryFilesConvention: '**/*.Tests*.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types.
-
+  maximumParallelJobs: 8
 
 steps:
 - powershell: |
@@ -56,6 +57,7 @@ steps:
     $testPlatform = '${{ parameters.vsTestPlatform }}'
     $testOSName = '${{ parameters.osName }}'
     $testBinaryFilesConvention = '${{ parameters.testBinaryFilesConvention }}'
+    $maximumParalellJobs = '${{ parameters.maximumParallelJobs }}'
     $testTargetFrameworks = $testTargetFrameworksString.Split([char]',',[char]';')
     
     function SeparateVersionDigits([string]$digits) {
@@ -97,10 +99,35 @@ steps:
         if (!(IsSupportedFramework($framework))) { continue }
         $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$testBinaryFilesConvention" -Recurse 
         foreach ($testBinary in $testBinaries) {
+            # Pause if we have queued too many parallel jobs
+            $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+            if ($running.Count -ge $maximumParalellJobs) {
+                $running | Wait-Job
+            }
+
+            $projectName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
+            # Special case - our CLI tool only supports .NET Core 2.1
+            if ($projectName.Contains("Tests.Cli") -and (!$framework.StartsWith("netcoreapp2."))) {
+                continue
+            }
+
             $fwork = ConvertFrameworkName($framework)
-            Write-Host "Testing '$testBinary' on framework '$fwork'..."
-            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"trx;LogFileName=$testResultsArtifactDirectory/TEST-$framework-$testOSName.trx"
+            $combinedTestInfo = "$framework-$testOSName-$projectName"
+
+            $scriptBlock = {
+                param([string]$testBinary, [string]$fwork, [string]$combinedTestInfo, [string]$testPlatform, [string]$testResultsArtifactDirectory)
+                Write-Host "Testing '$testBinary' on framework '$fwork'..."
+                dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
+            }
+
+            # Execute the jobs in parallel
+            Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$combinedTestInfo,$testPlatform,$testResultsArtifactDirectory
         }
+    }
+
+    # Wait for it all to complete
+    While (Get-Job -State "Running") {
+        Start-Sleep 10
     }
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
 

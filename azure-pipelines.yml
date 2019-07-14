@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-name: '$(rev:r)' # Format for build number (will be overridden)
+name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 
 # DevOps Setup: Define the following pipeline level variables in Azure DevOps build pipeline
 #
@@ -26,10 +26,8 @@ name: '$(rev:r)' # Format for build number (will be overridden)
 # VersionSuffix 'ci' (or 'beta' or 'rc' or '' in production pipeline)
 
 variables:
-- name: BuildCounterPrefix # Hack to get the counter() expression to work
-  value: ''
 - name: BuildCounter
-  value: $[counter(variables['BuildCounterPrefix'],1250)]
+  value: $[counter('',1250)]
 - name: TestTargetFrameworks
   value: 'netcoreapp2.1;netcoreapp1.0;net451'
 - name: BinaryArtifactName
@@ -87,48 +85,29 @@ stages:
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
         ArtifactName: '$(NuGetArtifactName)'
-#    - template: 'common/gitversioning-increment-and-persist-versions.yml@templates'
-#      parameters:
-#        versionArtifactName: '$(VersionArtifactName)'
-#        packageVersionFileName: '$(PackageVersionFileName)'
-#        fileVersionFileName: '$(FileVersionFileName)'
-#        buildNumberFileName: '$(BuildNumberFileName)'
-#
-#    - template: 'class-libraries/build-pack-and-publish-libraries.yml@templates'
-#      parameters:
-#        artifactFeedID: '$(ArtifactFeedID)'
-#        testTargetFrameworks: '$(TestTargetFrameworks)'
-#        informationalVersion: '$(InformationalVersion)' # Output from gitversioning-increment-and-persist-versions.yml
-#        fileVersion: '$(FileVersion)' # Output from gitversioning-increment-and-persist-versions.yml
-#        assemblyVersion: '$(AssemblyVersion)' # Output from gitversioning-increment-and-persist-versions.yml
-#        packageVersion: '$(PackageVersion)' # Output from gitversioning-increment-and-persist-versions.yml
-#        buildConfiguration: '$(BuildConfiguration)'
-#        buildPlatform: '$(BuildPlatform)'
-#        nugetArtifactName: '$(NuGetArtifactName)'
-#        binaryArtifactName: '$(BinaryArtifactName)'
 
 
-#- stage: Test_Stage
-#  displayName: 'Test Stage:'
-#  jobs:
-#  - job: Test
-#    strategy:
-#      matrix:
-#        Windows:
-#          osName: 'Windows'
-#          imageName: 'windows-2019'
-#        Linux:
-#          osName: 'Linux'
-#          imageName: 'ubuntu-16.04'
-#        macOS:
-#          osName: 'macOS'
-#          imageName: 'macOS-10.14'
-#    displayName: 'Test on'
-#    pool:
-#      vmImage: $(imageName)
-#    steps:
-#    - template: 'common/run-tests-on-os.yml@templates'
-#      parameters:
-#        osName: $(osName)
-#        testTargetFrameworks: '$(TestTargetFrameworks)'
-#        testResultsArtifactName: '$(TestResultsArtifactName)'
+- stage: Test_Stage
+  displayName: 'Test Stage:'
+  jobs:
+  - job: Test
+    strategy:
+      matrix:
+        Windows:
+          osName: 'Windows'
+          imageName: 'windows-2019'
+        Linux:
+          osName: 'Linux'
+          imageName: 'ubuntu-16.04'
+        macOS:
+          osName: 'macOS'
+          imageName: 'macOS-10.14'
+    displayName: 'Test on'
+    pool:
+      vmImage: $(imageName)
+    steps:
+    - template: 'build/azure-templates/run-tests-on-os.yml'
+      parameters:
+        osName: $(osName)
+        testTargetFrameworks: '$(TestTargetFrameworks)'
+        testResultsArtifactName: '$(TestResultsArtifactName)'
