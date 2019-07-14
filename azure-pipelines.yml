@@ -42,6 +42,8 @@ variables:
   value: '$(System.DefaultWorkingDirectory)/release'
 - name: PublishDirectory # Test binaries directory
   value: '$(ReleaseDirectory)/Publish'
+- name: NuGetReleaseDirectory # NuGet binaries directory
+  value: '$(ReleaseDirectory)/NuGetPackages'
 
 stages:
 - stage: Build_Stage
@@ -59,13 +61,24 @@ stages:
         exit !($psake.build_success)
       displayName: 'PSake Build'
 
-    # Copy the .nupkg and .pdb files as build artifacts, which will 
+    - task: knom.vsts-debughelper-tasks.print-fs-structure-task.print-fs-structure-task@1
+      displayName: 'Inspect File Structure'
+
+    # Copy the .pdb files as build artifacts, which will 
     # later be used to push to the Azure Artifacts symbol server.
     - task: CopyFiles@2
-      displayName: 'Copy .nupkg and .pdb Files to: /$(NuGetArtifactName)'
+      displayName: 'Copy .pdb Files to: /$(NuGetArtifactName)'
       inputs:
         SourceFolder: '$(System.DefaultWorkingDirectory)'
-        Contents: '**/*.nupkg;**/bin/$(BuildConfiguration)/**/*.pdb'
+        Contents: '**/bin/$(BuildConfiguration)/**/*.pdb'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+    # Copy the .nupkg files as build artifacts, which will 
+    # later be used to push to the Azure Artifacts.
+    - task: CopyFiles@2
+      displayName: 'Copy .nupkg Files to: /$(NuGetArtifactName)'
+      inputs:
+        SourceFolder: '$(NuGetReleaseDirectory)'
+        Contents: '**/*.nupkg'
         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
     # Copy the .dll files of test projects as build artifacts, which will 
     # later be used to run tests.
