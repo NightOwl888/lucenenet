@@ -41,9 +41,9 @@ variables:
 - name: ReleaseDirectory # Build artifacts directory
   value: '$(System.DefaultWorkingDirectory)/release'
 - name: PublishDirectory # Test binaries directory
-  value: '$(ReleaseDirectory)/Publish'
-- name: NuGetReleaseDirectory # NuGet binaries directory
-  value: '$(ReleaseDirectory)/NuGetPackages'
+  value: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
+- name: NuGetArtifactDirectory # NuGet binaries directory
+  value: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
 
 stages:
 - stage: Build_Stage
@@ -57,7 +57,7 @@ stages:
     steps:
     - powershell: |
         Import-Module "$(BuildDirectory)/psake.psm1"
-        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false'}
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false';publish_directory='$(PublishDirectory)';nuget_package_directory=$(NuGetArtifactDirectory)}
         exit !($psake.build_success)
       displayName: 'PSake Build'
 
@@ -72,27 +72,13 @@ stages:
         SourceFolder: '$(System.DefaultWorkingDirectory)'
         Contents: '**/bin/$(BuildConfiguration)/**/*.pdb'
         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
-    # Copy the .nupkg files as build artifacts, which will 
-    # later be used to push to the Azure Artifacts.
-    - task: CopyFiles@2
-      displayName: 'Copy .nupkg Files to: /$(NuGetArtifactName)'
-      inputs:
-        SourceFolder: '$(NuGetReleaseDirectory)'
-        Contents: '**/*.nupkg'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
-    # Copy the .dll files of test projects as build artifacts, which will 
-    # later be used to run tests.
-    - task: CopyFiles@2
-      displayName: 'Copy Test .dll Files to: /$(BinaryArtifactName)'
-      inputs:
-        SourceFolder: '$(PublishDirectory)'
-        Contents: '**'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
+
     - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
         ArtifactName: '$(BinaryArtifactName)'
+
     - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: $(NuGetArtifactName)'
       inputs:

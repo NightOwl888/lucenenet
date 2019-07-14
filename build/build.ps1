@@ -224,21 +224,21 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
 					continue
 				}
 
+				$logPath = "$publish_directory/$framework"
+				$outputPath = "$logPath/$projectName"
+
 				# Do this first so there is no conflict
-				$outputPath = "$publish_directory/$framework/$projectName"
 				Ensure-Directory-Exists $outputPath
 
 				$scriptBlock = {
-					param([string]$testProject, [string]$publish_directory, [string]$framework, [string]$configuration, [string]$projectName)
-					$logPath = "$publish_directory/$framework"
-					$outputPath = "$logPath/$projectName"
+					param([string]$testProject, [string]$outputPath, [string]$logPath, [string]$framework, [string]$configuration, [string]$projectName)
 					Write-Host "Publishing '$testProject' on '$framework' to '$outputPath'..."
 					# Note: Cannot use Psake Exec in background
 					dotnet publish "$testProject" --output "$outputPath" --framework "$framework" --configuration "$configuration" --no-build --verbosity Detailed /p:TestFrameworks=true > "$logPath/$projectName-dotnet-publish.log" 2> "$logPath/$projectName-dotnet-publish-error.log"
 				}
 
 				# Execute the jobs in parallel
-				Start-Job $scriptBlock -ArgumentList $testProject,$publish_directory,$framework,$configuration,$projectName
+				Start-Job $scriptBlock -ArgumentList $testProject,$outputPath,$logPath,$framework,$configuration,$projectName
 			}
 		}
 
