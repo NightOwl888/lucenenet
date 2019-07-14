@@ -102,7 +102,7 @@ steps:
     function RunTests([string]$framework, [string]$fileConvention) {
         if (!(IsSupportedFramework($framework))) { continue }
     
-        $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$slowTestBinaryFilesConvention" -Recurse
+        $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$fileConvention" -Recurse
         foreach ($testBinary in $testBinaries) {
             # Pause if we have queued too many parallel jobs
             $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
