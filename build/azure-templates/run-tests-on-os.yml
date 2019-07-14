@@ -120,12 +120,12 @@ steps:
             $combinedTestInfo = "$framework-$testOSName-$projectName"
 
             Write-Host "Testing '$testBinary' on framework '$fwork'..."
-            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
+            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:""trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx"" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
     
             $scriptBlock = {
                 param([string]$testBinary, [string]$fwork, [string]$combinedTestInfo, [string]$testPlatform, [string]$testResultsArtifactDirectory)
                 Write-Host "Testing '$testBinary' on framework '$fwork'..."
-                dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
+                dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:""trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx"" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
             }
     
             # Execute the jobs in parallel
@@ -142,7 +142,7 @@ steps:
     }
     
     foreach ($framework in $testTargetFrameworks) {
-        RunTests -Framework "$framework" -FileConvention "$fastTestBinaryFilesConvention
+        RunTests -Framework "$framework" -FileConvention "$fastTestBinaryFilesConvention"
     }
     
     # Wait for it all to complete
