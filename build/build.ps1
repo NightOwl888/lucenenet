@@ -46,6 +46,8 @@ properties {
 	[string]$copyright = "Copyright " + $([char]0x00A9) + " 2006 - $copyright_year The Apache Software Foundation"
 	[string]$company_name = "The Apache Software Foundation"
 	[string]$product_name = "Lucene.Net"
+
+	[int]$maximumParalellJobs = 8
 	
 	#test paramters
 	[string]$frameworks_to_test = "netcoreapp2.1,netcoreapp1.0,net451"
@@ -209,6 +211,12 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
 		foreach ($framework in $frameworksToTest) {
 			$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -Recurse | ? { $_.Directory.Name.Contains(".Tests") } | ForEach-Object { $_.FullName }
 			foreach ($testProject in $testProjects) {
+				# Pause if we have queued too many parallel jobs
+				$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+				if ($running.Count -ge $maximumParalellJobs) {
+					$running | Wait-Job
+				}
+
 				$projectName = [System.IO.Path]::GetFileNameWithoutExtension($testProject)
 
 				# Special case - our CLI tool only supports .NET Core 2.1
@@ -234,12 +242,11 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
 			}
 		}
 
-		Write-Host "Executing dotnet publish of all projects in parallel. This will take a bit, please wait..."
-
 		Get-Job
 
 		# Wait for it all to complete
         While (Get-Job -State "Running") {
+			Write-Host "Executing dotnet publish of all projects in parallel. This will take a bit, please wait..."
 			Start-Sleep 10
 		}
 
