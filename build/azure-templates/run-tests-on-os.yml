@@ -105,10 +105,10 @@ steps:
         $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$slowTestBinaryFilesConvention" -Recurse
         foreach ($testBinary in $testBinaries) {
             # Pause if we have queued too many parallel jobs
-            $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-            if ($running.Count -ge $maximumParalellJobs) {
+            #$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+            #if ($running.Count -ge $maximumParalellJobs) {
                 $running | Wait-Job -Any | Out-Null
-            }
+            #}
 
             $projectName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
             # Special case - our CLI tool only supports .NET Core 2.1
@@ -119,6 +119,9 @@ steps:
             $fwork = ConvertFrameworkName($framework)
             $combinedTestInfo = "$framework-$testOSName-$projectName"
 
+            Write-Host "Testing '$testBinary' on framework '$fwork'..."
+            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
+
             $scriptBlock = {
                 param([string]$testBinary, [string]$fwork, [string]$combinedTestInfo, [string]$testPlatform, [string]$testResultsArtifactDirectory)
                 Write-Host "Testing '$testBinary' on framework '$fwork'..."
@@ -126,7 +129,7 @@ steps:
             }
 
             # Execute the jobs in parallel
-            Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$combinedTestInfo,$testPlatform,$testResultsArtifactDirectory
+            #Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$combinedTestInfo,$testPlatform,$testResultsArtifactDirectory
         }
     }
 
@@ -143,13 +146,8 @@ steps:
     }
 
     # Wait for it all to complete
-    While (Get-Job -State "Running") {
-        Start-Sleep 10
-    }
+    #Get-Job | Wait-Job
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
-
-- task: knom.vsts-debughelper-tasks.print-fs-structure-task.print-fs-structure-task@1
-  displayName: 'Inspect File Structure'
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact: ${{ parameters.testResultsArtifactName }}'
