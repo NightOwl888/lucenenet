@@ -21,6 +21,12 @@ variables:
   value: 'nuget'
 - name: TestResultsArtifactName
   value: 'testresults'
+- name: BuildDirectory # Where the build scripts and configs are
+  value: '$(System.DefaultWorkingDirectory)/build'
+- name: ReleaseDirectory # Build artifacts directory
+  value: '$(System.DefaultWorkingDirectory)/release'
+- name: PublishDirectory # Test binaries directory
+  value: '$(ReleaseDirectory)/Publish'
 
 stages:
 - stage: Build_Stage
@@ -33,10 +39,37 @@ stages:
 
     steps:
     - powershell: |
-        Import-Module ".\build\psake.psm1"
-        Invoke-psake .\build\build.ps1 -properties @{backup_files='false'}
+        Import-Module "$(BuildDirectory)/psake.psm1"
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false'}
         exit !($psake.build_success)
       displayName: 'PSake Build'
+
+    # Copy the .nupkg and .pdb files as build artifacts, which will 
+    # later be used to push to the Azure Artifacts symbol server.
+    - task: CopyFiles@2
+      displayName: 'Copy .nupkg and .pdb Files to: /$(NuGetArtifactName)'
+      inputs:
+        SourceFolder: '$(System.DefaultWorkingDirectory)'
+        Contents: '**/*.nupkg;**/bin/$(BuildConfiguration)/**/*.pdb'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+    # Copy the .dll files of test projects as build artifacts, which will 
+    # later be used to run tests.
+    - task: CopyFiles@2
+      displayName: 'Copy Test .dll Files to: /$(BinaryArtifactName)'
+      inputs:
+        SourceFolder: '$(PublishDirectory)'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(BinaryArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
+        ArtifactName: '$(BinaryArtifactName)'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(NuGetArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+        ArtifactName: '$(NuGetArtifactName)'
 #    - template: 'common/gitversioning-increment-and-persist-versions.yml@templates'
 #      parameters:
 #        versionArtifactName: '$(VersionArtifactName)'
