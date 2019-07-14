@@ -98,10 +98,10 @@ steps:
         }
         return $true
     }
-
+    
     function RunTests([string]$framework, [string]$fileConvention) {
         if (!(IsSupportedFramework($framework))) { continue }
-
+    
         $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$slowTestBinaryFilesConvention" -Recurse
         foreach ($testBinary in $testBinaries) {
             # Pause if we have queued too many parallel jobs
@@ -109,42 +109,42 @@ steps:
             #if ($running.Count -ge $maximumParalellJobs) {
                 $running | Wait-Job -Any | Out-Null
             #}
-
+    
             $projectName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
             # Special case - our CLI tool only supports .NET Core 2.1
             if ($projectName.Contains("Tests.Cli") -and (!$framework.StartsWith("netcoreapp2."))) {
                 continue
             }
-
+    
             $fwork = ConvertFrameworkName($framework)
             $combinedTestInfo = "$framework-$testOSName-$projectName"
 
             Write-Host "Testing '$testBinary' on framework '$fwork'..."
             dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
-
+    
             $scriptBlock = {
                 param([string]$testBinary, [string]$fwork, [string]$combinedTestInfo, [string]$testPlatform, [string]$testResultsArtifactDirectory)
                 Write-Host "Testing '$testBinary' on framework '$fwork'..."
                 dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
             }
-
+    
             # Execute the jobs in parallel
             #Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$combinedTestInfo,$testPlatform,$testResultsArtifactDirectory
         }
     }
-
+    
     if (!(Test-Path "$testResultsArtifactDirectory")) {
-        New-Item $testResultsArtifactDirectory -ItemType Directory -Force
+        New-Item "$testResultsArtifactDirectory" -ItemType Directory -Force
     }
-
+    
     foreach ($framework in $testTargetFrameworks) {
-        RunTests($framework, $slowTestBinaryFilesConvention)
+        RunTests -Framework "$framework" -FileConvention "$slowTestBinaryFilesConvention"
     }
-
+    
     foreach ($framework in $testTargetFrameworks) {
-        RunTests($framework, $fastTestBinaryFilesConvention)
+        RunTests -Framework "$framework" -FileConvention "$fastTestBinaryFilesConvention
     }
-
+    
     # Wait for it all to complete
     #Get-Job | Wait-Job
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
