@@ -1,0 +1,43 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+# 
+#   http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+# Runs Publish Test Results task for a specific framework
+
+parameters:
+  framework: '' # The target framework for display purposes.
+  osName: '' # The name of the operating system for display purposes.
+  testResultsFormat: VSTest # Specify the format of the results files you want to publish. The following formats are supported: JUnit, NUnit, VSTest, XUnit, CTest
+
+steps:
+- powershell: |
+    function EnsureNotNullOrEmpty([string]$param, [string]$nameOfParam) {
+        if ([string]::IsNullOrEmpty($param)) {
+            Write-Host "##vso[task.logissue type=error;]Missing template parameter \"$nameOfParam\""
+            Write-Host "##vso[task.complete result=Failed;]"
+        }
+    }
+    EnsureNotNullOrEmpty('${{ parameters.framework }}', 'framework')
+    EnsureNotNullOrEmpty('${{ parameters.osName }}', 'osName')
+    EnsureNotNullOrEmpty('${{ parameters.testResultsFormat }}', 'testResultsFormat')
+  displayName: 'Validate Template Parameters'
+
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results ${{ parameters.framework }}'
+  inputs:
+    testResultsFormat: ${{ parameters.testResultsFormat }}
+    testResultsFiles: '$(Build.ArtifactStagingDirectory)/**/TEST-${{ parameters.framework }}-*.trx'
+    testRunTitle: '${{ parameters.osName }} - ${{ parameters.framework }}'
