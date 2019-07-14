@@ -57,7 +57,7 @@ stages:
     steps:
     - powershell: |
         Import-Module "$(BuildDirectory)/psake.psm1"
-        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false';publish_directory='$(PublishDirectory)';nuget_package_directory=$(NuGetArtifactDirectory)}
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false';publish_directory='$(PublishDirectory)';nuget_package_directory='$(NuGetArtifactDirectory)'}
         exit !($psake.build_success)
       displayName: 'PSake Build'
 
