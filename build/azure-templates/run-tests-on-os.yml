@@ -105,31 +105,27 @@ steps:
         $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$slowTestBinaryFilesConvention" -Recurse
         foreach ($testBinary in $testBinaries) {
             # Pause if we have queued too many parallel jobs
-            #$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-            #if ($running.Count -ge $maximumParalellJobs) {
+            $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+            if ($running.Count -ge $maximumParalellJobs) {
+                Write-Host ""
+                Write-Host "  Executing $($running.Count) test projects out of $totalProjects in parallel." -ForegroundColor Cyan
+                Write-Host "  $remainingProjects additional projects queued to run. This will take a bit, please wait..." -ForegroundColor Cyan
                 $running | Wait-Job -Any | Out-Null
-            #}
-    
-            $projectName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
-            # Special case - our CLI tool only supports .NET Core 2.1
-            if ($projectName.Contains("Tests.Cli") -and (!$framework.StartsWith("netcoreapp2."))) {
-                continue
             }
     
+            $projectName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)    
             $fwork = ConvertFrameworkName($framework)
             $combinedTestInfo = "$framework-$testOSName-$projectName"
-
+    
             Write-Host "Testing '$testBinary' on framework '$fwork'..."
-            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:""trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx"" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
     
             $scriptBlock = {
                 param([string]$testBinary, [string]$fwork, [string]$combinedTestInfo, [string]$testPlatform, [string]$testResultsArtifactDirectory)
-                Write-Host "Testing '$testBinary' on framework '$fwork'..."
                 dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:""trx;LogFileName=$testResultsArtifactDirectory/TEST-$combinedTestInfo.trx"" > "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$combinedTestInfo-dotnet-vstest-error.log"
             }
     
             # Execute the jobs in parallel
-            #Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$combinedTestInfo,$testPlatform,$testResultsArtifactDirectory
+            Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$combinedTestInfo,$testPlatform,$testResultsArtifactDirectory
         }
     }
     
@@ -146,7 +142,14 @@ steps:
     }
     
     # Wait for it all to complete
-    #Get-Job | Wait-Job
+    do {
+        $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+        if ($running.Count -gt 0) {
+            Write-Host ""
+            Write-Host "  Almost finished, only $($running.Count) projects left..." -ForegroundColor Cyan
+            $running | Wait-Job -Any
+        }
+    } until ($running.Count -eq 0)
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
 
 - task: PublishBuildArtifacts@1
