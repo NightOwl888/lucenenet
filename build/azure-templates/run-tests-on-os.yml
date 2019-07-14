@@ -104,16 +104,17 @@ steps:
     
         $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$fileConvention" -Recurse
         foreach ($testBinary in $testBinaries) {
+            $projectName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)  
+
             # Pause if we have queued too many parallel jobs
             $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
             if ($running.Count -ge $maximumParalellJobs) {
                 Write-Host ""
-                Write-Host "  Executing $($running.Count) test projects out of $totalProjects in parallel." -ForegroundColor Cyan
-                Write-Host "  $remainingProjects additional projects queued to run. This will take a bit, please wait..." -ForegroundColor Cyan
+                Write-Host "  Running tests in parallel on $($running.Count) projects." -ForegroundColor Cyan
+                Write-Host "  Next in queue is $projectName on $framework. This will take a bit, please wait..." -ForegroundColor Cyan
                 $running | Wait-Job -Any | Out-Null
             }
-    
-            $projectName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)    
+              
             $fwork = ConvertFrameworkName($framework)
             $combinedTestInfo = "$framework-$testOSName-$projectName"
     
