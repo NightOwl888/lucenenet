@@ -61,9 +61,6 @@ stages:
         exit !($psake.build_success)
       displayName: 'PSake Build'
 
-    - task: knom.vsts-debughelper-tasks.print-fs-structure-task.print-fs-structure-task@1
-      displayName: 'Inspect File Structure'
-
     # Copy the .pdb files as build artifacts, which will 
     # later be used to push to the Azure Artifacts symbol server.
     - task: CopyFiles@2
