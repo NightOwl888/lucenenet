@@ -40,4 +40,7 @@ steps:
   inputs:
     testResultsFormat: ${{ parameters.testResultsFormat }}
     testResultsFiles: '$(Build.ArtifactStagingDirectory)/**/TEST-${{ parameters.framework }}-*.trx'
-    testRunTitle: '${{ parameters.osName }} - ${{ parameters.framework }}'
+    #testRunTitle: '${{ parameters.osName }} - ${{ parameters.framework }}'
+    testRunTitle: 'Lucene.Net.Tests.Demo'
+    buildPlatform: '${{ parameters.osName }}'
+    buildConfiguration: '${{ parameters.framework }}'
