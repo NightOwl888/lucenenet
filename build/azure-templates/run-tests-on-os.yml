@@ -125,7 +125,7 @@ steps:
                 New-Item "$testResultDirectory" -ItemType Directory -Force
             }
     
-            Write-Host "Testing '$testBinary' on framework '$fwork'..."
+            Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/${{ parameters.testResultsFileName }}'..."
             dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"trx;LogFileName=${{ parameters.testResultsFileName }}" --ResultsDirectory:"$testResultDirectory" --Blame  # > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
     
             #$scriptBlock = {
