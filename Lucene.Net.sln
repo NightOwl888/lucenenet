@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "azure-templates", "azure-te
 		build\azure-templates\publish-test-results-for-target-frameworks.yml = build\azure-templates\publish-test-results-for-target-frameworks.yml
 		build\azure-templates\publish-test-results-for-test-projects.yml = build\azure-templates\publish-test-results-for-test-projects.yml
 		build\azure-templates\run-tests-on-os.yml = build\azure-templates\run-tests-on-os.yml
+		build\azure-templates\show-all-environment-variables.yml = build\azure-templates\show-all-environment-variables.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet", "dotnet", "{8CA61D33-3590-4024-A304-7B1F75B50653}"

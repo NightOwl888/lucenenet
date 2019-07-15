@@ -67,12 +67,14 @@ stages:
         exit !($psake.build_success)
       displayName: 'PSake Build'
 
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
+
     - powershell: |
         $dir = '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
         if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path "$dir" -Force }
-        '$(PackageVersion)' | Out-File -FilePath "$dir/${{ parameters.packageVersionFileName }}" -Force
-        '$(FileVersion)' | Out-File -FilePath "$dir/${{ parameters.fileVersionFileName }}" -Force
-        '$(Build.BuildNumber)' | Out-File -FilePath "$dir/${{ parameters.buildNumberFileName }}" -Force
+        '$(PackageVersion)' | Out-File -FilePath "$dir/$(PackageVersionFileName)" -Force
+        '$(FileVersion)' | Out-File -FilePath "$dir/$(FileVersionFileName)" -Force
+        '$(Build.BuildNumber)' | Out-File -FilePath "$dir/$(BuildNumberFileName)" -Force
       displayName: 'Write Versions to Files'
 
     - task: PublishBuildArtifacts@1
@@ -175,20 +177,11 @@ stages:
   displayName: 'Publish Stage:'
   jobs:
   - job: Publish
-
     pool:
       vmImage: 'windows-2019'
 
     steps:
-    - powershell: |
-        $environmentVars = Get-ChildItem -path env:* | sort Name
-        foreach($var in $environmentVars)
-        {
-            $keyname = $var.Key
-            $keyvalue = $var.Value
-            Write-Output "${keyname}: $keyvalue"
-        }
-      displayName: 'Show all Environment Variables'
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
 
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts: $(VersionArtifactName)'
@@ -204,15 +197,7 @@ stages:
         Write-Host "##vso[task.setvariable variable=Build.BuildNumber;]$version"
       displayName: 'Read PackageVersion from File to Build.BuildNumber'
 
-    - powershell: |
-        $environmentVars = Get-ChildItem -path env:* | sort Name
-        foreach($var in $environmentVars)
-        {
-            $keyname = $var.Key
-            $keyvalue = $var.Value
-            Write-Output "${keyname}: $keyvalue"
-        }
-      displayName: 'Show all Environment Variables'
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
 
     - template: 'build/azure-templates/publish-nuget-packages.yml'
       parameters:
