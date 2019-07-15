@@ -34,6 +34,14 @@ variables:
   value: 'nuget'
 - name: TestResultsArtifactName
   value: 'testresults'
+- name: VersionArtifactName
+  value: 'version'
+- name: BuildNumberFileName
+  value: 'buildNumber.txt'
+- name: PackageVersionFileName
+  value: 'packageVersion.txt'
+- name: FileVersionFileName
+  value: 'fileVersion.txt'
 - name: BuildDirectory # Where the build scripts and configs are
   value: '$(System.DefaultWorkingDirectory)/build'
 - name: ReleaseDirectory # Build artifacts directory
@@ -58,6 +66,20 @@ stages:
         Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false';publish_directory='$(PublishDirectory)';nuget_package_directory='$(NuGetArtifactDirectory)'}
         exit !($psake.build_success)
       displayName: 'PSake Build'
+
+    - powershell: |
+        $dir = '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+        if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path "$dir" -Force }
+        '$(PackageVersion)' | Out-File -FilePath "$dir/${{ parameters.packageVersionFileName }}" -Force
+        '$(FileVersion)' | Out-File -FilePath "$dir/${{ parameters.fileVersionFileName }}" -Force
+        '$(Build.BuildNumber)' | Out-File -FilePath "$dir/${{ parameters.buildNumberFileName }}" -Force
+      displayName: 'Write Versions to Files'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(VersionArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+        ArtifactName: '$(VersionArtifactName)'
 
     # Copy the .pdb files as build artifacts, which will 
     # later be used to push to the Azure Artifacts symbol server.
@@ -90,15 +112,15 @@ stages:
         Windows:
           osName: 'Windows'
           imageName: 'windows-2019'
-          maximumAllowedFailures: 8
+          maximumAllowedFailures: 8 # Maximum allowed failures for a successful build
         Linux:
           osName: 'Linux'
           imageName: 'ubuntu-16.04'
-          maximumAllowedFailures: 8
+          maximumAllowedFailures: 8 # Maximum allowed failures for a successful build
         macOS:
           osName: 'macOS'
           imageName: 'macOS-10.14'
-          maximumAllowedFailures: 8
+          maximumAllowedFailures: 8 # Maximum allowed failures for a successful build
     displayName: 'Test netcoreapp2.0 on'
     pool:
       vmImage: $(imageName)
@@ -116,15 +138,15 @@ stages:
         Windows:
           osName: 'Windows'
           imageName: 'windows-2019'
-          maximumAllowedFailures: 8
+          maximumAllowedFailures: 8 # Maximum allowed failures for a successful build
         Linux:
           osName: 'Linux'
           imageName: 'ubuntu-16.04'
-          maximumAllowedFailures: 8
+          maximumAllowedFailures: 8 # Maximum allowed failures for a successful build
         macOS:
           osName: 'macOS'
           imageName: 'macOS-10.14'
-          maximumAllowedFailures: 8
+          maximumAllowedFailures: 8 # Maximum allowed failures for a successful build
     displayName: 'Test netcoreapp1.0 on'
     pool:
       vmImage: $(imageName)
@@ -137,19 +159,63 @@ stages:
     - pwsh: Exit [int]([int]$TotalFailures -gt $(maximumAllowedFailures))
 
   - job: Test_net451
-    strategy:
-      matrix:
-        Windows:
-          osName: 'Windows'
-          imageName: 'windows-2019'
-          maximumAllowedFailures: 8
-    displayName: 'Test net451 on'
+    displayName: 'Test net451 on Windows'
     pool:
-      vmImage: $(imageName)
+      vmImage: 'windows-2019'
     steps:
     - template: 'build/azure-templates/run-tests-on-os.yml'
       parameters:
         osName: $(osName)
         testTargetFrameworks: 'net451'
         testResultsArtifactName: '$(TestResultsArtifactName)'
-    - pwsh: Exit [int]([int]$TotalFailures -gt $(maximumAllowedFailures))
+    - pwsh: Exit [int]([int]$TotalFailures -gt 8) # Maximum allowed failures for a successful build
+
+
+stages:
+- stage: Publis_Stage
+  displayName: 'Publish Stage:'
+  jobs:
+  - job: Publish
+
+    pool:
+      vmImage: 'windows-2019'
+
+    steps:
+    - powershell: |
+        $environmentVars = Get-ChildItem -path env:* | sort Name
+        foreach($var in $environmentVars)
+        {
+            $keyname = $var.Key
+            $keyvalue = $var.Value
+            Write-Output "${keyname}: $keyvalue"
+        }
+      displayName: 'Show all Environment Variables'
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts: $(VersionArtifactName)'
+      inputs:
+        artifactName: '$(VersionArtifactName)'
+        downloadPath: '$(Build.ArtifactStagingDirectory)'
+
+      # NOTE: We are setting Build.BuildNumber here to the NuGet package version to work around the limitation that
+      # the version cannot be passed to the Index Sources & Publish Symbols task.
+    - powershell: |
+        $version = Get-Content '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)/$(PackageVersionFileName)' -Raw
+        Write-Host "##vso[task.setvariable variable=PackageVersion;]$version"
+        Write-Host "##vso[task.setvariable variable=Build.BuildNumber;]$version"
+      displayName: 'Read PackageVersion from File to Build.BuildNumber'
+
+    - powershell: |
+        $environmentVars = Get-ChildItem -path env:* | sort Name
+        foreach($var in $environmentVars)
+        {
+            $keyname = $var.Key
+            $keyvalue = $var.Value
+            Write-Output "${keyname}: $keyvalue"
+        }
+      displayName: 'Show all Environment Variables'
+
+    - template: 'build/azure-templates/publish-nuget-packages.yml'
+      parameters:
+        artifactFeedID: '$(ArtifactFeedID)'
+        nugetArtifactName: '$(NuGetArtifactName)'
