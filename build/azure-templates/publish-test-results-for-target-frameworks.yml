@@ -22,6 +22,7 @@ parameters:
   osName: '' # The name of the operating system for display purposes.
   testResultsFormat: VSTest # Specify the format of the results files you want to publish. The following formats are supported: JUnit, NUnit, VSTest, XUnit, CTest
   testResultsArtifactName: 'testresults' # The name of the Azure DevOps build artifact where the test results will be published. Default 'testresults'.
+  testResultsFileName: 'TestResults.trx' # The name of the file (not path) of the test results. Default 'TestResults.trx'.
 
 steps:
 - powershell: |
@@ -35,6 +36,7 @@ steps:
     EnsureNotNullOrEmpty('${{ parameters.osName }}', 'osName')
     EnsureNotNullOrEmpty('${{ parameters.testResultsFormat }}', 'testResultsFormat')
     EnsureNotNullOrEmpty('${{ parameters.testResultsArtifactName }}', 'testResultsArtifactName')
+    EnsureNotNullOrEmpty('${{ parameters.testResultsFileName }}', 'testResultsFileName')
   displayName: 'Validate Template Parameters'
 
 - template: publish-test-results.yml
@@ -44,6 +46,7 @@ steps:
     osName: '${{ parameters.osName }}'
     testResultsFormat: '${{ parameters.testResultsFormat }}'
     testResultsArtifactName: '${{ parameters.testResultsArtifactName }}'
+    testResultsFileName: '${{ parameters.testResultsFileName }}'
 
 - template: publish-test-results.yml
   parameters:
@@ -52,6 +55,7 @@ steps:
     osName: '${{ parameters.osName }}'
     testResultsFormat: '${{ parameters.testResultsFormat }}'
     testResultsArtifactName: '${{ parameters.testResultsArtifactName }}'
+    testResultsFileName: '${{ parameters.testResultsFileName }}'
 
 - template: publish-test-results.yml
   parameters:
@@ -60,3 +64,4 @@ steps:
     osName: '${{ parameters.osName }}'
     testResultsFormat: '${{ parameters.testResultsFormat }}'
     testResultsArtifactName: '${{ parameters.testResultsArtifactName }}'
+    testResultsFileName: '${{ parameters.testResultsFileName }}'
