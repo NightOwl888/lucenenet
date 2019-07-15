@@ -171,8 +171,7 @@ stages:
     - pwsh: Exit [int]([int]$TotalFailures -gt 8) # Maximum allowed failures for a successful build
 
 
-stages:
-- stage: Publis_Stage
+- stage: Publish_Stage
   displayName: 'Publish Stage:'
   jobs:
   - job: Publish
