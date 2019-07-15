@@ -132,7 +132,7 @@ steps:
             }
     
             # Execute the jobs in parallel
-            #Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$testPlatform,$testResultsArtifactDirectory
+            #Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$testPlatform,$testResultDirectory
         }
     }
     
@@ -154,6 +154,7 @@ steps:
     #    }
     #} until ($running.Count -eq 0)
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
+  ignoreLASTEXITCODE: true
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact: ${{ parameters.testResultsArtifactName }}'

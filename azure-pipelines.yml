@@ -107,3 +107,4 @@ stages:
         osName: $(osName)
         testTargetFrameworks: '$(TestTargetFrameworks)'
         testResultsArtifactName: '$(TestResultsArtifactName)'
+    - pwsh: Exit [int]([int]$TotalFailures -gt 10) # Number of tolerated failures before the build fails

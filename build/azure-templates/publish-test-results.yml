@@ -47,11 +47,14 @@ steps:
     try {
         while ($reader.Read()) {
             if ($reader.NodeType -eq [System.Xml.XmlNodeType]::Element -and $reader.Name -eq 'Counters') {
-                $failed = $reader.GetAttribute('failed')
+                [int]$failed = $reader.GetAttribute('failed')
                 $passed = $reader.GetAttribute('passed')
                 $ignored = ([int]$reader.GetAttribute('total')) - ([int]$reader.GetAttribute('executed'))
                 $testResults = "Tests failed: $failed, passed: $passed, ignored: $ignored"
-                Write-Output "##vso[task.setvariable variable=TestResults;]$testResults"
+                Write-Host "##vso[task.setvariable variable=TestResults;]$testResults"
+                # Report a running total of failures
+                [int]$totalFailures = [int]$Env:TOTALFAILURES + $failed
+                Write-Host "##vso[task.setvariable variable=TotalFailures;]$totalFailures"
                 break;
             }
         }
