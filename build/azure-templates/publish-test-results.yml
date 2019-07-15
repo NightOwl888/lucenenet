@@ -40,9 +40,9 @@ steps:
   displayName: 'Validate Template Parameters'
 
 - powershell: |
-    $testResultsDirectory = '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }/${{ parameters.testProjectName }'
+    $testResultsDirectory = "${{ format('$(Build.ArtifactStagingDirectory)/{0}/{1}/{2}',parameters.testResultsArtifactName,parameters.framework,parameters.testProjectName) }}'
     $testResultsFileName = Get-ChildItem '*.trx' -Path $testResultsDirectory | Select-Object { $_.FullName } -First 1
-
+    
     $reader = [System.Xml.XmlReader]::Create($testResultsFileName)
     try {
         while ($reader.Read()) {
@@ -64,5 +64,5 @@ steps:
   displayName: 'Publish Test Results ${{ parameters.framework }}'
   inputs:
     testResultsFormat: ${{ parameters.testResultsFormat }}
-    testResultsFiles: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }/${{ parameters.testProjectName }/*.trx'
+    testResultsFiles: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }/${{ parameters.testProjectName }}/*.trx'
     testRunTitle: '${{ parameters.testProjectName } - ${{ parameters.framework } - ${{ parameters.osName }} | $(TestResults)'
