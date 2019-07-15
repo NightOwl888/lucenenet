@@ -126,10 +126,10 @@ steps:
             Write-Host "Testing '$testBinary' on framework '$fwork'..."
             dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"trx;LogFileName=TestResults.trx" --ResultsDirectory:"$testResultDirectory" --Blame  # > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
     
-            $scriptBlock = {
-                param([string]$testBinary, [string]$fwork, [string]$testPlatform, [string]$testResultDirectory)
-                dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=TestResults.trx" --ResultsDirectory:"$testResultDirectory" > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
-            }
+            #$scriptBlock = {
+            #    param([string]$testBinary, [string]$fwork, [string]$testPlatform, [string]$testResultDirectory)
+            #    dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=TestResults.trx" --ResultsDirectory:"$testResultDirectory" > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
+            #}
     
             # Execute the jobs in parallel
             #Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$testPlatform,$testResultDirectory
