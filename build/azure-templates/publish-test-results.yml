@@ -65,4 +65,4 @@ steps:
   inputs:
     testResultsFormat: ${{ parameters.testResultsFormat }}
     testResultsFiles: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/*.trx'
-    testRunTitle: '${{ parameters.testProjectName } - ${{ parameters.framework }} - ${{ parameters.osName }} | $(TestResults)'
+    testRunTitle: '${{ parameters.testProjectName }} - ${{ parameters.framework }} - ${{ parameters.osName }} | $(TestResults)'
