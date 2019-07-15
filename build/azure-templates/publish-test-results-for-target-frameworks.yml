@@ -19,7 +19,6 @@
 
 parameters:
   testProjectName: '' # The name of the test project
-  framework: '' # The target framework for display purposes.
   osName: '' # The name of the operating system for display purposes.
   testResultsFormat: VSTest # Specify the format of the results files you want to publish. The following formats are supported: JUnit, NUnit, VSTest, XUnit, CTest
   testResultsArtifactName: 'testresults' # The name of the Azure DevOps build artifact where the test results will be published. Default 'testresults'.
@@ -33,36 +32,31 @@ steps:
         }
     }
     EnsureNotNullOrEmpty('${{ parameters.testProjectName }}', 'testProjectName')
-    EnsureNotNullOrEmpty('${{ parameters.framework }}', 'framework')
     EnsureNotNullOrEmpty('${{ parameters.osName }}', 'osName')
     EnsureNotNullOrEmpty('${{ parameters.testResultsFormat }}', 'testResultsFormat')
     EnsureNotNullOrEmpty('${{ parameters.testResultsArtifactName }}', 'testResultsArtifactName')
   displayName: 'Validate Template Parameters'
 
-- powershell: |
-    $testResultsDirectory = '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }/${{ parameters.testProjectName }'
-    $testResultsFileName = Get-ChildItem '*.trx' -Path $testResultsDirectory | Select-Object { $_.FullName } -First 1
+- template: publish-test-results.yml
+  parameters:
+    framework: 'netcoreapp2.1'
+    testProjectName: '${{ parameters.testProjectName }}'
+    osName: '${{ parameters.osName }}'
+    testResultsFormat: '${{ parameters.testResultsFormat }}'
+    testResultsArtifactName: '${{ parameters.testResultsArtifactName }}'
 
-    $reader = [System.Xml.XmlReader]::Create($testResultsFileName)
-    try {
-        while ($reader.Read()) {
-            if ($reader.NodeType -eq [System.Xml.XmlNodeType]::Element -and $reader.Name -eq 'Counters') {
-                $failed = $reader.GetAttribute('failed')
-                $passed = $reader.GetAttribute('passed')
-                $ignored = ([int]$reader.GetAttribute('total')) - ([int]$reader.GetAttribute('executed'))
-                $testResults = "Tests failed: $failed, passed: $passed, ignored: $ignored"
-                Write-Output "##vso[task.setvariable variable=TestResults;]$testResults"
-                break;
-            }
-        }
-    } finally {
-        $reader.Dispose()
-    }
-  displayName: 'Parse Test Results File'
+- template: publish-test-results.yml
+  parameters:
+    framework: 'netcoreapp1.0'
+    testProjectName: '${{ parameters.testProjectName }}'
+    osName: '${{ parameters.osName }}'
+    testResultsFormat: '${{ parameters.testResultsFormat }}'
+    testResultsArtifactName: '${{ parameters.testResultsArtifactName }}'
 
-- task: PublishTestResults@2
-  displayName: 'Publish Test Results ${{ parameters.framework }}'
-  inputs:
-    testResultsFormat: ${{ parameters.testResultsFormat }}
-    testResultsFiles: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }/${{ parameters.testProjectName }/*.trx'
-    testRunTitle: '${{ parameters.testProjectName } - ${{ parameters.framework } - ${{ parameters.osName }} | $(TestResults)'
+- template: publish-test-results.yml
+  parameters:
+    framework: 'net451'
+    testProjectName: '${{ parameters.testProjectName }}'
+    osName: '${{ parameters.osName }}'
+    testResultsFormat: '${{ parameters.testResultsFormat }}'
+    testResultsArtifactName: '${{ parameters.testResultsArtifactName }}'

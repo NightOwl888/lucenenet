@@ -26,7 +26,7 @@ parameters:
   testResultsArtifactName: 'testresults' # The name of the Azure DevOps build artifact where the test results will be published. Default 'testresults'.
   vsTestPlatform: 'x64' # Target platform architecture used for test execution. Valid values are x86, x64, and ARM.
   fastTestBinaryFilesConvention: '**/*.Tests.*.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types. These should be the faster tests.
-  slowTestBinaryFilesConvention: '**/*.Tests.Demo.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types. These should be the slower tests, so we can queue them as soon as possible.
+  slowTestBinaryFilesConvention: '**/*.Tests.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types. These should be the slower tests, so we can queue them as soon as possible.
   maximumParallelJobs: 8
 
 steps:
@@ -104,8 +104,10 @@ steps:
     
         $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$fileConvention" -Recurse
         foreach ($testBinary in $testBinaries) {
-            $projectName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)  
-
+            $testName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
+    
+            if (!($testName -match "Lucene\.Net\.Tests\.(?:Demo|Facet|ICU|Suggest)")) { continue } # TODO: Remove this filter
+    
             # Pause if we have queued too many parallel jobs
             #$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
             #if ($running.Count -ge $maximumParalellJobs) {
@@ -116,32 +118,31 @@ steps:
             #}
               
             $fwork = ConvertFrameworkName($framework)
-            $combinedTestInfo = "$framework-$testOSName-$projectName"
+            $testResultDirectory = "$testResultsArtifactDirectory/$framework/$testName"
+            if (!(Test-Path "$testResultDirectory")) {
+                New-Item "$testResultDirectory" -ItemType Directory -Force
+            }
     
             Write-Host "Testing '$testBinary' on framework '$fwork'..."
-            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"trx;LogFileName=TEST-$($combinedTestInfo).trx" --ResultsDirectory:"$testResultsArtifactDirectory" --Blame  # > "$testResultsArtifactDirectory/$($combinedTestInfo)-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$($combinedTestInfo)-dotnet-vstest-error.log"
+            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"trx;LogFileName=TestResults.trx" --ResultsDirectory:"$testResultDirectory" --Blame  # > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
     
             $scriptBlock = {
-                param([string]$testBinary, [string]$fwork, [string]$combinedTestInfo, [string]$testPlatform, [string]$testResultsArtifactDirectory)
-                dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=TEST-$($combinedTestInfo).trx" --ResultsDirectory:"$testResultsArtifactDirectory" > "$testResultsArtifactDirectory/$($combinedTestInfo)-dotnet-vstest.log" 2> "$testResultsArtifactDirectory/$($combinedTestInfo)-dotnet-vstest-error.log"
+                param([string]$testBinary, [string]$fwork, [string]$testPlatform, [string]$testResultDirectory)
+                dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=TestResults.trx" --ResultsDirectory:"$testResultDirectory" > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
             }
     
             # Execute the jobs in parallel
-            #Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$combinedTestInfo,$testPlatform,$testResultsArtifactDirectory
+            #Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$testPlatform,$testResultsArtifactDirectory
         }
-    }
-    
-    if (!(Test-Path "$testResultsArtifactDirectory")) {
-        New-Item "$testResultsArtifactDirectory" -ItemType Directory -Force
     }
     
     foreach ($framework in $testTargetFrameworks) {
         RunTests -Framework "$framework" -FileConvention "$slowTestBinaryFilesConvention"
     }
     
-    #foreach ($framework in $testTargetFrameworks) {
-    #    RunTests -Framework "$framework" -FileConvention "$fastTestBinaryFilesConvention"
-    #}
+    foreach ($framework in $testTargetFrameworks) {
+        RunTests -Framework "$framework" -FileConvention "$fastTestBinaryFilesConvention"
+    }
     
     # Wait for it all to complete
     #do {
@@ -165,112 +166,9 @@ steps:
 # it would be a ton of work to make a replacement for the
 # Publish Test Results task or the (deprecated) TfsPublisher
 # our only other option is to make a task for every supported
-# platform and update it whenever a new platform is created by MS
+# platform and project and update it whenever a new platform 
+# is targeted or test project is created in Lucene.Net.
 
-# .NET Framework
-- template: 'publish-test-results.yml'
+- template: 'publish-test-results-for-test-projects.yml'
   parameters:
-    framework: net35
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net40
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net403
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net45
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net451
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net452
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net46
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net461
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net462
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net47
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net471
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net472
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: net48
-    osName: ${{ parameters.osName }}
-
-# .NET Core
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: netcoreapp1.0
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: netcoreapp1.1
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: netcoreapp2.0
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: netcoreapp2.1
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: netcoreapp2.2
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: netcoreapp3.0
-    osName: ${{ parameters.osName }}
-
-# Universal Windows Platform
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: uap
-    osName: ${{ parameters.osName }}
-
-- template: 'publish-test-results.yml'
-  parameters:
-    framework: uap10.0
     osName: ${{ parameters.osName }}
