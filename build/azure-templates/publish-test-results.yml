@@ -40,7 +40,7 @@ steps:
   displayName: 'Validate Template Parameters'
 
 - powershell: |
-    $testResultsDirectory = "${{ format('$(Build.ArtifactStagingDirectory)/{0}/{1}/{2}',parameters.testResultsArtifactName,parameters.framework,parameters.testProjectName) }}'
+    $testResultsDirectory = "$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}"
     $testResultsFileName = Get-ChildItem '*.trx' -Path $testResultsDirectory | Select-Object { $_.FullName } -First 1
     
     $reader = [System.Xml.XmlReader]::Create($testResultsFileName)
