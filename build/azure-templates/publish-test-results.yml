@@ -45,28 +45,29 @@ steps:
   displayName: 'Show all files'
 
 - powershell: |
-    $testResultsFileName = "$(System.DefaultWorkingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}"
-    if (!(Test-Path $testResultsFileName)) {
-        Write-Host "WARNING: File not found: $testResultsFileName"
-    }
-    
-    $reader = [System.Xml.XmlReader]::Create($testResultsFileName)
-    try {
-        while ($reader.Read()) {
-            if ($reader.NodeType -eq [System.Xml.XmlNodeType]::Element -and $reader.Name -eq 'Counters') {
-                $failed = $reader.GetAttribute('failed')
-                $passed = $reader.GetAttribute('passed')
-                $ignored = (([int]$reader.GetAttribute('total')) - ([int]$reader.GetAttribute('executed'))).ToString()
-                $testResults = "Tests failed: $failed, passed: $passed, ignored: $ignored"
-                Write-Host "##vso[task.setvariable variable=TestResults;]$testResults"
-                # Report a running total of failures
-                $totalFailures = ([int]$Env:TOTALFAILURES + [int]$failed).ToString()
-                Write-Host "##vso[task.setvariable variable=TotalFailures;]$totalFailures"
-                break;
+    $testResultsFileName = "$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}"
+    if (Test-Path $testResultsFileName) {
+
+        $reader = [System.Xml.XmlReader]::Create($testResultsFileName)
+        try {
+            while ($reader.Read()) {
+                if ($reader.NodeType -eq [System.Xml.XmlNodeType]::Element -and $reader.Name -eq 'Counters') {
+                    $failed = $reader.GetAttribute('failed')
+                    $passed = $reader.GetAttribute('passed')
+                    $ignored = (([int]$reader.GetAttribute('total')) - ([int]$reader.GetAttribute('executed'))).ToString()
+                    $testResults = "Tests failed: $failed, passed: $passed, ignored: $ignored"
+                    Write-Host "##vso[task.setvariable variable=TestResults;]$testResults"
+                    # Report a running total of failures
+                    $totalFailures = ([int]$Env:TOTALFAILURES + [int]$failed).ToString()
+                    Write-Host "##vso[task.setvariable variable=TotalFailures;]$totalFailures"
+                    break;
+                }
             }
+        } finally {
+            $reader.Dispose()
         }
-    } finally {
-        $reader.Dispose()
+    } else {
+        Write-Host "WARNING: File not found: $testResultsFileName"
     }
   displayName: 'Parse Test Results File'
 
@@ -74,5 +75,5 @@ steps:
   displayName: 'Publish Test Results ${{ parameters.framework }}'
   inputs:
     testResultsFormat: ${{ parameters.testResultsFormat }}
-    testResultsFiles: '$(System.DefaultWorkingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}'
+    testResultsFiles: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}'
     testRunTitle: '${{ parameters.testProjectName }} - ${{ parameters.framework }} - ${{ parameters.osName }} | $(TestResults)'
