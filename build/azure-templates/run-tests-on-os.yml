@@ -58,7 +58,7 @@ steps:
 - powershell: |
     $testTargetFrameworksString = '${{ parameters.testTargetFrameworks }}'
     $testBinaryRootDirectory = "$(System.DefaultWorkingDirectory)"
-    $testResultsArtifactDirectory = "${{ format('$(Release.ArtifactStagingDirectory)/{0}',parameters.testResultsArtifactName) }}"
+    $testResultsArtifactDirectory = "${{ format('$(Build.ArtifactStagingDirectory)/{0}',parameters.testResultsArtifactName) }}"
     $testPlatform = '${{ parameters.vsTestPlatform }}'
     $testOSName = '${{ parameters.osName }}'
     $fastTestBinaryFilesConvention = '${{ parameters.fastTestBinaryFilesConvention }}'
