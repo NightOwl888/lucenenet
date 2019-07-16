@@ -126,11 +126,11 @@ steps:
             }
     
             Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/${{ parameters.testResultsFileName }}'..."
-            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:""trx;LogFileName=${{ parameters.testResultsFileName }}"" --ResultsDirectory:"$testResultDirectory" --Blame  # > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
+            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"trx;LogFileName=${{ parameters.testResultsFileName }}" --ResultsDirectory:"$testResultDirectory" --Blame  # > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
     
             #$scriptBlock = {
             #    param([string]$testBinary, [string]$fwork, [string]$testPlatform, [string]$testResultDirectory)
-            #    dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:""trx;LogFileName=${{ parameters.testResultsFileName }}"" --ResultsDirectory:"$testResultDirectory" > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
+            #    dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"trx;LogFileName=${{ parameters.testResultsFileName }}" --ResultsDirectory:"$testResultDirectory" > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
             #}
     
             # Execute the jobs in parallel
@@ -158,9 +158,12 @@ steps:
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
   ignoreLASTEXITCODE: true
 
+- powershell: cd ..;dir -r  | % { if ($_.PsIsContainer) { $_.FullName + "\" } else { $_.FullName } }
+  displayName: 'Show all files'
+
   # Copy the .trx files as build artifacts.
 - task: CopyFiles@2
-  displayName: 'Copy .pdb Files to: /${{ parameters.testResultsArtifactName }}'
+  displayName: 'Copy .trx Files to: /${{ parameters.testResultsArtifactName }}'
   inputs:
     SourceFolder: '$(System.DefaultWorkingDirectory)'
     Contents: '**/*.trx'
