@@ -41,11 +41,14 @@ steps:
     EnsureNotNullOrEmpty('${{ parameters.testResultsFileName }}', 'testResultsFileName')
   displayName: 'Validate Template Parameters'
 
-- powershell: dir -r  | % { if ($_.PsIsContainer) { $_.FullName + "\" } else { $_.FullName } }
+- powershell: cd ..;dir -r  | % { if ($_.PsIsContainer) { $_.FullName + "\" } else { $_.FullName } }
   displayName: 'Show all files'
 
 - powershell: |
-    $testResultsFileName = "$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}"
+    $testResultsFileName = "$(System.DefaultWorkingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}"
+    if (!(Test-Path $testResultsFileName)) {
+        Write-Host "WARNING: File not found: $testResultsFileName"
+    }
     
     $reader = [System.Xml.XmlReader]::Create($testResultsFileName)
     try {
@@ -71,5 +74,5 @@ steps:
   displayName: 'Publish Test Results ${{ parameters.framework }}'
   inputs:
     testResultsFormat: ${{ parameters.testResultsFormat }}
-    testResultsFiles: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}'
+    testResultsFiles: '$(System.DefaultWorkingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}'
     testRunTitle: '${{ parameters.testProjectName }} - ${{ parameters.framework }} - ${{ parameters.osName }} | $(TestResults)'
