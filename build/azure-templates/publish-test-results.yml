@@ -45,8 +45,9 @@ steps:
   displayName: 'Show all files'
 
 - powershell: |
-    $testResultsFileName = "$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}"
-    if (Test-Path $testResultsFileName) {
+    $testResultsFileName = "$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.osName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}"
+    $testResultsFileExists = Test-Path $testResultsFileName
+    if ($testResultsFileExists) {
 
         $reader = [System.Xml.XmlReader]::Create($testResultsFileName)
         try {
@@ -69,11 +70,13 @@ steps:
     } else {
         Write-Host "WARNING: File not found: $testResultsFileName"
     }
+    Write-Host "##vso[task.setvariable variable=TestResultsFileExists;]$testResultsFileExists"      
   displayName: 'Parse Test Results File'
 
 - task: PublishTestResults@2
   displayName: 'Publish Test Results ${{ parameters.framework }}'
   inputs:
     testResultsFormat: ${{ parameters.testResultsFormat }}
-    testResultsFiles: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}'
+    testResultsFiles: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}/${{ parameters.osName }}/${{ parameters.framework }}/${{ parameters.testProjectName }}/${{ parameters.testResultsFileName }}'
     testRunTitle: '${{ parameters.testProjectName }} - ${{ parameters.framework }} - ${{ parameters.osName }} | $(TestResults)'
+  condition: and(succeeded(), eq(variables['TestResultsFileExists'], 'true'))

@@ -120,7 +120,7 @@ steps:
             #}
               
             $fwork = ConvertFrameworkName($framework)
-            $testResultDirectory = "$testResultsArtifactDirectory/$framework/$testName"
+            $testResultDirectory = "$testResultsArtifactDirectory/$testOSName/$framework/$testName"
             if (!(Test-Path "$testResultDirectory")) {
                 New-Item "$testResultDirectory" -ItemType Directory -Force
             }
@@ -155,8 +155,12 @@ steps:
     #        $running | Wait-Job -Any
     #    }
     #} until ($running.Count -eq 0)
+    
+    $global:LASTEXITCODE = 0 # Force the script to continue on error
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
   ignoreLASTEXITCODE: true
+  errorActionPreference: 'continue'
+  failOnStderr: true
 
 - powershell: cd ..;dir -r  | % { if ($_.PsIsContainer) { $_.FullName + "\" } else { $_.FullName } }
   displayName: 'Show all files'
