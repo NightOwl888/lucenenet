@@ -157,7 +157,6 @@ steps:
     #} until ($running.Count -eq 0)
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
   ignoreLASTEXITCODE: true
-  failOnStderr: false
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact: ${{ parameters.testResultsArtifactName }}'
