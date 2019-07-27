@@ -23,7 +23,7 @@
 parameters:
   nugetArtifactName: 'nuget' # The name of the artifact where the NuGet assets (.nupkg and .pdb files) can be downloaded
   artifactFeedID: '' # The GUID of the Azure Artifacts NuGet feed
-  testSymbolFilesConvention: '**/*.Tests.pdb' # The glob pattern (within the nugetArtifact) where to look for test project symbols (.pdb) files, so they can be distinguished from other project file types.
+  testSymbolFilesConvention: '**/*.Tests*.pdb' # The glob pattern (within the nugetArtifact) where to look for test project symbols (.pdb) files, so they can be distinguished from other project file types.
 
 steps:
 - powershell: |
