@@ -63,7 +63,7 @@ steps:
   displayName: 'Extract files from ${{ parameters.publishedArtifactZipFileName }}'
   inputs:
     archiveFilePatterns: '${{ parameters.binaryArtifactName }}/${{ parameters.publishedArtifactZipFileName }}'
-    destinationFolder: '$(System.DefaultWorkingDirectory)'
+    destinationFolder: '$(System.DefaultWorkingDirectory)/${{ parameters.binaryArtifactName }}'
     cleanDestinationFolder: false
 
 - powershell: |
