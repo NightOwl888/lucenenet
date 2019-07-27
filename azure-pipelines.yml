@@ -50,6 +50,8 @@ variables:
   value: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
 - name: NuGetArtifactDirectory # NuGet binaries directory
   value: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+- name: PublishedArtifactZipFileName
+  value: 'published.zip'
 
 stages:
 - stage: Build_Stage
@@ -63,7 +65,7 @@ stages:
     steps:
     - powershell: |
         Import-Module "$(BuildDirectory)/psake.psm1"
-        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false';publish_directory='$(PublishDirectory)';nuget_package_directory='$(NuGetArtifactDirectory)'}
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false';zipPublishedArtifacts='true';publishedArtifactZipFileName=$(PublishedArtifactZipFileName);publish_directory='$(PublishDirectory)';nuget_package_directory='$(NuGetArtifactDirectory)'}
         exit !($psake.build_success)
       displayName: 'PSake Build'
 
@@ -132,6 +134,7 @@ stages:
         osName: $(osName)
         testTargetFrameworks: 'netcoreapp2.1'
         testResultsArtifactName: '$(TestResultsArtifactName)'
+        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
     - pwsh: Exit [int]([int]$TotalFailures -gt $(maximumAllowedFailures))
 
   - job: Test_netcoreapp1_0
@@ -158,6 +161,7 @@ stages:
         osName: $(osName)
         testTargetFrameworks: 'netcoreapp1.0'
         testResultsArtifactName: '$(TestResultsArtifactName)'
+        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
     - pwsh: Exit [int]([int]$TotalFailures -gt $(maximumAllowedFailures))
 
   - job: Test_net451
@@ -170,6 +174,7 @@ stages:
         osName: 'Windows'
         testTargetFrameworks: 'net451'
         testResultsArtifactName: '$(TestResultsArtifactName)'
+        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
     - pwsh: Exit [int]([int]$TotalFailures -gt 8) # Maximum allowed failures for a successful build
 
 

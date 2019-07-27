@@ -28,6 +28,7 @@ parameters:
   fastTestBinaryFilesConvention: '**/*.Tests.*.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types. These should be the faster tests.
   slowTestBinaryFilesConvention: '**/*.Tests.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types. These should be the slower tests, so we can queue them as soon as possible.
   testResultsFileName: 'TestResults.trx' # The name of the file (not path) of the test results. Default 'TestResults.trx'.
+  publishedArtifactZipFileName: 'published.zip'
   maximumParallelJobs: 8
 
 steps:
@@ -46,6 +47,7 @@ steps:
     EnsureNotNullOrEmpty('${{ parameters.fastTestBinaryFilesConvention }}', 'fastTestBinaryFilesConvention')
     EnsureNotNullOrEmpty('${{ parameters.slowTestBinaryFilesConvention }}', 'slowTestBinaryFilesConvention')
     EnsureNotNullOrEmpty('${{ parameters.testResultsFileName }}', 'testResultsFileName')
+    EnsureNotNullOrEmpty('${{ parameters.publishedArtifactZipFileName }}', 'publishedArtifactZipFileName')
     EnsureNotNullOrEmpty('${{ parameters.maximumParallelJobs }}', 'maximumParallelJobs')
   displayName: 'Validate Template Parameters'
 
@@ -54,6 +56,13 @@ steps:
   inputs:
     artifactName: ${{ parameters.binaryArtifactName }}
     downloadPath: '$(System.DefaultWorkingDirectory)'
+
+- task: ExtractFiles@1
+  displayName: 'Extract files from ${{ parameters.publishedArtifactZipFileName }}'
+  inputs:
+    archiveFilePatterns: '${{ parameters.publishedArtifactZipFileName }}'
+    destinationFolder: '$(System.DefaultWorkingDirectory)'
+    cleanDestinationFolder: false
 
 - powershell: |
     $testTargetFrameworksString = '${{ parameters.testTargetFrameworks }}'
