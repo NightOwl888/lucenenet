@@ -39,6 +39,8 @@ properties {
 	[bool]$backup_files       = $true
 	[bool]$prepareForBuild    = $true
 	[bool]$generateBuildBat   = $false
+	[bool]$zipPublishedArtifacts = $false
+	[string]$publishedArtifactZipFileName = "artifact.zip"
 
 	[string]$build_bat = "$base_directory/build.bat"
 	[string]$copyright_year = [DateTime]::Today.Year.ToString() #Get the current year from the system
@@ -207,14 +209,20 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
 
 	try {
 		$frameworksToTest = $frameworks_to_test -split "\s*?,\s*?"
+
+		if ($zipPublishedArtifacts) {
+			$outDirectory = New-TemporaryDirectory
+		} else {
+			$outDirectory = $publish_directory
+		}
 		
 		foreach ($framework in $frameworksToTest) {
-			$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -Recurse | ? { $_.Directory.Name.Contains(".Tests") } | ForEach-Object { $_.FullName }
+			$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -Recurse | ? { $_.Directory.Name.Contains(".Tests") } | Select -ExpandProperty FullName
 			foreach ($testProject in $testProjects) {
 				# Pause if we have queued too many parallel jobs
 				$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
 				if ($running.Count -ge $maximumParalellJobs) {
-					$running | Wait-Job
+					$running | Wait-Job -Any | Out-Null
 				}
 
 				$projectName = [System.IO.Path]::GetFileNameWithoutExtension($testProject)
@@ -224,7 +232,7 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
 					continue
 				}
 
-				$logPath = "$publish_directory/$framework"
+				$logPath = "$outDirectory/$framework"
 				$outputPath = "$logPath/$projectName"
 
 				# Do this first so there is no conflict
@@ -242,16 +250,24 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
 			}
 		}
 
-		Get-Job
-
 		# Wait for it all to complete
-        While (Get-Job -State "Running") {
-			Write-Host "Executing dotnet publish of all projects in parallel. This will take a bit, please wait..."
-			Start-Sleep 10
-		}
+		do {
+			$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+			if ($running.Count -gt 0) {
+				Write-Host ""
+				Write-Host "  Almost finished, only $($running.Count) projects left to publish..." -ForegroundColor Cyan
+				$running | Wait-Job -Any | Out-Null
+			}
+		} until ($running.Count -eq 0)
 
 		# Getting the information back from the jobs (time consuming)
 		#Get-Job | Receive-Job
+
+		if ($zipPublishedArtifacts) {
+			Ensure-Directory-Exists $publish_directory
+			Add-Type -assembly "System.IO.Compression.Filesystem"
+			[System.IO.Compression.ZipFile]::CreateFromDirectory($outDirectory, "$publish_directory/$publishedArtifactZipFileName")
+		}
 
 		$success = $true
 	} finally {
@@ -687,4 +703,10 @@ function Ensure-Directory-Exists([string] $path) {
 	if (!(Test-Path $path)) {
 		New-Item $path -ItemType Directory
 	}
+}
+
+function New-TemporaryDirectory {
+    $parent = [System.IO.Path]::GetTempPath()
+    [string] $name = [System.Guid]::NewGuid()
+    New-Item -ItemType Directory -Path (Join-Path $parent $name)
 }
