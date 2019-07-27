@@ -274,11 +274,25 @@ task Test -depends InstallSDK, UpdateLocalSDKVersion, Restore -description "This
 
 	$frameworksToTest = $frameworks_to_test -split "\s*?,\s*?"
 
-	foreach ($framework in $frameworksToTest) {
-		Write-Host "Framework: $framework" -ForegroundColor Blue
+	[int]$totalProjects = $testProjects.Length * $frameworksToTest.Length
+	[int]$remainingProjects = $totalProjects
 
-		foreach ($testProject in $testProjects) {
+	foreach ($testProject in $testProjects) {
+
+		foreach ($framework in $frameworksToTest) {
 			$testName = $testProject.Directory.Name
+
+			Write-Host "  Test Project: $testName, Framework: $framework" -ForegroundColor Yellow
+
+			# Pause if we have queued too many parallel jobs
+			$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+			if ($running.Count -ge $maximumParalellJobs) {
+				Write-Host ""
+				Write-Host "  Running tests in parallel on $($running.Count) projects out of $totalProjects total." -ForegroundColor Cyan
+				Write-Host "  $remainingProjects projects are waiting in the queue to run. This will take a bit, please wait..." -ForegroundColor Cyan
+				$running | Wait-Job -Any | Out-Null
+			}
+			$remainingProjects -= 1
 
 			# Special case - our CLI tool only supports .NET Core 2.1
 			if ($testName.Contains("Tests.Cli") -and (!$framework.StartsWith("netcoreapp2."))) {
@@ -310,13 +324,31 @@ task Test -depends InstallSDK, UpdateLocalSDKVersion, Restore -description "This
 
 			Write-Host $testExpression -ForegroundColor Magenta
 
-			Invoke-Expression $testExpression
-			# fail the build on negative exit codes (NUnit errors - if positive it is a test count or, if 1, it could be a dotnet error)
-			if ($LASTEXITCODE -lt 0) {
-				throw "Test execution failed"
+			$scriptBlock = {
+				param([string]$testExpression, [string]$testResultDirectory)
+				$testExpression = "$testExpression > '$testResultDirectory/dotnet-test.log' 2> '$testResultDirectory/dotnet-test-error.log'"
+				Invoke-Expression $testExpression
 			}
+
+			# Execute the jobs in parallel
+			Start-Job $scriptBlock -ArgumentList $testExpression,$testResultDirectory
+
+			#Invoke-Expression $testExpression
+			## fail the build on negative exit codes (NUnit errors - if positive it is a test count or, if 1, it could be a dotnet error)
+			#if ($LASTEXITCODE -lt 0) {
+			#	throw "Test execution failed"
+			#}
 		}
 	}
+
+	do {
+		$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+		if ($running.Count -gt 0) {
+			Write-Host ""
+			Write-Host "  Almost finished, only $($running.Count) test projects left..." -ForegroundColor Cyan
+			$running | Wait-Job -Any
+		}
+	} until ($running.Count -eq 0)
 
 	Summarize-Test-Results
 }
@@ -583,7 +615,9 @@ function Summarize-Test-Results() {
                             @{Expression={$_.Warning};Label='Warning';Width=9},
                             @{Expression={$_.Inconclusive};Label='Inconclusive';Width=14}
 
-                        $Counters | Format-Table $format
+						if ($counters.Failed -gt 0) {
+							$Counters | Format-Table $format
+						}
                     }
                 }
 
@@ -595,12 +629,12 @@ function Summarize-Test-Results() {
 
         # FOOTER FOR FRAMEWORK
 
-        Write-Host "************************************************************************************************************" -ForegroundColor Magenta
-        Write-Host "*                                                                                                          *" -ForegroundColor Magenta
-        Write-Host "*                                        Totals For $framework"  -ForegroundColor Magenta
-        Write-Host "*                                                                                                          *" -ForegroundColor Magenta
-        Write-Host "************************************************************************************************************" -ForegroundColor Magenta
-        Write-Host ""
+        #Write-Host "************************************************************************************************************" -ForegroundColor Magenta
+        #Write-Host "*                                                                                                          *" -ForegroundColor Magenta
+        #Write-Host "*                                        Totals For $framework"  -ForegroundColor Magenta
+        #Write-Host "*                                                                                                          *" -ForegroundColor Magenta
+        #Write-Host "************************************************************************************************************" -ForegroundColor Magenta
+        #Write-Host ""
         $foreground = if ($outcomeForFramework -eq 'Failed') { 'Red' } else { 'Green' }
         Write-Host "Result: " -NoNewline; Write-Host "$outcomeForFramework" -ForegroundColor $foreground
         Write-Host ""
@@ -614,6 +648,8 @@ function Summarize-Test-Results() {
         Write-Host "Warning: " -NoNewline; Write-Host "$warningCountForFramework" -ForegroundColor $foreground
         $foreground = if ($failedCountForFramework -gt 0) { 'Cyan' } else { (Get-Host).UI.RawUI.ForegroundColor }
         Write-Host "Inconclusive: " -NoNewline; Write-Host "$inconclusiveCountForFramework" -ForegroundColor $foreground
+		Write-Host ""
+		Write-Host "See the .trx logs in $test_results_directory/$framework for more details." -ForegroundColor DarkCyan
     }
 }
 
