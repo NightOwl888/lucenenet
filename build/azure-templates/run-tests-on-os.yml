@@ -162,8 +162,7 @@ steps:
   errorActionPreference: 'continue'
   failOnStderr: false
 
-- powershell: cd ..;dir -r  | % { if ($_.PsIsContainer) { $_.FullName + "\" } else { $_.FullName } }
-  displayName: 'Show all files'
+- template: 'show-all-files.yml' # Uncomment for debugging
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact: ${{ parameters.testResultsArtifactName }}'
