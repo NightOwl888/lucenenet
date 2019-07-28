@@ -23,13 +23,20 @@ name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 # BuildConfiguration: (Optional. Defaults to 'Release')
 # BuildPlatform: (Optional. Defaults to 'Any CPU')
 # IsRelease: (Optional. By default the Release job is disabled, setting this to 'true' will enable it)
-# PreReleaseCounterPattern: '0000000000' (in ci pipeline only)
 # RunTests: 'true' (Optional - set to 'false' to disable test jobs - useful for debugging. If not provided, tests will be run.)
-# VersionSuffix 'ci' (or 'beta' or 'rc' or '' in production pipeline)
+
+# Versioning Variables
+
+# BuildCounterSeed: (Optional - Set the build counter to start at this number. Default is 1250 if not supplied.)
+# PackageVersion: (Optional - This can be used to explicitly set the whole version number to a specific version, i.e. 4.8.0-beta00005. It overrides all other version settings.)
+# PreReleaseCounterPattern: '0000000000' (required in ci pipeline only)
+# VersionSuffix: 'ci' (or 'beta' or 'rc' or '' in production pipeline)
 
 variables:
 - name: BuildCounter
   value: $[counter('',1250)]
+- name: BuildCounterOverride
+  value: $[counter('','$(BuildCounterSeed)')]
 - name: BinaryArtifactName
   value: 'testbinaries'
 - name: NuGetArtifactName
@@ -48,8 +55,6 @@ variables:
   value: 'fileVersion.txt'
 - name: BuildDirectory # Where the build scripts and configs are
   value: '$(System.DefaultWorkingDirectory)/build'
-- name: ReleaseDirectory # Build artifacts directory
-  value: '$(System.DefaultWorkingDirectory)/release' # NOTE: This has nothing to do with ReleaseArtifactName
 - name: PublishDirectory # Test binaries directory
   value: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
 - name: NuGetArtifactDirectory # NuGet binaries directory
@@ -72,9 +77,18 @@ stages:
     steps:
     - powershell: |
         Import-Module "$(BuildDirectory)/psake.psm1"
-        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false';publish_directory='$(PublishTempDirectory)';nuget_package_directory='$(NuGetArtifactDirectory)'}
+        $buildCounter = if ('$BuildCounterSeed') { '$(BuildCounterOverride)' } else { '$(BuildCounter)' }
+        $parameters = @{
+            buildCounter="'$buildCounter'"
+        }
+        $properties = @{
+            backup_files='false';
+            publish_directory='$(PublishTempDirectory)';
+            nuget_package_directory='$(NuGetArtifactDirectory)'
+        }
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties $properties -parameters $parameters
         exit !($psake.build_success)
-      displayName: 'PSake Build'
+      displayName: 'PSake Build, Pack, and Publish'
 
     - template: 'build/azure-templates/show-all-environment-variables.yml'
 
