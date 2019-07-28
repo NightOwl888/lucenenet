@@ -172,8 +172,9 @@ task Compile -depends Clean, Init, Restore -description "This task compiles the 
 				/p:Product=$product_name `
 				/p:Company=$company_name `
 				/p:Copyright=$copyright `
-				/p:TestFrameworks=true ` # workaround for parsing issue: https://github.com/Microsoft/msbuild/issues/471#issuecomment-181963350
-				/p:Platform=$platform
+				/p:Platform=$platform `
+				/p:TestFrameworks=true # workaround for parsing issue: https://github.com/Microsoft/msbuild/issues/471#issuecomment-181963350
+				
 		}
 
 		$success = $true
