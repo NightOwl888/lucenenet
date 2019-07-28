@@ -119,16 +119,14 @@ steps:
         foreach ($testBinary in $testBinaries) {
             $testName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
     
-            if (!($testName -match "Lucene\.Net\.Tests\.(?:Demo|Facet|ICU|Suggest)")) { continue } # TODO: Remove this filter
-    
             # Pause if we have queued too many parallel jobs
-            #$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-            #if ($running.Count -ge $maximumParalellJobs) {
-            #    Write-Host ""
-            #    Write-Host "  Running tests in parallel on $($running.Count) projects." -ForegroundColor Cyan
-            #    Write-Host "  Next in queue is $projectName on $framework. This will take a bit, please wait..." -ForegroundColor Cyan
-            #    $running | Wait-Job -Any | Out-Null
-            #}
+            $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+            if ($running.Count -ge $maximumParalellJobs) {
+                Write-Host ""
+                Write-Host "  Running tests in parallel on $($running.Count) projects." -ForegroundColor Cyan
+                Write-Host "  Next in queue is $projectName on $framework. This will take a bit, please wait..." -ForegroundColor Cyan
+                $running | Wait-Job -Any | Out-Null
+            }
               
             $fwork = ConvertFrameworkName($framework)
             $testResultDirectory = "$testResultsArtifactDirectory/$testOSName/$framework/$testName"
@@ -137,15 +135,15 @@ steps:
             }
     
             Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/${{ parameters.testResultsFileName }}'..."
-            dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"console;verbosity=normal" --logger:"trx;LogFileName=${{ parameters.testResultsFileName }}" --ResultsDirectory:"$testResultDirectory" --Blame  # > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
+            #   dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"console;verbosity=normal" --logger:"trx;LogFileName=${{ parameters.testResultsFileName }}" --ResultsDirectory:"$testResultDirectory" --Blame  # > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
     
-            #$scriptBlock = {
-            #    param([string]$testBinary, [string]$fwork, [string]$testPlatform, [string]$testResultDirectory)
-            #    dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --Blame --logger:"console;verbosity=normal" --logger:"trx;LogFileName=${{ parameters.testResultsFileName }}" --ResultsDirectory:"$testResultDirectory" > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
-            #}
+            $scriptBlock = {
+                param([string]$testBinary, [string]$fwork, [string]$testPlatform, [string]$testResultDirectory)
+                dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"console;verbosity=normal" --logger:"trx;LogFileName=${{ parameters.testResultsFileName }}" --ResultsDirectory:"$testResultDirectory" --Blame > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
+            }
     
             # Execute the jobs in parallel
-            #Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$testPlatform,$testResultDirectory
+            Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$testPlatform,$testResultDirectory
         }
     }
     
@@ -158,20 +156,18 @@ steps:
     }
     
     # Wait for it all to complete
-    #do {
-    #    $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-    #    if ($running.Count -gt 0) {
-    #        Write-Host ""
-    #        Write-Host "  Almost finished, only $($running.Count) projects left..." -ForegroundColor Cyan
-    #        $running | Wait-Job -Any
-    #    }
-    #} until ($running.Count -eq 0)
+    do {
+        $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+        if ($running.Count -gt 0) {
+            Write-Host ""
+            Write-Host "  Almost finished, only $($running.Count) projects left..." -ForegroundColor Cyan
+            $running | Wait-Job -Any
+        }
+    } until ($running.Count -eq 0)
     
     $global:LASTEXITCODE = 0 # Force the script to continue on error
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
   ignoreLASTEXITCODE: true
-  errorActionPreference: 'continue'
-  failOnStderr: false
 
 - template: 'show-all-files.yml' # Uncomment for debugging
 
