@@ -22,6 +22,7 @@ name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 # ArtifactFeedID: (Optional - set to your Azure DevOps Artifact (NuGet) feed. If not provided, publish job will be skipped.)
 # BuildConfiguration: (Optional. Defaults to 'Release')
 # BuildPlatform: (Optional. Defaults to 'Any CPU')
+# IsRelease: (Optional. By default the Release job is disabled, setting this to 'true' will enable it)
 # PreReleaseCounterPattern: '0000000000' (in ci pipeline only)
 # RunTests: 'true' (Optional - set to 'false' to disable test jobs - useful for debugging. If not provided, tests will be run.)
 # VersionSuffix 'ci' (or 'beta' or 'rc' or '' in production pipeline)
@@ -33,6 +34,8 @@ variables:
   value: 'testbinaries'
 - name: NuGetArtifactName
   value: 'nuget'
+- name: ReleaseArtifactName
+  value: 'release'
 - name: TestResultsArtifactName
   value: 'testresults'
 - name: VersionArtifactName
@@ -46,7 +49,7 @@ variables:
 - name: BuildDirectory # Where the build scripts and configs are
   value: '$(System.DefaultWorkingDirectory)/build'
 - name: ReleaseDirectory # Build artifacts directory
-  value: '$(System.DefaultWorkingDirectory)/release'
+  value: '$(System.DefaultWorkingDirectory)/release' # NOTE: This has nothing to do with ReleaseArtifactName
 - name: PublishDirectory # Test binaries directory
   value: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
 - name: NuGetArtifactDirectory # NuGet binaries directory
@@ -223,3 +226,97 @@ stages:
       parameters:
         artifactFeedID: '$(ArtifactFeedID)'
         nugetArtifactName: '$(NuGetArtifactName)'
+
+
+- stage: Release_Stage
+  displayName: 'Release Stage:'
+  jobs:
+  - job: Release
+    condition: and(succeeded(), eq(variables['IsRelease'], 'true'))
+    displayName: 'Build Release Artifacts for [VOTE]'
+    pool:
+      vmImage: 'windows-2019'
+
+    steps:
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts: $(NuGetArtifactName)'
+      inputs:
+        artifactName: '$(NuGetArtifactName)'
+        downloadPath: '$(Build.ArtifactStagingDirectory)'
+
+    - template: 'show-all-files.yml' # Uncomment for debugging
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts: $(VersionArtifactName)'
+      inputs:
+        artifactName: '$(VersionArtifactName)'
+        downloadPath: '$(Build.ArtifactStagingDirectory)'
+
+      # NOTE: We are setting Build.BuildNumber here to the NuGet package version to work around the limitation that
+      # the version cannot be passed to the Index Sources & Publish Symbols task.
+    - powershell: |
+        $version = Get-Content '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)/$(PackageVersionFileName)' -Raw
+        $vcsLabel = 'Lucene.Net_' + $version.Replace('.', '_').Replace('-', '_')
+        Write-Host "##vso[task.setvariable variable=VCSLabel;]$vcsLabel"
+        Write-Host "##vso[task.setvariable variable=PackageVersion;]$version"
+        Write-Host "##vso[task.setvariable variable=Build.BuildNumber;]$version"
+      displayName: 'Build VCS Label and Rehydrate Version Variables'
+
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
+
+    - task: CopyFiles@2
+      displayName: 'Copy Source Code Files to: $(Build.ArtifactStagingDirectory)/srctemp'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)'
+        Contents: |
+         **
+         !.git/**/*
+         !branding/**/*
+         !release/**/*
+         !src/**/bin/**/*
+         !src/**/obj/**/*
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/srctemp'
+
+    - task: ArchiveFiles@2
+      displayName: 'Archive Source Code Files'
+      inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/srctemp'
+        includeRootFolder: false
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(ReleaseArtifactName)/Apache-Lucene.Net-$(PackageVersion).src.zip'
+
+    - task: CopyFiles@2
+      displayName: 'Copy License/Notice Files to: $(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)'
+        Contents: |
+         LICENSE.txt
+         NOTICE.txt
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+
+    - task: ArchiveFiles@2
+      displayName: 'Archive Binary Files'
+      inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+        includeRootFolder: false
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(ReleaseArtifactName)/Apache-Lucene.Net-$(PackageVersion).bin.zip'
+
+    - powershell: |
+        $dir = '$(Build.ArtifactStagingDirectory)/$(ReleaseArtifactName)'
+        if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path "$dir" -Force }
+        'TODO: Review: http://www.apache.org/legal/release-policy.html`n' + `
+        'TODO: Tag Repository`n' + `
+        '  commit: $(Build.SourceVersion)`n' + `
+        '  tag: $(VCSLabel)`n' + `
+        'TODO: Sign release artifacts (see https://www.apache.org/dev/release-signing.html)`n' + `
+        'TODO: Push release artifacts to dev (https://dist.apache.org/repos/dist/dev/lucenenet/)`n' + `
+        'TODO: Start release [Vote] (see https://www.apache.org/foundation/voting.html)`n' | Out-File -FilePath "$dir/RELEASE-TODO.txt" -Force
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(ReleaseArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(ReleaseArtifactName)'
+        ArtifactName: '$(ReleaseArtifactName)'
+
+# TODO: Write VCS Label (git tag) automatically
