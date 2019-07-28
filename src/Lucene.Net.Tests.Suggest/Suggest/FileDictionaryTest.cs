@@ -39,7 +39,7 @@ namespace Lucene.Net.Search.Suggest
                 sb.append(fieldDelimiter);
                 long weight = TestUtil.NextLong(Random(), long.MinValue, long.MaxValue);
                 sb.append(weight);
-                entryValues.Add(weight.ToString());
+                entryValues.Add(weight.ToString(CultureInfo.InvariantCulture));
             }
             if (hasPayload)
             {
