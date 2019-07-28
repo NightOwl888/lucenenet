@@ -246,7 +246,7 @@ stages:
         artifactName: '$(NuGetArtifactName)'
         downloadPath: '$(Build.ArtifactStagingDirectory)'
 
-    - template: 'show-all-files.yml' # Uncomment for debugging
+    - template: 'build/azure-templates/show-all-files.yml' # Uncomment for debugging
 
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Build Artifacts: $(VersionArtifactName)'
