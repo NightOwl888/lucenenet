@@ -2,6 +2,7 @@
 using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -258,11 +259,11 @@ namespace Lucene.Net.Search.Suggest
                 // keep reading floats for bw compat
                 try
                 {
-                    curWeight = Convert.ToInt64(weight);
+                    curWeight = Convert.ToInt64(weight, CultureInfo.InvariantCulture);
                 }
                 catch (FormatException)
                 {
-                    curWeight = (long)Convert.ToDouble(weight);
+                    curWeight = (long)Convert.ToDouble(weight, CultureInfo.InvariantCulture);
                 }
             }
 
