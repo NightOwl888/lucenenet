@@ -62,14 +62,24 @@ stages:
     pool:
       vmImage: 'windows-2019'
 
+    variables:
+      PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
+
     steps:
     - powershell: |
         Import-Module "$(BuildDirectory)/psake.psm1"
-        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false';zipPublishedArtifacts='true';publishedArtifactZipFileName='$(PublishedArtifactZipFileName)';publish_directory='$(PublishDirectory)';nuget_package_directory='$(NuGetArtifactDirectory)'}
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties @{backup_files='false';publish_directory='$(PublishTempDirectory)';nuget_package_directory='$(NuGetArtifactDirectory)'}
         exit !($psake.build_success)
       displayName: 'PSake Build'
 
     - template: 'build/azure-templates/show-all-environment-variables.yml'
+
+    - task: ArchiveFiles@2
+        displayName: 'Archive $(PublishTempDirectory)'
+        inputs:
+          rootFolderOrFile: '$(PublishTempDirectory)'
+          includeRootFolder: false
+          archiveFile: '$(PublishDirectory)/$(PublishedArtifactZipFileName)'
 
     - powershell: |
         $dir = '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
