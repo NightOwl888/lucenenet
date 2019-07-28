@@ -76,11 +76,11 @@ stages:
     - template: 'build/azure-templates/show-all-environment-variables.yml'
 
     - task: ArchiveFiles@2
-        displayName: 'Archive $(PublishTempDirectory)'
-        inputs:
-          rootFolderOrFile: '$(PublishTempDirectory)'
-          includeRootFolder: false
-          archiveFile: '$(PublishDirectory)/$(PublishedArtifactZipFileName)'
+      displayName: 'Archive $(PublishTempDirectory)'
+      inputs:
+        rootFolderOrFile: '$(PublishTempDirectory)'
+        includeRootFolder: false
+        archiveFile: '$(PublishDirectory)/$(PublishedArtifactZipFileName)'
 
     - powershell: |
         $dir = '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
