@@ -36,6 +36,7 @@ properties {
 	[string]$packageVersion   = Get-Package-Version #NOTE: Pass in as a parameter (not a property) or environment variable to override
 	[string]$version          = Get-Version
 	[string]$configuration    = $(if ($configuration) { $configuration } else { if ($env:BuildConfiguration) { $env:BuildConfiguration } else { "Release" } })  #NOTE: Pass in as a parameter (not a property) or environment variable to override
+	[string]$platform   = $(if ($platform) { $platform } else { if ($env:BuildPlatform) { $env:BuildPlatform } else { "AnyCPU" } })  #NOTE: Pass in as a parameter (not a property) or environment variable to override
 	[bool]$backup_files       = $true
 	[bool]$prepareForBuild    = $true
 	[bool]$generateBuildBat   = $false
@@ -114,6 +115,7 @@ task Init -depends InstallSDK, UpdateLocalSDKVersion -description "This task mak
 	Write-Host "Package Version: $packageVersion"
 	Write-Host "Version: $version"
 	Write-Host "Configuration: $configuration"
+	Write-Host "Platform: $platform"
 
 	Ensure-Directory-Exists "$release_directory"
 }
@@ -170,7 +172,8 @@ task Compile -depends Clean, Init, Restore -description "This task compiles the 
 				/p:Product=$product_name `
 				/p:Company=$company_name `
 				/p:Copyright=$copyright `
-				/p:TestFrameworks=true # workaround for parsing issue: https://github.com/Microsoft/msbuild/issues/471#issuecomment-181963350
+				/p:TestFrameworks=true ` # workaround for parsing issue: https://github.com/Microsoft/msbuild/issues/471#issuecomment-181963350
+				/p:Platform=$platform
 		}
 
 		$success = $true
@@ -189,7 +192,7 @@ task Pack -depends Compile -description "This task creates the NuGet packages" {
 
 	try {
 		Exec {
-			& dotnet.exe pack $solutionFile --configuration $Configuration --output $nuget_package_directory --no-build --include-symbols /p:PackageVersion=$packageVersion
+			& dotnet.exe pack $solutionFile --configuration $configuration --output $nuget_package_directory --no-build --include-symbols /p:PackageVersion=$packageVersion
 		}
 
 		$success = $true
@@ -242,7 +245,7 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
 					param([string]$testProject, [string]$outputPath, [string]$logPath, [string]$framework, [string]$configuration, [string]$projectName)
 					Write-Host "Publishing '$testProject' on '$framework' to '$outputPath'..."
 					# Note: Cannot use Psake Exec in background
-					dotnet publish "$testProject" --output "$outputPath" --framework "$framework" --configuration "$configuration" --no-build --verbosity Detailed /p:TestFrameworks=true > "$logPath/$projectName-dotnet-publish.log" 2> "$logPath/$projectName-dotnet-publish-error.log"
+					dotnet publish "$testProject" --output "$outputPath" --framework "$framework" --configuration "$configuration" --no-build --verbosity Detailed /p:TestFrameworks=true /p:Platform="$platform" > "$logPath/$projectName-dotnet-publish.log" 2> "$logPath/$projectName-dotnet-publish-error.log"
 				}
 
 				# Execute the jobs in parallel
