@@ -112,7 +112,7 @@ steps:
         return $true
     }
     
-    function RunTests([string]$framework, [string]$fileConvention) {
+    function RunTests([string]$framework, [string]$fileConvention, [switch]$separateLongRunning) {
         if (!(IsSupportedFramework($framework))) { continue }
     
         $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$fileConvention" -Recurse | Select -ExpandProperty FullName
@@ -129,26 +129,49 @@ steps:
             }
               
             $fwork = ConvertFrameworkName($framework)
-            $testResultDirectory = "$testResultsArtifactDirectory/$testOSName/$framework/$testName"
-            if (!(Test-Path "$testResultDirectory")) {
-                New-Item "$testResultDirectory" -ItemType Directory -Force
+
+            $maxLoops = if ($separateLongRunning) { 2 } else { 1 }
+            for ($i=0; $i -lt $maxLoops; $i++) {
+                $testResultDirectory = "$testResultsArtifactDirectory/$testOSName/$framework/$testName"
+                if ($separateLongRunning) {
+                    if ($i -eq 0) {
+                        $op = "=="
+                        $testResultDirectory += "-LongRunning"
+                    } else { 
+                        $op = "!="
+                    }
+                }
+                
+                if (!(Test-Path "$testResultDirectory")) {
+                    New-Item "$testResultDirectory" -ItemType Directory -Force
+                }
+    
+                $testExpression = "dotnet vstest ""$testBinary"" --Framework:""$fwork"" --Platform:""$testPlatform""" + `
+                    " --logger:""console;verbosity=normal"" --logger:""trx;LogFileName=${{ parameters.testResultsFileName }}""" + `
+                    " --ResultsDirectory:""$testResultDirectory"" --Blame"
+    
+                if ($separateLongRunning) {
+                    $testExpression += ' --TestCaseFilter:"cat $op LongRunningTest"'
+                }
+    
+                Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/${{ parameters.testResultsFileName }}'..."
+                Write-Host $testExpression -ForegroundColor Magenta
+                #Invoke-Expression $testExpression # For debugging in the foreground
+    
+                $testExpression += ' > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"'
+                $scriptBlock = {
+                    param([string]$testExpression)
+                    Invoke-Expression $testExpression
+                }
+    
+                # Execute the jobs in parallel
+                Start-Job $scriptBlock -ArgumentList $testExpression
             }
-    
-            Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/${{ parameters.testResultsFileName }}'..."
-            #   dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"console;verbosity=normal" --logger:"trx;LogFileName=${{ parameters.testResultsFileName }}" --ResultsDirectory:"$testResultDirectory" --Blame  # > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
-    
-            $scriptBlock = {
-                param([string]$testBinary, [string]$fwork, [string]$testPlatform, [string]$testResultDirectory)
-                dotnet vstest "$testBinary" --Framework:"$fwork" --Platform:"$testPlatform" --logger:"console;verbosity=normal" --logger:"trx;LogFileName=${{ parameters.testResultsFileName }}" --ResultsDirectory:"$testResultDirectory" --Blame > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"
-            }
-    
-            # Execute the jobs in parallel
-            Start-Job $scriptBlock -ArgumentList $testBinary,$fwork,$testPlatform,$testResultDirectory
         }
     }
     
     foreach ($framework in $testTargetFrameworks) {
-        RunTests -Framework "$framework" -FileConvention "$slowTestBinaryFilesConvention"
+        RunTests -Framework "$framework" -FileConvention "$slowTestBinaryFilesConvention" -SeparateLongRunning
     }
     
     foreach ($framework in $testTargetFrameworks) {
