@@ -23,6 +23,7 @@ name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 # BuildConfiguration: 'Release'
 # BuildPlatform: 'Any CPU'
 # PreReleaseCounterPattern: '0000000000' (in ci pipeline only)
+# RunTests: 'true' (Optional - set to 'false' to disable test jobs - useful for debugging. If not provided, tests will be run.)
 # VersionSuffix 'ci' (or 'beta' or 'rc' or '' in production pipeline)
 
 variables:
@@ -121,6 +122,7 @@ stages:
   displayName: 'Test Stage:'
   jobs:
   - job: Test_netcoreapp2_1
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
     strategy:
       matrix:
         Windows:
@@ -148,6 +150,7 @@ stages:
     - pwsh: Exit [int]([int]$TotalFailures -gt $(maximumAllowedFailures))
 
   - job: Test_netcoreapp1_0
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
     strategy:
       matrix:
         Windows:
@@ -175,6 +178,7 @@ stages:
     - pwsh: Exit [int]([int]$TotalFailures -gt $(maximumAllowedFailures))
 
   - job: Test_net451
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
     displayName: 'Test net451 on Windows'
     pool:
       vmImage: 'windows-2019'
