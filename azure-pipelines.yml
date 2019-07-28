@@ -27,7 +27,6 @@ name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 
 # Versioning Variables
 
-# BuildCounterSeed: (Optional - Set the build counter to start at this number. Default is 1250 if not supplied.)
 # PackageVersion: (Optional - This can be used to explicitly set the whole version number to a specific version, i.e. 4.8.0-beta00005. It overrides all other version settings.)
 # PreReleaseCounterPattern: '0000000000' (required in ci pipeline only)
 # VersionSuffix: 'ci' (or 'beta' or 'rc' or '' in production pipeline)
@@ -35,8 +34,6 @@ name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 variables:
 - name: BuildCounter
   value: $[counter('',1250)]
-- name: BuildCounterOverride
-  value: $[counter('','$(BuildCounterSeed)')]
 - name: BinaryArtifactName
   value: 'testbinaries'
 - name: NuGetArtifactName
@@ -77,10 +74,7 @@ stages:
     steps:
     - powershell: |
         Import-Module "$(BuildDirectory)/psake.psm1"
-        $buildCounter = if ('$BuildCounterSeed') { '$(BuildCounterOverride)' } else { '$(BuildCounter)' }
-        $parameters = @{
-            buildCounter="'$buildCounter'"
-        }
+        $parameters = @{}
         $properties = @{
             backup_files='false';
             publish_directory='$(PublishTempDirectory)';
