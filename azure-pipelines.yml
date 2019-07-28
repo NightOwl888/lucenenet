@@ -305,13 +305,15 @@ stages:
     - powershell: |
         $dir = '$(Build.ArtifactStagingDirectory)/$(ReleaseArtifactName)'
         if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path "$dir" -Force }
-        'TODO: Review: http://www.apache.org/legal/release-policy.html`n' + `
-        'TODO: Tag Repository`n' + `
-        '  commit: $(Build.SourceVersion)`n' + `
-        '  tag: $(VCSLabel)`n' + `
-        'TODO: Sign release artifacts (see https://www.apache.org/dev/release-signing.html)`n' + `
-        'TODO: Push release artifacts to dev (https://dist.apache.org/repos/dist/dev/lucenenet/)`n' + `
-        'TODO: Start release [Vote] (see https://www.apache.org/foundation/voting.html)`n' | Out-File -FilePath "$dir/RELEASE-TODO.txt" -Force
+        $nl = [Environment]::NewLine
+        "TODO: Review: http://www.apache.org/legal/release-policy.html" + $nl + `
+        "TODO: Tag Repository" + $nl + `
+        "  commit: $(Build.SourceVersion)" + $nl + `
+        "  tag: $(VCSLabel)" + $nl + `
+        "TODO: Sign release artifacts (see https://www.apache.org/dev/release-signing.html)" + $nl + `
+        "TODO: Push release artifacts to dev (https://dist.apache.org/repos/dist/dev/lucenenet/)" + $nl + `
+        "TODO: Start release [VOTE] (see https://www.apache.org/foundation/voting.html)" + $nl | Out-File -FilePath "$dir/RELEASE-TODO.txt" -Force
+      displayName: 'Write RELEASE-TODO.txt'
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: $(ReleaseArtifactName)'
