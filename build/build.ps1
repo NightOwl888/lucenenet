@@ -35,7 +35,7 @@ properties {
 	[string]$versionSuffix    = $(if ($versionSuffix) { $versionSuffix } else { $env:VersionSuffix })  #NOTE: Pass in as a parameter (not a property) or environment variable to override
 	[string]$packageVersion   = Get-Package-Version #NOTE: Pass in as a parameter (not a property) or environment variable to override
 	[string]$version          = Get-Version
-	[string]$configuration    = "Release"
+	[string]$configuration    = $(if ($configuration) { $configuration } else { if ($env:BuildConfiguration) { $env:BuildConfiguration } else { "Release" } })  #NOTE: Pass in as a parameter (not a property) or environment variable to override
 	[bool]$backup_files       = $true
 	[bool]$prepareForBuild    = $true
 	[bool]$generateBuildBat   = $false

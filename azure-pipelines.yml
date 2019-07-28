@@ -20,7 +20,7 @@ name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 # DevOps Setup: Define the following pipeline level variables in Azure DevOps build pipeline
 #
 # ArtifactFeedID: (Optional - set to your Azure DevOps Artifact (NuGet) feed. If not provided, publish job will be skipped.)
-# BuildConfiguration: 'Release'
+# BuildConfiguration: (Optional. Defaults to 'Release')
 # BuildPlatform: 'Any CPU'
 # PreReleaseCounterPattern: '0000000000' (in ci pipeline only)
 # RunTests: 'true' (Optional - set to 'false' to disable test jobs - useful for debugging. If not provided, tests will be run.)
