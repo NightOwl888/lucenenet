@@ -113,12 +113,14 @@ steps:
     function RunTests([string]$framework, [string]$fileRegexPattern) {
         if (!(IsSupportedFramework($framework))) { continue }
     
-        $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory" -File -Recurse | Where-Object {$_.FullName -match "$framework"} | Where-Object {$_.FullName -match "$fileRegexPattern"} | Select -ExpandProperty FullName  | Sort-Object
+        $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory" -File -Recurse | Where-Object {$_.FullName -match "$framework"} | Where-Object {$_.FullName -match "$fileRegexPattern"} | Sort-Object -Property FullName
         Write-Host $testBinaries
         foreach ($testBinary in $testBinaries) {
-            $testName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
+            $testName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary.FullName)
+            $testDirectory = $testBinary.Directory.Name
     
-            if (!($testName -match "Lucene\.Net\.Tests._[^\.]*?$")) { continue } # TODO: Remove this filter
+            # Safety check - only run tests for the DLL that matches the directory name so we don't run the same one twice
+            if (!($testName -eq $testDirectory)) { continue }
     
             if ($maximumParalellJobs -gt 1) {
                 # Pause if we have queued too many parallel jobs
@@ -137,11 +139,11 @@ steps:
                 New-Item "$testResultDirectory" -ItemType Directory -Force
             }
     
-            $testExpression = "dotnet vstest ""$testBinary"" --Framework:""$fwork"" --Platform:""$testPlatform""" + `
+            $testExpression = "dotnet vstest ""$($testBinary.FullName)"" --Framework:""$fwork"" --Platform:""$testPlatform""" + `
                 " --logger:""console;verbosity=normal"" --logger:""trx;LogFileName=$testResultsFileName""" + `
                 " --ResultsDirectory:""$testResultDirectory"" --Blame"
     
-            Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/$testResultsFileName'..."
+            Write-Host "Testing '$($testBinary.FullName)' on framework '$fwork' and outputting test results to '$testResultDirectory/$testResultsFileName'..."
             Write-Host $testExpression -ForegroundColor Magenta
             if ($maximumParalellJobs -le 1) {
                 Invoke-Expression $testExpression # For running in the foreground
