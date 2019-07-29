@@ -55,7 +55,7 @@ steps:
     artifactName: ${{ parameters.binaryArtifactName }}
     downloadPath: '$(System.DefaultWorkingDirectory)'
 
-- template: 'show-all-files.yml' # Uncomment for debugging
+#- template: 'show-all-files.yml' # Uncomment for debugging
 
 - task: ExtractFiles@1
   displayName: 'Extract files from ${{ parameters.publishedArtifactZipFileName }}'
@@ -181,7 +181,7 @@ steps:
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
   ignoreLASTEXITCODE: true
 
-- template: 'show-all-files.yml' # Uncomment for debugging
+#- template: 'show-all-files.yml' # Uncomment for debugging
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact: ${{ parameters.testResultsArtifactName }}'
