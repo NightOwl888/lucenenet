@@ -120,7 +120,7 @@ steps:
         foreach ($testBinary in $testBinaries) {
             $testName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
     
-            if (!($testName -match "Lucene\.Net\.Tests\.(?:Demo|Facet|ICU|Suggest)")) { continue } # TODO: Remove this filter
+            if (!($testName -match "Lucene\.Net\.Tests$")) { continue } # TODO: Remove this filter
     
             if ($maximumParalellJobs -gt 1) {
                 # Pause if we have queued too many parallel jobs
