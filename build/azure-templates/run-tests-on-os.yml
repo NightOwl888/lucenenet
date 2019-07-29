@@ -155,7 +155,7 @@ steps:
                     " --ResultsDirectory:""$testResultDirectory"" --Blame"
     
                 if ($separateLongRunning) {
-                    $testExpression += ' --TestCaseFilter:"cat $op LongRunningTest"'
+                    $testExpression += " --TestCaseFilter:""cat $op LongRunningTest"""
                 }
     
                 Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/$testResultsFileName'..."
