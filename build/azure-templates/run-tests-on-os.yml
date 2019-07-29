@@ -29,7 +29,7 @@ parameters:
   slowTestBinaryFilesConvention: '**/*.Tests.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types. These should be the slower tests, so we can queue them as soon as possible.
   testResultsFileName: 'TestResults.trx' # The name of the file (not path) of the test results. Default 'TestResults.trx'.
   publishedArtifactZipFileName: 'published.zip'
-  maximumParallelJobs: 6
+  maximumParallelJobs: 8
 
 steps:
 - powershell: |
@@ -74,6 +74,7 @@ steps:
     $testOSName = '${{ parameters.osName }}'
     $fastTestBinaryFilesConvention = '${{ parameters.fastTestBinaryFilesConvention }}'
     $slowTestBinaryFilesConvention = '${{ parameters.slowTestBinaryFilesConvention }}'
+    $testResultsFileName = '${{ parameters.testResultsFileName }}'
     $maximumParalellJobs = '${{ parameters.maximumParallelJobs }}'
     $testTargetFrameworks = $testTargetFrameworksString.Split([char]',',[char]';')
     
@@ -119,15 +120,16 @@ steps:
         foreach ($testBinary in $testBinaries) {
             $testName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
     
-            # Pause if we have queued too many parallel jobs
-            $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-            if ($running.Count -ge $maximumParalellJobs) {
-                Write-Host ""
-                Write-Host "  Running tests in parallel on $($running.Count) projects." -ForegroundColor Cyan
-                Write-Host "  Next in queue is $testName on $framework. This will take a bit, please wait..." -ForegroundColor Cyan
-                $running | Wait-Job -Any | Out-Null
+            if ($maximumParalellJobs -gt 1) {
+                # Pause if we have queued too many parallel jobs
+                $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+                if ($running.Count -ge $maximumParalellJobs) {
+                    Write-Host ""
+                    Write-Host "  Running tests in parallel on $($running.Count) projects." -ForegroundColor Cyan
+                    Write-Host "  Next in queue is $testName on $framework. This will take a bit, please wait..." -ForegroundColor Cyan
+                    $running | Wait-Job -Any | Out-Null
+                }
             }
-              
             $fwork = ConvertFrameworkName($framework)
 
             $maxLoops = if ($separateLongRunning) { 2 } else { 1 }
@@ -147,25 +149,28 @@ steps:
                 }
     
                 $testExpression = "dotnet vstest ""$testBinary"" --Framework:""$fwork"" --Platform:""$testPlatform""" + `
-                    " --logger:""console;verbosity=normal"" --logger:""trx;LogFileName=${{ parameters.testResultsFileName }}""" + `
+                    " --logger:""console;verbosity=normal"" --logger:""trx;LogFileName=$testResultsFileName""" + `
                     " --ResultsDirectory:""$testResultDirectory"" --Blame"
     
                 if ($separateLongRunning) {
                     $testExpression += ' --TestCaseFilter:"cat $op LongRunningTest"'
                 }
     
-                Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/${{ parameters.testResultsFileName }}'..."
+                Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/$testResultsFileName'..."
                 Write-Host $testExpression -ForegroundColor Magenta
-                #Invoke-Expression $testExpression # For debugging in the foreground
+                if ($maximumParalellJobs -le 1) {
+                    Invoke-Expression $testExpression # For running in the foreground
+                } else {
     
-                $testExpression += ' > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"'
-                $scriptBlock = {
-                    param([string]$testExpression)
-                    Invoke-Expression $testExpression
+                    $testExpression += ' > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"'
+                    $scriptBlock = {
+                        param([string]$testExpression)
+                        Invoke-Expression $testExpression
+                    }
+    
+                    # Execute the jobs in parallel
+                    Start-Job $scriptBlock -ArgumentList $testExpression
                 }
-    
-                # Execute the jobs in parallel
-                Start-Job $scriptBlock -ArgumentList $testExpression
             }
         }
     }
@@ -178,15 +183,17 @@ steps:
         RunTests -Framework "$framework" -FileConvention "$fastTestBinaryFilesConvention"
     }
     
-    # Wait for it all to complete
-    do {
-        $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
-        if ($running.Count -gt 0) {
-            Write-Host ""
-            Write-Host "  Almost finished, only $($running.Count) projects left..." -ForegroundColor Cyan
-            $running | Wait-Job -Any
-        }
-    } until ($running.Count -eq 0)
+    if ($maximumParalellJobs -gt 1) {
+        # Wait for it all to complete
+        do {
+            $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
+            if ($running.Count -gt 0) {
+                Write-Host ""
+                Write-Host "  Almost finished, only $($running.Count) projects left..." -ForegroundColor Cyan
+                $running | Wait-Job -Any
+            }
+        } until ($running.Count -eq 0)
+    }
     
     $global:LASTEXITCODE = 0 # Force the script to continue on error
   displayName: 'dotnet vstest ${{ parameters.testTargetFrameworks }}'
