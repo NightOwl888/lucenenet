@@ -21,7 +21,7 @@
 
 #$source_directory = "F:/Projects/lucenenet" # Change to your repo location
 #
-#$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -Recurse | ? { $_.Directory.Name.Contains(".Tests") }
+#$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -Recurse | ? { $_.Directory.Name.Contains(".Tests") } | Sort-Object -Property FullName
 #
 #[string]$output = ''
 #
@@ -81,10 +81,9 @@ steps:
     testResultsArtifactName: '${{ parameters.testResultsArtifactName }}'
     testResultsFileName: '${{ parameters.testResultsFileName }}'
 
-# Special case: Run LongRunning tests as a separate batch
 - template: publish-test-results-for-target-frameworks.yml
   parameters:
-    testProjectName: 'Lucene.Net.Tests-LongRunning'
+    testProjectName: 'Lucene.Net.Tests._A-I'
     osName: '${{ parameters.osName }}'
     testResultsFormat: '${{ parameters.testResultsFormat }}'
     testResultsArtifactName: '${{ parameters.testResultsArtifactName }}'
@@ -92,7 +91,15 @@ steps:
 
 - template: publish-test-results-for-target-frameworks.yml
   parameters:
-    testProjectName: 'Lucene.Net.Tests'
+    testProjectName: 'Lucene.Net.Tests._J-U'
+    osName: '${{ parameters.osName }}'
+    testResultsFormat: '${{ parameters.testResultsFormat }}'
+    testResultsArtifactName: '${{ parameters.testResultsArtifactName }}'
+    testResultsFileName: '${{ parameters.testResultsFileName }}'
+
+- template: publish-test-results-for-target-frameworks.yml
+  parameters:
+    testProjectName: 'Lucene.Net.Tests._U-Z'
     osName: '${{ parameters.osName }}'
     testResultsFormat: '${{ parameters.testResultsFormat }}'
     testResultsArtifactName: '${{ parameters.testResultsArtifactName }}'
