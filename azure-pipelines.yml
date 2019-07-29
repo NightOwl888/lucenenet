@@ -158,7 +158,7 @@ stages:
         testTargetFrameworks: 'netcoreapp2.1'
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 6
+        maximumParallelJobs: 8
     - pwsh: Exit [int]([int]$TotalFailures -gt $(maximumAllowedFailures))
 
   - job: Test_netcoreapp1_0
@@ -187,7 +187,7 @@ stages:
         testTargetFrameworks: 'netcoreapp1.0'
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 6
+        maximumParallelJobs: 8
     - pwsh: Exit [int]([int]$TotalFailures -gt $(maximumAllowedFailures))
 
   - job: Test_net451
@@ -202,7 +202,7 @@ stages:
         testTargetFrameworks: 'net451'
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 6
+        maximumParallelJobs: 8
     - pwsh: Exit [int]([int]$TotalFailures -gt 8) # Maximum allowed failures for a successful build
 
 
