@@ -164,7 +164,7 @@ steps:
                     Invoke-Expression $testExpression # For running in the foreground
                 } else {
     
-                    $testExpression += ' > "$testResultDirectory/dotnet-vstest.log" 2> "$testResultDirectory/dotnet-vstest-error.log"'
+                    $testExpression += " > ""$testResultDirectory/dotnet-vstest.log"" 2> ""$testResultDirectory/dotnet-vstest-error.log"""
                     $scriptBlock = {
                         param([string]$testExpression)
                         Invoke-Expression $testExpression
