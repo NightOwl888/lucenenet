@@ -25,8 +25,7 @@ parameters:
   binaryArtifactName: 'testbinaries' # The name of the Azure DevOps build artifact where the test assemblies will be downloaded from. Default 'testbinaries'.
   testResultsArtifactName: 'testresults' # The name of the Azure DevOps build artifact where the test results will be published. Default 'testresults'.
   vsTestPlatform: 'x64' # Target platform architecture used for test execution. Valid values are x86, x64, and ARM.
-  fastTestBinaryFilesConvention: '**/*.Tests.*.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types. These should be the faster tests.
-  slowTestBinaryFilesConvention: '**/*.Tests.dll' # The glob pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types. These should be the slower tests, so we can queue them as soon as possible.
+  testBinaryFilesPattern: '\.*\.Tests\.?[-\w]*?\.?[-\w]*?.dll$' # The regex pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types.
   testResultsFileName: 'TestResults.trx' # The name of the file (not path) of the test results. Default 'TestResults.trx'.
   publishedArtifactZipFileName: 'published.zip'
   maximumParallelJobs: 8
@@ -44,8 +43,7 @@ steps:
     EnsureNotNullOrEmpty('${{ parameters.binaryArtifactName }}', 'binaryArtifactName')
     EnsureNotNullOrEmpty('${{ parameters.testResultsArtifactName }}', 'testResultsArtifactName')
     EnsureNotNullOrEmpty('${{ parameters.vsTestPlatform }}', 'vsTestPlatform')
-    EnsureNotNullOrEmpty('${{ parameters.fastTestBinaryFilesConvention }}', 'fastTestBinaryFilesConvention')
-    EnsureNotNullOrEmpty('${{ parameters.slowTestBinaryFilesConvention }}', 'slowTestBinaryFilesConvention')
+    EnsureNotNullOrEmpty('${{ parameters.testBinaryFilesPattern }}', 'testBinaryFilesPattern')
     EnsureNotNullOrEmpty('${{ parameters.testResultsFileName }}', 'testResultsFileName')
     EnsureNotNullOrEmpty('${{ parameters.publishedArtifactZipFileName }}', 'publishedArtifactZipFileName')
     EnsureNotNullOrEmpty('${{ parameters.maximumParallelJobs }}', 'maximumParallelJobs')
@@ -72,8 +70,7 @@ steps:
     $testResultsArtifactDirectory = "${{ format('$(Build.ArtifactStagingDirectory)/{0}',parameters.testResultsArtifactName) }}"
     $testPlatform = '${{ parameters.vsTestPlatform }}'
     $testOSName = '${{ parameters.osName }}'
-    $fastTestBinaryFilesConvention = '${{ parameters.fastTestBinaryFilesConvention }}'
-    $slowTestBinaryFilesConvention = '${{ parameters.slowTestBinaryFilesConvention }}'
+    $testBinaryFilesPattern = '${{ parameters.testBinaryFilesPattern }}'
     $testResultsFileName = '${{ parameters.testResultsFileName }}'
     $maximumParalellJobs = '${{ parameters.maximumParallelJobs }}'
     $testTargetFrameworks = $testTargetFrameworksString.Split([char]',',[char]';')
@@ -113,14 +110,15 @@ steps:
         return $true
     }
     
-    function RunTests([string]$framework, [string]$fileConvention, [switch]$separateLongRunning) {
+    function RunTests([string]$framework, [string]$fileRegexPattern) {
         if (!(IsSupportedFramework($framework))) { continue }
     
-        $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory/**/$framework/$fileConvention" -Recurse | Select -ExpandProperty FullName
+        $testBinaries = Get-ChildItem -Path "$testBinaryRootDirectory" -File -Recurse | Where-Object {$_.FullName -match "$framework"} | Where-Object {$_.FullName -match "$fileRegexPattern"} | Select -ExpandProperty FullName  | Sort-Object
+        Write-Host $testBinaries
         foreach ($testBinary in $testBinaries) {
             $testName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
     
-            if (!($testName -match "Lucene\.Net\.Tests$")) { continue } # TODO: Remove this filter
+            if (!($testName -match "Lucene\.Net\.Tests._[^\.]*?$")) { continue } # TODO: Remove this filter
     
             if ($maximumParalellJobs -gt 1) {
                 # Pause if we have queued too many parallel jobs
@@ -132,57 +130,37 @@ steps:
                     $running | Wait-Job -Any | Out-Null
                 }
             }
+    
             $fwork = ConvertFrameworkName($framework)
+            $testResultDirectory = "$testResultsArtifactDirectory/$testOSName/$framework/$testName"                
+            if (!(Test-Path "$testResultDirectory")) {
+                New-Item "$testResultDirectory" -ItemType Directory -Force
+            }
     
-            $maxLoops = if ($separateLongRunning) { 2 } else { 1 }
-            for ($i=0; $i -lt $maxLoops; $i++) {
-                $testResultDirectory = "$testResultsArtifactDirectory/$testOSName/$framework/$testName"
-                if ($separateLongRunning) {
-                    if ($i -eq 0) {
-                        $op = "=="
-                        $testResultDirectory += "-LongRunning"
-                    } else { 
-                        $op = "!="
-                    }
-                }
-                
-                if (!(Test-Path "$testResultDirectory")) {
-                    New-Item "$testResultDirectory" -ItemType Directory -Force
-                }
+            $testExpression = "dotnet vstest ""$testBinary"" --Framework:""$fwork"" --Platform:""$testPlatform""" + `
+                " --logger:""console;verbosity=normal"" --logger:""trx;LogFileName=$testResultsFileName""" + `
+                " --ResultsDirectory:""$testResultDirectory"" --Blame"
     
-                $testExpression = "dotnet vstest ""$testBinary"" --Framework:""$fwork"" --Platform:""$testPlatform""" + `
-                    " --logger:""console;verbosity=normal"" --logger:""trx;LogFileName=$testResultsFileName""" + `
-                    " --ResultsDirectory:""$testResultDirectory"" --Blame"
+            Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/$testResultsFileName'..."
+            Write-Host $testExpression -ForegroundColor Magenta
+            if ($maximumParalellJobs -le 1) {
+                Invoke-Expression $testExpression # For running in the foreground
+            } else {
     
-                if ($separateLongRunning) {
-                    $testExpression += " --TestCaseFilter:""cat $op LongRunningTest"""
+                $testExpression += " > ""$testResultDirectory/dotnet-vstest.log"" 2> ""$testResultDirectory/dotnet-vstest-error.log"""
+                $scriptBlock = {
+                    param([string]$testExpression)
+                    Invoke-Expression $testExpression
                 }
     
-                Write-Host "Testing '$testBinary' on framework '$fwork' and outputting test results to '$testResultDirectory/$testResultsFileName'..."
-                Write-Host $testExpression -ForegroundColor Magenta
-                if ($maximumParalellJobs -le 1) {
-                    Invoke-Expression $testExpression # For running in the foreground
-                } else {
-    
-                    $testExpression += " > ""$testResultDirectory/dotnet-vstest.log"" 2> ""$testResultDirectory/dotnet-vstest-error.log"""
-                    $scriptBlock = {
-                        param([string]$testExpression)
-                        Invoke-Expression $testExpression
-                    }
-    
-                    # Execute the jobs in parallel
-                    Start-Job $scriptBlock -ArgumentList $testExpression
-                }
+                # Execute the jobs in parallel
+                Start-Job $scriptBlock -ArgumentList $testExpression
             }
         }
     }
     
     foreach ($framework in $testTargetFrameworks) {
-        RunTests -Framework "$framework" -FileConvention "$slowTestBinaryFilesConvention" -SeparateLongRunning
-    }
-    
-    foreach ($framework in $testTargetFrameworks) {
-        RunTests -Framework "$framework" -FileConvention "$fastTestBinaryFilesConvention"
+        RunTests -Framework "$framework" -FileConvention "$testBinaryFilesPattern"
     }
     
     if ($maximumParalellJobs -gt 1) {
