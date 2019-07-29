@@ -120,6 +120,8 @@ steps:
         foreach ($testBinary in $testBinaries) {
             $testName = [System.IO.Path]::GetFileNameWithoutExtension($testBinary)
     
+            if (!($testName -match "Lucene\.Net\.Tests\.(?:Demo|Facet|ICU|Suggest)")) { continue } # TODO: Remove this filter
+    
             if ($maximumParalellJobs -gt 1) {
                 # Pause if we have queued too many parallel jobs
                 $running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
@@ -131,7 +133,7 @@ steps:
                 }
             }
             $fwork = ConvertFrameworkName($framework)
-
+    
             $maxLoops = if ($separateLongRunning) { 2 } else { 1 }
             for ($i=0; $i -lt $maxLoops; $i++) {
                 $testResultDirectory = "$testResultsArtifactDirectory/$testOSName/$framework/$testName"
