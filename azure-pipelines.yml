@@ -159,7 +159,7 @@ stages:
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
         maximumParallelJobs: 6
-    - pwsh: Exit [int]([int]$(TotalFailures) -gt $(maximumAllowedFailures))
+    - pwsh: Exit [int]([int]$TotalFailures -gt $(maximumAllowedFailures))
 
   - job: Test_netcoreapp1_0
     condition: and(succeeded(), ne(variables['RunTests'], 'false'))
@@ -188,7 +188,7 @@ stages:
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
         maximumParallelJobs: 6
-    - pwsh: Exit [int]([int]$(TotalFailures) -gt $(maximumAllowedFailures))
+    - pwsh: Exit [int]([int]$TotalFailures -gt $(maximumAllowedFailures))
 
   - job: Test_net451
     condition: and(succeeded(), ne(variables['RunTests'], 'false'))
@@ -203,7 +203,7 @@ stages:
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
         maximumParallelJobs: 6
-    - pwsh: Exit [int]([int]$(TotalFailures) -gt 8) # Maximum allowed failures for a successful build
+    - pwsh: Exit [int]([int]$TotalFailures -gt 8) # Maximum allowed failures for a successful build
 
 
 - stage: Publish_Stage
