@@ -25,7 +25,7 @@ parameters:
   binaryArtifactName: 'testbinaries' # The name of the Azure DevOps build artifact where the test assemblies will be downloaded from. Default 'testbinaries'.
   testResultsArtifactName: 'testresults' # The name of the Azure DevOps build artifact where the test results will be published. Default 'testresults'.
   vsTestPlatform: 'x64' # Target platform architecture used for test execution. Valid values are x86, x64, and ARM.
-  testBinaryFilesPattern: '\.*\.Tests\.?[-\w]*?\.?[-\w]*?.dll$' # The regex pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types.
+  testBinaryFilesPattern: '\.*\.Tests\.?[^\\/]*?\.?[^\\/]*?.dll$' # The regex pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types.
   testResultsFileName: 'TestResults.trx' # The name of the file (not path) of the test results. Default 'TestResults.trx'.
   publishedArtifactZipFileName: 'published.zip'
   maximumParallelJobs: 8
@@ -160,7 +160,7 @@ steps:
     }
     
     foreach ($framework in $testTargetFrameworks) {
-        RunTests -Framework "$framework" -FileConvention "$testBinaryFilesPattern"
+        RunTests -Framework "$framework" -FileRegexPattern "$testBinaryFilesPattern"
     }
     
     if ($maximumParalellJobs -gt 1) {
