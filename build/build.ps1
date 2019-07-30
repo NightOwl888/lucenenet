@@ -61,7 +61,6 @@ if ($IsWindows -eq $null) {
 	$IsWindows = $Env:OS.StartsWith('Windows')
 }
 
-
 task default -depends Pack
 
 task Clean -description "This task cleans up the build directory" {
@@ -159,7 +158,7 @@ task Compile -depends Clean, Init, Restore -description "This task compiles the 
 
 		Write-Host "Assembly informational version set to: $pv" -ForegroundColor Green
 
-		$testFrameworks = $frameworks_to_test.Replace(',', ';')
+		$testFrameworks = [string]::Join(';', (Get-FrameworksToTest))
 
 		Write-Host "TestFrameworks set to: $testFrameworks" -ForegroundColor Green
 
@@ -212,7 +211,7 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
 	Write-Host "##vso[task.setprogress]'Publishing'"
 
 	try {
-		$frameworksToTest = $frameworks_to_test -split "\s*?,\s*?"
+		$frameworksToTest = Get-FrameworksToTest
 
 		if ($zipPublishedArtifacts) {
 			$outDirectory = New-TemporaryDirectory
@@ -287,20 +286,31 @@ task Test -depends InstallSDK, UpdateLocalSDKVersion, Restore -description "This
 	Write-Host "Running tests..." -ForegroundColor DarkCyan
 
 	pushd $base_directory
-	$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -File -Recurse | Sort-Object -Property FullName | ? { $_.Directory.Name.Contains(".Tests") }
+	$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -Recurse | ? { $_.Directory.Name.Contains(".Tests") }
 	popd
 
-	Write-Host "frameworks_to_test: $frameworks_to_test" -ForegroundColor Yellow
+	$testProjects = $testProjects | Sort-Object -Property FullName
 
-	$frameworksToTest = $frameworks_to_test -split "\s*?,\s*?"
+	$frameworksToTest = Get-FrameworksToTest
+	
+	Write-Host "frameworksToTest: $frameworksToTest" -ForegroundColor Yellow
 
 	[int]$totalProjects = $testProjects.Length * $frameworksToTest.Length
 	[int]$remainingProjects = $totalProjects
+
+	Ensure-Directory-Exists $test_results_directory
 
 	foreach ($testProject in $testProjects) {
 
 		foreach ($framework in $frameworksToTest) {
 			$testName = $testProject.Directory.Name
+
+			# Special case - our CLI tool only supports .NET Core 2.1
+			if ($testName.Contains("Tests.Cli") -and (!$framework.StartsWith("netcoreapp2."))) {
+				$totalProjects--
+				$remainingProjects--
+				continue
+			}
 
 			Write-Host "  Next Project in Queue: $testName, Framework: $framework" -ForegroundColor Yellow
 
@@ -313,11 +323,6 @@ task Test -depends InstallSDK, UpdateLocalSDKVersion, Restore -description "This
 				$running | Wait-Job -Any | Out-Null
 			}
 			$remainingProjects -= 1
-
-			# Special case - our CLI tool only supports .NET Core 2.1
-			if ($testName.Contains("Tests.Cli") -and (!$framework.StartsWith("netcoreapp2."))) {
-				continue
-			}
 
 			$testResultDirectory = "$test_results_directory/$framework/$testName"
 			Ensure-Directory-Exists $testResultDirectory
@@ -370,7 +375,7 @@ task Test -depends InstallSDK, UpdateLocalSDKVersion, Restore -description "This
 		}
 	} until ($running.Count -eq 0)
 
-	Summarize-Test-Results
+	Summarize-Test-Results -FrameworksToTest $frameworksToTest
 }
 
 function Get-Package-Version() {
@@ -415,6 +420,19 @@ function Get-Version() {
 		}
 	}
 	return $version
+}
+
+function Get-FrameworksToTest() {
+    $frameworksToTest = New-Object Collections.Generic.List[string]
+    $frameworks = $frameworks_to_test -split "\s*?,\s*?"
+    foreach ($framework in $frameworks) {
+        if ($IsWindows) {
+            $frameworksToTest.Add($framework)
+        } elseif ($framework.StartsWith('netcore')) {
+            $frameworksToTest.Add($framework)
+        }
+    }
+    return [System.Linq.Enumerable]::ToArray($frameworksToTest)
 }
 
 function Is-Sdk-Version-Installed([string]$sdkVersion) {
@@ -566,9 +584,7 @@ function New-CountersObject ([string]$project, [string]$outcome, [int]$total, [i
     return $counters
 }
 
-function Summarize-Test-Results() {
-    Write-Host "frameworks_to_test: $frameworks_to_test" -ForegroundColor Gray
-    $frameworksToTest = $frameworks_to_test -split "\s*?,\s*?"
+function Summarize-Test-Results([string[]]$frameworksToTest) {
 
     foreach ($framework in $frameworksToTest) {
         pushd $base_directory
@@ -627,12 +643,12 @@ function Summarize-Test-Results() {
                         $skippedCountForFramework += $counters.Skipped
 
                         $format = @{Expression={$_.Project};Label='Project';Width=35},
-                            @{Expression={$_.Outcome};Label='Outcome';Width=9},
-                            @{Expression={$_.Total};Label='Total';Width=8},
-                            @{Expression={$_.Executed};Label='Executed';Width=10},
-                            @{Expression={$_.Passed};Label='Passed';Width=8},
-                            @{Expression={$_.Failed};Label='Failed';Width=8},
-                            @{Expression={$_.Warning};Label='Warning';Width=9},
+                            @{Expression={$_.Outcome};Label='Outcome';Width=7},
+                            @{Expression={$_.Total};Label='Total';Width=6},
+                            @{Expression={$_.Executed};Label='Executed';Width=8},
+                            @{Expression={$_.Passed};Label='Passed';Width=6},
+                            @{Expression={$_.Failed};Label='Failed';Width=6},
+                            @{Expression={$_.Warning};Label='Warning';Width=7},
                             @{Expression={$_.Inconclusive};Label='Inconclusive';Width=14}
 
 						if ($counters.Failed -gt 0) {
