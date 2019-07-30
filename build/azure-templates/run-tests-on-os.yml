@@ -200,3 +200,5 @@ steps:
 - template: 'publish-test-results-for-test-projects.yml'
   parameters:
     osName: '${{ parameters.osName }}'
+
+- template: 'show-all-environment-variables.yml' # Uncomment for debugging
