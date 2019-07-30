@@ -589,11 +589,11 @@ function Summarize-Test-Results() {
 
         Write-Host ""
         Write-Host ""
-        Write-Host "************************************************************************************************************" -ForegroundColor Yellow
-        Write-Host "*                                                                                                          *" -ForegroundColor Yellow
-        Write-Host "*                                        Test Summary For $framework"  -ForegroundColor Yellow
-        Write-Host "*                                                                                                          *" -ForegroundColor Yellow
-        Write-Host "************************************************************************************************************" -ForegroundColor Yellow
+        Write-Host "**********************************************************************" -ForegroundColor Yellow
+        Write-Host "*                                                                    *" -ForegroundColor Yellow
+        Write-Host "*                        Test Summary For $framework"  -ForegroundColor Yellow
+        Write-Host "*                                                                    *" -ForegroundColor Yellow
+        Write-Host "**********************************************************************" -ForegroundColor Yellow
 
         foreach ($testReport in $testReports) {
             $testName = [System.IO.Path]::GetFileName([System.IO.Path]::GetDirectoryName($testReport))
@@ -649,11 +649,11 @@ function Summarize-Test-Results() {
 
         # FOOTER FOR FRAMEWORK
 
-        #Write-Host "************************************************************************************************************" -ForegroundColor Magenta
-        #Write-Host "*                                                                                                          *" -ForegroundColor Magenta
-        #Write-Host "*                                        Totals For $framework"  -ForegroundColor Magenta
-        #Write-Host "*                                                                                                          *" -ForegroundColor Magenta
-        #Write-Host "************************************************************************************************************" -ForegroundColor Magenta
+        #Write-Host "**********************************************************************" -ForegroundColor Magenta
+        #Write-Host "*                                                                    *" -ForegroundColor Magenta
+        #Write-Host "*                           Totals For $framework"  -ForegroundColor Magenta
+        #Write-Host "*                                                                    *" -ForegroundColor Magenta
+        #Write-Host "**********************************************************************" -ForegroundColor Magenta
         #Write-Host ""
         $foreground = if ($outcomeForFramework -eq 'Failed') { 'Red' } else { 'Green' }
         Write-Host "Result: " -NoNewline; Write-Host "$outcomeForFramework" -ForegroundColor $foreground
