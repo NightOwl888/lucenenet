@@ -203,8 +203,6 @@ steps:
   parameters:
     osName: '${{ parameters.osName }}'
 
-- template: 'show-all-environment-variables.yml' # Uncomment for debugging
-
 - pwsh: |
     $maximumAllowedFailures = '${{ parameters.maximumAllowedFailures }}'
     if ([int]$Env:TOTALFAILURES -gt [int]$maximumAllowedFailures) {
