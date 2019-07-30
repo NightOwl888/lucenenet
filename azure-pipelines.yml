@@ -271,6 +271,7 @@ stages:
         packagesToPush: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)/**/*.symbols.nupkg'
         nuGetFeedType: external
         publishFeedCredentials: '$(ExternalNuGetServiceConnection)'
+      condition: and(succeeded(), ne(variables['ExternalNuGetServiceConnection'], ''))
 
 
 - stage: Release_Stage
