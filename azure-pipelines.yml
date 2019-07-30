@@ -264,7 +264,7 @@ stages:
         command: push
         packagesToPush: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)/**/*.symbols.nupkg'
         nuGetFeedType: external
-        publishFeedCredentials: '$(MyGetServiceConnection)'
+        publishFeedCredentials: '$(ExternalNuGetServiceConnection)'
 
 
 - stage: Release_Stage
