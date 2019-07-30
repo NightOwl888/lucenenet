@@ -81,11 +81,11 @@ stages:
             publish_directory='$(PublishTempDirectory)';
             nuget_package_directory='$(NuGetArtifactDirectory)'
         }
-        $task = 'Pack'
+        [string[]]$tasks = 'Pack'
         if ($Env:RunTests -ne 'false') {
-            $task = 'Pack,Publish'
+            [string[]]$tasks = 'Pack','Publish'
         }
-        Invoke-psake $(BuildDirectory)/build.ps1 -Task "$task" -properties $properties -parameters $parameters
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
         exit !($psake.build_success)
       displayName: 'PSake Build, Pack, and Publish'
 
