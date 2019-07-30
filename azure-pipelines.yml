@@ -27,13 +27,14 @@ name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 
 # Versioning Variables
 
+# BuildCounterSeed: (Optional - Set in conjunction with VersionSuffix, will cause the build counter to begin at this value. Note that it is set once, to reset is an API call.)
 # PackageVersion: (Optional - This can be used to explicitly set the whole version number to a specific version, i.e. 4.8.0-beta00005. It overrides all other version settings.)
 # PreReleaseCounterPattern: (Optional. Set to '0000000000' in ci pipeline or '00000' in release pipeline. The default is '0000000000'. This setting has no effect if VersionSuffix is ''.)
 # VersionSuffix: (Optional. Defaults to 'ci'. Set to 'beta' or 'rc' or '' in production pipeline.)
 
 variables:
 - name: BuildCounter
-  value: $[counter(variables['VersionSuffix'],1250)]
+  value: $[counter(variables['VersionSuffix'],coalesce(variables['BuildCounterSeed'], 1250))]
 - name: BinaryArtifactName
   value: 'testbinaries'
 - name: NuGetArtifactName
