@@ -33,7 +33,7 @@ name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 
 variables:
 - name: BuildCounter
-  value: $[counter('',1250)]
+  value: $[counter(variables['VersionSuffix'],1250)]
 - name: BinaryArtifactName
   value: 'testbinaries'
 - name: NuGetArtifactName
