@@ -150,7 +150,7 @@ stages:
         Linux:
           osName: 'Linux'
           imageName: 'ubuntu-16.04'
-          maximumAllowedFailures: 15 # Maximum allowed failures for a successful build
+          maximumAllowedFailures: 35 # Maximum allowed failures for a successful build
         macOS:
           osName: 'macOS'
           imageName: 'macOS-10.14'
