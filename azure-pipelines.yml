@@ -81,18 +81,23 @@ stages:
             publish_directory='$(PublishTempDirectory)';
             nuget_package_directory='$(NuGetArtifactDirectory)'
         }
-        Invoke-psake $(BuildDirectory)/build.ps1 -Task Pack,Publish -properties $properties -parameters $parameters
+        $task = 'Pack'
+        if ($Env:RunTests -ne 'false') {
+            $task = 'Pack,Publish'
+        }
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task $task -properties $properties -parameters $parameters
         exit !($psake.build_success)
       displayName: 'PSake Build, Pack, and Publish'
 
     - template: 'build/azure-templates/show-all-environment-variables.yml'
 
     - task: ArchiveFiles@2
-      displayName: 'Archive $(PublishTempDirectory)'
+      displayName: 'Zip $(PublishTempDirectory)'
       inputs:
         rootFolderOrFile: '$(PublishTempDirectory)'
         includeRootFolder: false
         archiveFile: '$(PublishDirectory)/$(PublishedArtifactZipFileName)'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
     - powershell: |
         $dir = '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
@@ -122,6 +127,7 @@ stages:
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
         ArtifactName: '$(BinaryArtifactName)'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: $(NuGetArtifactName)'
