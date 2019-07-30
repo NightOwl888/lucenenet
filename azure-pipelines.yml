@@ -28,8 +28,8 @@ name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 # Versioning Variables
 
 # PackageVersion: (Optional - This can be used to explicitly set the whole version number to a specific version, i.e. 4.8.0-beta00005. It overrides all other version settings.)
-# PreReleaseCounterPattern: '0000000000' (required in ci pipeline only)
-# VersionSuffix: 'ci' (or 'beta' or 'rc' or '' in production pipeline)
+# PreReleaseCounterPattern: (Optional. Set to '0000000000' in ci pipeline or '00000' in release pipeline. The default is '0000000000'. This setting has no effect if VersionSuffix is ''.)
+# VersionSuffix: (Optional. Defaults to 'ci'. Set to 'beta' or 'rc' or '' in production pipeline.)
 
 variables:
 - name: BuildCounter

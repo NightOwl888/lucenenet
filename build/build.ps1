@@ -31,8 +31,8 @@ properties {
 	[string]$globalJsonFile = "$base_directory/global.json"
 
 	[string]$buildCounter     = $(if ($buildCounter) { $buildCounter } else { $env:BuildCounter }) #NOTE: Pass in as a parameter (not a property) or environment variable to override
-	[string]$preReleaseCounterPattern = $(if ($preReleaseCounterPattern) { $preReleaseCounterPattern } else { if ($env:PreReleaseCounterPattern) { $env:PreReleaseCounterPattern } else { "00000" } })  #NOTE: Pass in as a parameter (not a property) or environment variable to override
-	[string]$versionSuffix    = $(if ($versionSuffix) { $versionSuffix } else { $env:VersionSuffix })  #NOTE: Pass in as a parameter (not a property) or environment variable to override
+	[string]$preReleaseCounterPattern = $(if ($preReleaseCounterPattern) { $preReleaseCounterPattern } else { if ($env:PreReleaseCounterPattern) { $env:PreReleaseCounterPattern } else { "0000000000" } })  #NOTE: Pass in as a parameter (not a property) or environment variable to override
+	[string]$versionSuffix    = $(if ($versionSuffix -ne $null) { $versionSuffix } else { if ($env:VersionSuffix -ne $null) { $env:VersionSuffix } else { 'ci' }}) #NOTE: Pass in as a parameter (not a property) or environment variable to override
 	[string]$packageVersion   = Get-Package-Version #NOTE: Pass in as a parameter (not a property) or environment variable to override
 	[string]$version          = Get-Version
 	[string]$configuration    = $(if ($configuration) { $configuration } else { if ($env:BuildConfiguration) { $env:BuildConfiguration } else { "Release" } })  #NOTE: Pass in as a parameter (not a property) or environment variable to override
