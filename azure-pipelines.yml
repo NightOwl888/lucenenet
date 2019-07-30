@@ -22,7 +22,6 @@ name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
 # ArtifactFeedID: (Optional - set to your Azure DevOps Artifact (NuGet) feed. If not provided, publish job will be skipped.)
 # BuildConfiguration: (Optional. Defaults to 'Release')
 # BuildPlatform: (Optional. Defaults to 'Any CPU')
-# ExternalNuGetServiceConnection: (Optional. Set to a valid NuGet API service connection name to push NuGet packages to the feed. If not provided, publish job will be skipped.)
 # IsRelease: (Optional. By default the Release job is disabled, setting this to 'true' will enable it)
 # RunTests: 'true' (Optional - set to 'false' to disable test jobs - useful for debugging. If not provided, tests will be run.)
 
@@ -247,31 +246,6 @@ stages:
       parameters:
         artifactFeedID: '$(ArtifactFeedID)'
         nugetArtifactName: '$(NuGetArtifactName)'
-
-  # Optional job to be used to push to a MyGet feed 
-  # (either lucene-net-ci for continuous integration or lucene-net-nuget to stage for [VOTE])
-  # MyGet has a one button "Push Latest" command that makes pushing up to NuGet.org easy.
-  # Pass in a service connection name as ExternalNuGetServiceConnection to enable.
-  - job: Publish_External
-    condition: and(succeeded(), ne(variables['ExternalNuGetServiceConnection'], ''))
-    pool:
-      vmImage: 'windows-2019'
-
-    steps:
-    - task: DownloadBuildArtifacts@0
-      displayName: 'Download Build Artifacts: $(NuGetArtifactName)'
-      inputs:
-        artifactName: '$(NuGetArtifactName)'
-        downloadPath: '$(Build.ArtifactStagingDirectory)'
-
-    - task: NuGetCommand@2
-      displayName: 'MyGet push'
-      inputs:
-        command: push
-        packagesToPush: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)/**/*.symbols.nupkg'
-        nuGetFeedType: external
-        publishFeedCredentials: '$(ExternalNuGetServiceConnection)'
-      condition: and(succeeded(), ne(variables['ExternalNuGetServiceConnection'], ''))
 
 
 - stage: Release_Stage
