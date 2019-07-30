@@ -287,7 +287,7 @@ task Test -depends InstallSDK, UpdateLocalSDKVersion, Restore -description "This
 	Write-Host "Running tests..." -ForegroundColor DarkCyan
 
 	pushd $base_directory
-	$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -Recurse | ? { $_.Directory.Name.Contains(".Tests") } | Sort-Object -Property FullName
+	$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -Recurse | ? { $_.Directory.Name.Contains(".Tests") }
 	popd
 
 	Write-Host "frameworks_to_test: $frameworks_to_test" -ForegroundColor Yellow
@@ -302,13 +302,13 @@ task Test -depends InstallSDK, UpdateLocalSDKVersion, Restore -description "This
 		foreach ($framework in $frameworksToTest) {
 			$testName = $testProject.Directory.Name
 
-			Write-Host "  Next Project in Queue: $testName, Framework: $framework" -ForegroundColor Yellow
+			Write-Host "  Test Project: $testName, Framework: $framework" -ForegroundColor Yellow
 
 			# Pause if we have queued too many parallel jobs
 			$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
 			if ($running.Count -ge $maximumParalellJobs) {
 				Write-Host ""
-				Write-Host "  Running tests in parallel on $($running.Count) projects out of approximately $totalProjects total." -ForegroundColor Cyan
+				Write-Host "  Running tests in parallel on $($running.Count) projects out of $totalProjects total." -ForegroundColor Cyan
 				Write-Host "  $remainingProjects projects are waiting in the queue to run. This will take a bit, please wait..." -ForegroundColor Cyan
 				$running | Wait-Job -Any | Out-Null
 			}
