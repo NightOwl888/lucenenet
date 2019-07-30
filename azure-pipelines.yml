@@ -154,7 +154,7 @@ stages:
         macOS:
           osName: 'macOS'
           imageName: 'macOS-10.14'
-          maximumAllowedFailures: 15 # Maximum allowed failures for a successful build
+          maximumAllowedFailures: 45 # Maximum allowed failures for a successful build
     displayName: 'Test netcoreapp2.1 on'
     pool:
       vmImage: $(imageName)
