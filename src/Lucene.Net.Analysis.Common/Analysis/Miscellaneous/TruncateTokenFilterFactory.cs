@@ -1,5 +1,6 @@
 ﻿using Lucene.Net.Analysis.Util;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Lucene.Net.Analysis.Miscellaneous
 {
@@ -45,7 +46,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
         public TruncateTokenFilterFactory(IDictionary<string, string> args) 
             : base(args)
         {
-            prefixLength = sbyte.Parse(Get(args, PREFIX_LENGTH_KEY, "5"));
+            prefixLength = sbyte.Parse(Get(args, PREFIX_LENGTH_KEY, "5"), NumberStyles.Integer, CultureInfo.InvariantCulture);
             if (prefixLength < 1)
             {
                 throw new System.ArgumentException(PREFIX_LENGTH_KEY + " parameter must be a positive number: " + prefixLength);
