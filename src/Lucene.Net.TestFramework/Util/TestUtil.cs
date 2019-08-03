@@ -288,8 +288,17 @@ namespace Lucene.Net.Util
             else
             {
                 // probably not evenly distributed when range is large, but OK for tests
-                BigInteger augend = new BigInteger(end + 1 - start) * (BigInteger)(r.NextDouble());
-                long result = start + (long)augend;
+                //BigInteger augend = BigInteger.Multiply(range,  new BigInteger(r.NextDouble()));
+                //long result = start + (long)augend;
+
+                // LUCENENET NOTE: Using BigInteger/Decimal doesn't work because r.NextDouble() is always
+                // rounded down to 0, which makes the result always the same as start. This alternative solution was
+                // snagged from https://stackoverflow.com/a/6651661. All we really care about here is that we get
+                // a pretty good random distribution of values between start and end.
+                byte[] buf = new byte[8];
+                r.NextBytes(buf);
+                long longRand = BitConverter.ToInt64(buf, 0);
+                long result = (Math.Abs(longRand % (end - start)) + start);
                 Assert.True(result >= start);
                 Assert.True(result <= end);
                 return result;
