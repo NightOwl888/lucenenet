@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 using System.IO;
 using BaseTokenStreamFactoryTestCase = Lucene.Net.Analysis.Util.BaseTokenStreamFactoryTestCase;
 
@@ -68,7 +69,8 @@ namespace Lucene.Net.Analysis.Miscellaneous
             }
             catch (System.ArgumentException expected)
             {
-                assertTrue(expected.Message.Contains(TruncateTokenFilterFactory.PREFIX_LENGTH_KEY + " parameter must be a positive number: -5"));
+                // LUCENENET specific - using IndexOf instead of Contains because some APIs don't support the StringComparison argument, which we need
+                assertTrue(expected.Message.IndexOf(TruncateTokenFilterFactory.PREFIX_LENGTH_KEY + " parameter must be a positive number: -5", StringComparison.Ordinal) > -1);
             }
         }
     }
