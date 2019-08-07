@@ -1,11 +1,10 @@
 ﻿using Lucene.Net.Index;
+using Lucene.Net.Support;
 using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
-using TermInfo = Lucene.Net.Search.VectorHighlight.FieldTermStack.TermInfo;
 
 namespace Lucene.Net.Search.VectorHighlight
 {
@@ -33,7 +32,7 @@ namespace Lucene.Net.Search.VectorHighlight
     public class FieldTermStack
     {
         private readonly string fieldName;
-        internal List<TermInfo> termList = new List<TermInfo>();
+        internal RemovableList<TermInfo> termList = new RemovableList<TermInfo>();
 
         //public static void main( string[] args ) throws Exception {
         //  Analyzer analyzer = new WhitespaceAnalyzer(Version.LUCENE_CURRENT);
@@ -135,32 +134,56 @@ namespace Lucene.Net.Search.VectorHighlight
             int currentPos = -1;
             TermInfo previous = null;
             TermInfo first = null;
-            for (int i = 0; i < termList.Count; )
+            using (var iterator = termList.GetRemovableEnumerator())
             {
-                TermInfo current = termList[i];
-                if (current.Position == currentPos)
+                while (iterator.MoveNext())
                 {
-                    Debug.Assert(previous != null);
-                    previous.SetNext(current);
-                    previous = current;
-                    //iterator.Remove();
-
-                    // LUCENENET NOTE: Remove, but don't advance the i position (since removing will advance to the next item)
-                    termList.RemoveAt(i);
-                }
-                else
-                {
-                    if (previous != null)
+                    TermInfo current = iterator.Current;
+                    if (current.Position == currentPos)
                     {
-                        previous.SetNext(first);
+                        Debug.Assert(previous != null);
+                        previous.SetNext(current);
+                        previous = current;
+                        iterator.Remove();
                     }
-                    previous = first = current;
-                    currentPos = current.Position;
-
-                    // LUCENENET NOTE: Only increment the position if we don't do a delete.
-                    i++;
+                    else
+                    {
+                        if (previous != null)
+                        {
+                            previous.SetNext(first);
+                        }
+                        previous = first = current;
+                        currentPos = current.Position;
+                    }
                 }
             }
+
+            //for (int i = 0; i < termList.Count; )
+            //{
+            //    TermInfo current = termList[i];
+            //    if (current.Position == currentPos)
+            //    {
+            //        Debug.Assert(previous != null);
+            //        previous.SetNext(current);
+            //        previous = current;
+            //        //iterator.Remove();
+
+            //        // LUCENENET NOTE: Remove, but don't advance the i position (since removing will advance to the next item)
+            //        termList.RemoveAt(i);
+            //    }
+            //    else
+            //    {
+            //        if (previous != null)
+            //        {
+            //            previous.SetNext(first);
+            //        }
+            //        previous = first = current;
+            //        currentPos = current.Position;
+
+            //        // LUCENENET NOTE: Only increment the position if we don't do a delete.
+            //        i++;
+            //    }
+            //}
 
             if (previous != null)
             {
@@ -182,13 +205,14 @@ namespace Lucene.Net.Search.VectorHighlight
         /// <returns>the top <see cref="TermInfo"/> object of the stack</returns>
         public virtual TermInfo Pop()
         {
-            if (termList.Count == 0)
-            {
-                return null;
-            }
-            TermInfo first = termList[0];
-            termList.Remove(first);
-            return first;
+            return termList.Pop();
+            //if (termList.Count == 0)
+            //{
+            //    return null;
+            //}
+            //TermInfo first = termList[0];
+            //termList.Remove(first);
+            //return first;
         }
 
         /// <summary>

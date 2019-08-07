@@ -36,6 +36,16 @@ namespace Lucene.Net.Documents
     /// Note that fields which are <i>not</i> <see cref="Lucene.Net.Index.IIndexableFieldType.IsStored"/> are
     /// <i>not</i> available in documents retrieved from the index, e.g. with 
     /// <see cref="Search.ScoreDoc.Doc"/> or <see cref="IndexReader.Document(int)"/>.
+    /// <para/>
+    /// EXPERT: <see cref="Document"/> is setup to be constructed and field in a single 
+    /// statement using a type initializer. For example:
+    /// <code>
+    /// var document = new Document()
+    /// {
+    ///     new Field("fieldName", "fieldValue", fieldType),
+    ///     new Field("fieldName", "fieldValue", fieldType)
+    /// };
+    /// </code>
     /// </summary>
     public sealed class Document : IEnumerable<IIndexableField>
     {

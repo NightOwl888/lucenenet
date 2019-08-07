@@ -48,7 +48,8 @@ namespace Lucene.Net.Search.VectorHighlight
         internal FieldQuery(Query query, IndexReader reader, bool phraseHighlight, bool fieldMatch)
         {
             this.fieldMatch = fieldMatch;
-            // LUCENENET NOTE: LinkedHashSet cares about insertion order - in .NET, we can just use List<T> for that
+            // LUCENENET NOTE: LinkedHashSet cares about insertion order - in .NET, we can just use List<T> for that,
+            // but we must take care to ensure the same item cannot be added twice.
             List<Query> flatQueries = new List<Query>();
             Flatten(query, reader, flatQueries);
             SaveTerms(flatQueries, reader);
@@ -119,7 +120,8 @@ namespace Lucene.Net.Search.VectorHighlight
                     {
                         Query flat = new TermQuery(pq.GetTerms()[0]);
                         flat.Boost = pq.Boost;
-                        flatQueries.Add(flat);
+                        if (!flatQueries.Contains(flat))
+                            flatQueries.Add(flat);
                     }
                 }
             }
@@ -189,34 +191,21 @@ namespace Lucene.Net.Search.VectorHighlight
         /// </summary>
         /// <param name="flatQueries"></param>
         /// <returns></returns>
-        internal ICollection<Query> Expand(ICollection<Query> flatQueries)
+        internal ICollection<Query> Expand(ICollection<Query> flatQueries) // LUCENENET specific - changed to IList to readily support RemovableEnumerator
         {
             // LUCENENET NOTE: LinkedHashSet cares about insertion order - in .NET, we can just use List<T> for that
             List<Query> expandQueries = new List<Query>();
 
-            for (int i = 0; i < flatQueries.Count; )
-            {
-                Query query = flatQueries.ElementAt(i);
-                //i.Remove();
-                if (!flatQueries.Remove(query))
-                {
-                    i++;
-                }
-                expandQueries.Add(query);
-                if (!(query is PhraseQuery)) continue;
-                for (IEnumerator<Query> j = flatQueries.GetEnumerator(); j.MoveNext();)
-                {
-                    Query qj = j.Current;
-                    if (!(qj is PhraseQuery)) continue;
-                    CheckOverlap(expandQueries, (PhraseQuery)query, (PhraseQuery)qj);
-                }
-            }
-
-            //for (IEnumerator<Query> i = flatQueries.GetEnumerator(); i.MoveNext();)
+            //for (int i = 0; i < flatQueries.Count; )
             //{
-            //    Query query = i.Current;
-            //    i.Remove();
-            //    expandQueries.Add(query);
+            //    Query query = flatQueries.ElementAt(i);
+            //    //i.Remove();
+            //    if (!flatQueries.Remove(query))
+            //    {
+            //        i++;
+            //    }
+            //    if (!expandQueries.Contains(query))
+            //        expandQueries.Add(query);
             //    if (!(query is PhraseQuery)) continue;
             //    for (IEnumerator<Query> j = flatQueries.GetEnumerator(); j.MoveNext();)
             //    {
@@ -225,6 +214,25 @@ namespace Lucene.Net.Search.VectorHighlight
             //        CheckOverlap(expandQueries, (PhraseQuery)query, (PhraseQuery)qj);
             //    }
             //}
+            var removableFlatQueries = new RemovableList<Query>(flatQueries);
+            using (IRemovableEnumerator<Query> i = removableFlatQueries.GetRemovableEnumerator())
+            {
+                while (i.MoveNext())
+                {
+                    Query query = i.Current;
+                    i.Remove();
+                    if (!expandQueries.Contains(query))
+                        expandQueries.Add(query);
+                    if (!(query is PhraseQuery)) continue;
+                    using (IEnumerator<Query> j = removableFlatQueries.GetEnumerator())
+                    while (j.MoveNext())
+                    {
+                        Query qj = j.Current;
+                        if (!(qj is PhraseQuery)) continue;
+                        CheckOverlap(expandQueries, (PhraseQuery)query, (PhraseQuery)qj);
+                    }
+                }
+            }
             return expandQueries;
         }
 
@@ -298,8 +306,7 @@ namespace Lucene.Net.Search.VectorHighlight
         internal QueryPhraseMap GetRootMap(Query query)
         {
             string key = GetKey(query);
-            QueryPhraseMap map;
-            if (!rootMaps.TryGetValue(key, out map) || map == null)
+            if (!rootMaps.TryGetValue(key, out QueryPhraseMap map) || map == null)
             {
                 map = new QueryPhraseMap(this);
                 rootMaps[key] = map;
@@ -380,8 +387,7 @@ namespace Lucene.Net.Search.VectorHighlight
         private ISet<string> GetTermSet(Query query)
         {
             string key = GetKey(query);
-            ISet<string> set;
-            if (!termSetMap.TryGetValue(key, out set) || set == null)
+            if (!termSetMap.TryGetValue(key, out ISet<string> set) || set == null)
             {
                 set = new HashSet<string>();
                 termSetMap[key] = set;
@@ -391,8 +397,7 @@ namespace Lucene.Net.Search.VectorHighlight
 
         internal ISet<string> GetTermSet(string field)
         {
-            ISet<string> result;
-            termSetMap.TryGetValue(fieldMatch ? field : null, out result);
+            termSetMap.TryGetValue(fieldMatch ? field : null, out ISet<string> result);
             return result;
         }
 
@@ -401,8 +406,7 @@ namespace Lucene.Net.Search.VectorHighlight
         {
             QueryPhraseMap rootMap = GetRootMap(fieldName);
             if (rootMap == null) return null;
-            QueryPhraseMap result;
-            rootMap.subMap.TryGetValue(term, out result);
+            rootMap.subMap.TryGetValue(term, out QueryPhraseMap result);
             return result;
         }
 
@@ -416,8 +420,7 @@ namespace Lucene.Net.Search.VectorHighlight
 
         private QueryPhraseMap GetRootMap(string fieldName)
         {
-            QueryPhraseMap result;
-            rootMaps.TryGetValue(fieldMatch ? fieldName : null, out result);
+            rootMaps.TryGetValue(fieldMatch ? fieldName : null, out QueryPhraseMap result);
             return result;
         }
 
@@ -452,8 +455,7 @@ namespace Lucene.Net.Search.VectorHighlight
 
             private QueryPhraseMap GetOrNewMap(IDictionary<string, QueryPhraseMap> subMap, string term)
             {
-                QueryPhraseMap map;
-                if (!subMap.TryGetValue(term, out map) || map == null)
+                if (!subMap.TryGetValue(term, out QueryPhraseMap map) || map == null)
                 {
                     map = new QueryPhraseMap(fieldQuery);
                     subMap[term] = map;

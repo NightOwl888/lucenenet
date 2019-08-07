@@ -1,4 +1,5 @@
 ﻿using Lucene.Net.Analysis;
+using Lucene.Net.Attributes;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search.Highlight;
@@ -233,9 +234,10 @@ namespace Lucene.Net.Search.VectorHighlight
             assertEquals("<b>highlight</b> other text", result[1]);
         }
 
-        [Test]
+        [Test, Repeat(40)]
         public void TestRandomDiscreteMultiValueHighlighting()
         {
+
             String[]
             randomValues = new String[3 + Random().nextInt(10 * RANDOM_MULTIPLIER)];
             for (int i = 0; i < randomValues.Length; i++)
@@ -350,6 +352,76 @@ namespace Lucene.Net.Search.VectorHighlight
             }
         }
 
+        //// For debugging
+        //[Test, LuceneNetSpecific]
+        //public void TestDiscreteMultiValueHighlightingFailure()
+        //{
+        //    Directory dir = NewDirectory();
+        //    IndexWriter writer = new IndexWriter(dir, 
+        //        NewIndexWriterConfig(TEST_VERSION_CURRENT, 
+        //        new Analysis.Standard.StandardAnalyzer(TEST_VERSION_CURRENT)).SetMergePolicy(NewLogMergePolicy()));
+
+        //    FieldType customType = new FieldType(TextField.TYPE_STORED);
+        //    customType.StoreTermVectors = (true);
+        //    customType.StoreTermVectorOffsets = (true);
+        //    customType.StoreTermVectorPositions = (true);
+
+        //    Document document = new Document()
+        //    {
+        //        new Field(F, "fzzzdjtbzbjqido phenxcobqhvkjxlnlkkf phenxcobqhvkjxlnlkkf mnntbnlzzikzs", customType)
+        //    };
+
+        //    writer.AddDocuments(new Document[] { document });
+        //    writer.Dispose();
+        //    IndexReader reader = DirectoryReader.Open(dir);
+
+        //    String queryTerm = "fzzzdjtbzbjqido";
+        //    string[] fieldValues = { "fzzzdjtbzbjqido", "phenxcobqhvkjxlnlkkf", "phenxcobqhvkjxlnlkkf", "mnntbnlzzikzs" };
+        //    int randomHit = 0; // docId
+
+        //    List<StringBuilder> builders = new List<StringBuilder>();
+        //    StringBuilder builder = new StringBuilder();
+        //    bool hit = false;
+        //    for (int i = 0; i < fieldValues.Length; i++)
+        //    {
+        //        if (queryTerm.Equals(fieldValues[i], StringComparison.Ordinal))
+        //        {
+        //            builder.append("<b>").append(queryTerm).append("</b>");
+        //            hit = true;
+        //        }
+        //        else
+        //        {
+        //            builder.append(fieldValues[i]);
+        //        }
+        //        if (i != fieldValues.Length - 1)
+        //        {
+        //            builder.append(' ');
+        //        }
+        //    }
+        //    if (hit)
+        //    {
+        //        builders.Add(builder);
+        //    }
+
+        //    FieldQuery fq = new FieldQuery(tq(queryTerm), true, true);
+        //    FieldTermStack stack = new FieldTermStack(reader, randomHit, F, fq);
+
+        //    FieldPhraseList fpl = new FieldPhraseList(stack, fq);
+        //    SimpleFragListBuilder sflb = new SimpleFragListBuilder(100);
+        //    FieldFragList ffl = sflb.CreateFieldFragList(fpl, 300);
+
+        //    SimpleFragmentsBuilder sfb = new SimpleFragmentsBuilder();
+        //    sfb.IsDiscreteMultiValueHighlighting = (true);
+        //    String[] actualFragments = sfb.CreateFragments(reader, randomHit, F, ffl, maxNumFragments: 1 /* numFields */);
+        //    assertEquals(builders.size(), actualFragments.Length);
+        //    for (int i = 0; i < actualFragments.Length; i++)
+        //    {
+        //        assertEquals(builders[i].toString(), actualFragments[i]);
+        //    }
+        //}
+
+
+
         private String getRandomValue(String[] randomValues, IDictionary<String, ISet<int>> valueToDocId, int docId)
         {
             String value = randomValues[Random().nextInt(randomValues.Length)];
@@ -371,5 +443,6 @@ namespace Lucene.Net.Search.VectorHighlight
                 this.fieldValues = fieldValues;
             }
         }
+
     }
 }

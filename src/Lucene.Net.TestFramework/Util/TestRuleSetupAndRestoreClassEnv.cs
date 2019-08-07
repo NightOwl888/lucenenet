@@ -255,6 +255,8 @@ namespace Lucene.Net.Util
             savedLocale = CultureInfo.CurrentCulture;
             CultureInfo randomLocale = LuceneTestCase.RandomLocale(random);
             locale = testLocale.Equals("random", StringComparison.Ordinal) ? randomLocale : LuceneTestCase.LocaleForName(testLocale);
+            locale = new CultureInfo("tzm-Arab-MA");
+            locale = new CultureInfo("en-US");
 #if NETSTANDARD
             CultureInfo.CurrentCulture = locale;
 #else
