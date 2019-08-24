@@ -71,7 +71,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void AreEqual(object expected, object actual, string message, params object[] args)
         {
-            Xunit.Assert.True(Collections.Equals(expected, actual), string.Format(message, args));
+            Xunit.Assert.True(object.Equals(expected, actual), FormatMessage(message, args));
         }
         //
         // Summary:
@@ -99,7 +99,7 @@ namespace Lucene.Net.TestFramework
             if (double.IsNaN(expected) || double.IsInfinity(expected))
                 Xunit.Assert.True(expected.Equals(actual), string.Format(message, args));
             else
-                Xunit.Assert.True(expected - actual <= delta || actual - expected <= delta, string.Format(message, args));
+                Xunit.Assert.True(expected - actual <= delta || actual - expected <= delta, FormatMessage(message, args));
         }
         //
         // Summary:
@@ -133,7 +133,7 @@ namespace Lucene.Net.TestFramework
         // From CollectionAssert
         public static void AreEqual<T>(T[] expected, T[] actual, string message, params object[] args)
         {
-            Xunit.Assert.True(System.Array.Equals(expected, actual), string.Format(message, args));
+            Xunit.Assert.True(System.Array.Equals(expected, actual), FormatMessage(message, args));
         }
 
         // From CollectionAssert
@@ -145,7 +145,7 @@ namespace Lucene.Net.TestFramework
         // From CollectionAssert
         public static void AreEqual(ICollection expected, ICollection actual, string message, params object[] args)
         {
-            Xunit.Assert.True(Collections.Equals(expected, actual), string.Format(message, args));
+            Xunit.Assert.True(Collections.Equals(expected, actual), FormatMessage(message, args));
         }
 
         //
@@ -169,7 +169,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void AreNotEqual(object expected, object actual, string message, params object[] args)
         {
-            Xunit.Assert.True(!Collections.Equals(expected, actual), string.Format(message, args));
+            Xunit.Assert.True(!Collections.Equals(expected, actual), FormatMessage(message, args));
         }
         //
         // Summary:
@@ -207,7 +207,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void AreNotSame(object expected, object actual, string message, params object[] args)
         {
-            Xunit.Assert.True(!object.ReferenceEquals(expected, actual), string.Format(message, args));
+            Xunit.Assert.True(!object.ReferenceEquals(expected, actual), FormatMessage(message, args));
         }
         //
         // Summary:
@@ -258,12 +258,12 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void AreSame(object expected, object actual, string message, params object[] args)
         {
-            Xunit.Assert.True(object.ReferenceEquals(expected, actual), string.Format(message, args));
+            Xunit.Assert.True(object.ReferenceEquals(expected, actual), FormatMessage(message, args));
         }
 
         public static void Fail(string message, params object[] args)
         {
-            Xunit.Assert.True(false, string.Format(message, args));
+            Xunit.Assert.True(false, FormatMessage(message, args));
         }
         //
         // Summary:
@@ -302,7 +302,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void False(bool condition, string message, params object[] args)
         {
-            Xunit.Assert.False(condition, string.Format(message, args));
+            Xunit.Assert.False(condition, FormatMessage(message, args));
         }
         //
         // Summary:
@@ -346,7 +346,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void IsFalse(bool condition, string message, params object[] args)
         {
-            Xunit.Assert.False(condition, string.Format(message, args));
+            Xunit.Assert.False(condition, FormatMessage(message, args));
         }
 
         //
@@ -365,7 +365,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void IsNotNull(object anObject, string message, params object[] args)
         {
-            Xunit.Assert.True(anObject != null, string.Format(message, args));
+            Xunit.Assert.True(anObject != null, FormatMessage(message, args));
         }
         //
         // Summary:
@@ -407,7 +407,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void IsNull(object anObject, string message, params object[] args)
         {
-            Xunit.Assert.True(anObject == null, string.Format(message, args));
+            Xunit.Assert.True(anObject == null, FormatMessage(message, args));
         }
 
         //
@@ -426,7 +426,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void IsTrue(bool condition, string message, params object[] args)
         {
-            Xunit.Assert.True(condition, string.Format(message, args));
+            Xunit.Assert.True(condition, FormatMessage(message, args));
         }
 
         //
@@ -470,7 +470,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void NotNull(object anObject, string message, params object[] args)
         {
-            Xunit.Assert.True(anObject != null, string.Format(message, args));
+            Xunit.Assert.True(anObject != null, FormatMessage(message, args));
         }
 
         //
@@ -489,7 +489,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void Null(object anObject, string message, params object[] args)
         {
-            Xunit.Assert.True(anObject == null, string.Format(message, args));
+            Xunit.Assert.True(anObject == null, FormatMessage(message, args));
         }
         //
         // Summary:
@@ -520,7 +520,7 @@ namespace Lucene.Net.TestFramework
         //     Array of objects to be used in formatting the message
         public static void True(bool condition, string message, params object[] args)
         {
-            Xunit.Assert.True(condition, string.Format(message, args));
+            Xunit.Assert.True(condition, FormatMessage(message, args));
         }
 
         //
@@ -534,6 +534,14 @@ namespace Lucene.Net.TestFramework
         public static void True(bool condition)
         {
             Xunit.Assert.True(condition);
+        }
+
+        private static string FormatMessage(string message, object[] args)
+        {
+            if (args?.Length > 0)
+                return string.Format(message, args);
+            else
+                return message;
         }
     }
 }
