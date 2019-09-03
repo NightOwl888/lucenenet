@@ -107,12 +107,12 @@ namespace Lucene.Net.Analysis.Ja.Dict
 
         private class SingletonHolder
         {
-            internal static readonly CharacterDefinition INSTANCE = LoadInstance();
-            private static CharacterDefinition LoadInstance() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+            internal static readonly CharacterDefinition INSTANCE;
+            static SingletonHolder()
             {
                 try
                 {
-                    return new CharacterDefinition();
+                    INSTANCE = new CharacterDefinition();
                 }
                 catch (IOException ioe)
                 {

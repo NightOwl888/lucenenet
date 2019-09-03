@@ -67,16 +67,14 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
 
         public static readonly string ANY = "any";
 
-        private static readonly IDictionary<NameType, Languages> LANGUAGES = LoadLanguages();
+        private static readonly IDictionary<NameType, Languages> LANGUAGES = new Dictionary<NameType, Languages>();
 
-        private static IDictionary<NameType, Languages> LoadLanguages() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+        static Languages()
         {
-            IDictionary<NameType, Languages> LANGUAGES = new Dictionary<NameType, Languages>();
             foreach (NameType s in Enum.GetValues(typeof(NameType)))
             {
                 LANGUAGES[s] = GetInstance(LangResourceName(s));
             }
-            return LANGUAGES;
         }
 
         public static Languages GetInstance(NameType nameType)

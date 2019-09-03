@@ -279,23 +279,21 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             }
         }
 
-        private static readonly IDictionary<NameType, ISet<string>> NAME_PREFIXES = LoadNamePrefixes();
+        private static readonly IDictionary<NameType, ISet<string>> NAME_PREFIXES = new Dictionary<NameType, ISet<string>>();
 
-        private static IDictionary<NameType, ISet<string>> LoadNamePrefixes() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+        static PhoneticEngine()
         {
-            var namePrefixes = new Dictionary<NameType, ISet<string>>();
-            namePrefixes[NameType.ASHKENAZI] =
+            NAME_PREFIXES[NameType.ASHKENAZI] =
                     Collections.UnmodifiableSet(
                             new HashSet<string>() { "bar", "ben", "da", "de", "van", "von" });
-            namePrefixes[NameType.SEPHARDIC] =
+            NAME_PREFIXES[NameType.SEPHARDIC] =
                     Collections.UnmodifiableSet(
                             new HashSet<string>() { "al", "el", "da", "dal", "de", "del", "dela", "de la",
                                                               "della", "des", "di", "do", "dos", "du", "van", "von" });
-            namePrefixes[NameType.GENERIC] =
+            NAME_PREFIXES[NameType.GENERIC] =
                     Collections.UnmodifiableSet(
                             new HashSet<string>() { "da", "dal", "de", "del", "dela", "de la", "della",
                                                           "des", "di", "do", "dos", "du", "van", "von" });
-            return namePrefixes;
         }
 
         /// <summary>

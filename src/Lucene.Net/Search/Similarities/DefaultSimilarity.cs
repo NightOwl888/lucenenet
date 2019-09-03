@@ -48,16 +48,14 @@ namespace Lucene.Net.Search.Similarities
     {
         /// <summary>
         /// Cache of decoded bytes. </summary>
-        private static readonly float[] NORM_TABLE = LoadNormTable();
+        private static readonly float[] NORM_TABLE = new float[256];
 
-        private static float[] LoadNormTable() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+        static DefaultSimilarity()
         {
-            float[] normTable = new float[256];
             for (int i = 0; i < 256; i++)
             {
-                normTable[i] = SmallSingle.SByte315ToSingle((sbyte)i);
+                NORM_TABLE[i] = SmallSingle.SByte315ToSingle((sbyte)i);
             }
-            return normTable;
         }
 
         /// <summary>

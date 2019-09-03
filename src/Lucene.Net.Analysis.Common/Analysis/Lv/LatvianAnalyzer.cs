@@ -54,23 +54,23 @@ namespace Lucene.Net.Analysis.Lv
         /// </summary>
         private class DefaultSetHolder
         {
-            internal static readonly CharArraySet DEFAULT_STOP_SET = LoadDefaultStopSet();
+            internal static readonly CharArraySet DEFAULT_STOP_SET;
 
-            private static CharArraySet LoadDefaultStopSet() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+            static DefaultSetHolder()
             {
                 try
                 {
-                    return WordlistLoader.GetWordSet(
+                    DEFAULT_STOP_SET = WordlistLoader.GetWordSet(
                         IOUtils.GetDecodingReader(typeof(LatvianAnalyzer), DEFAULT_STOPWORD_FILE, Encoding.UTF8),
 #pragma warning disable 612, 618
                         LuceneVersion.LUCENE_CURRENT);
 #pragma warning restore 612, 618
                 }
-                catch (IOException ex)
+                catch (IOException)
                 {
                     // default set should always be present as it is part of the
                     // distribution (JAR)
-                    throw new Exception("Unable to load default stopword set", ex);
+                    throw new Exception("Unable to load default stopword set");
                 }
             }
         }

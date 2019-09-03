@@ -44,32 +44,37 @@ namespace Lucene.Net.Analysis.Ar
         public const char WAW = '\u0648';
         public const char YEH = '\u064A';
 
-        // LUCENENET TODO: API - Make property, change datatype to regular array or collection
-        public static readonly char[][] prefixes = new char[][] // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
-        {
-            ("" + ALEF + LAM).ToCharArray(),
-            ("" + WAW + ALEF + LAM).ToCharArray(),
-            ("" + BEH + ALEF + LAM).ToCharArray(),
-            ("" + KAF + ALEF + LAM).ToCharArray(),
-            ("" + FEH + ALEF + LAM).ToCharArray(),
-            ("" + LAM + LAM).ToCharArray(),
-            ("" + WAW).ToCharArray(),
-        };
+        public static readonly char[][] prefixes = { };
 
-        // LUCENENET TODO: API - Make property, change datatype to regular array or collection
-        public static readonly char[][] suffixes = new char[][] // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+        public static readonly char[][] suffixes = { };
+
+        static ArabicStemmer()
         {
-            ("" + HEH + ALEF).ToCharArray(),
-            ("" + ALEF + NOON).ToCharArray(),
-            ("" + ALEF + TEH).ToCharArray(),
-            ("" + WAW + NOON).ToCharArray(),
-            ("" + YEH + NOON).ToCharArray(),
-            ("" + YEH + HEH).ToCharArray(),
-            ("" + YEH + TEH_MARBUTA).ToCharArray(),
-            ("" + HEH).ToCharArray(),
-            ("" + TEH_MARBUTA).ToCharArray(),
-            ("" + YEH).ToCharArray(),
-        };
+            prefixes = new char[7][] 
+            {
+                ("" + ALEF + LAM).ToCharArray(),
+                ("" + WAW + ALEF + LAM).ToCharArray(),
+                ("" + BEH + ALEF + LAM).ToCharArray(),
+                ("" + KAF + ALEF + LAM).ToCharArray(),
+                ("" + FEH + ALEF + LAM).ToCharArray(),
+                ("" + LAM + LAM).ToCharArray(),
+                ("" + WAW).ToCharArray(),
+            };
+
+            suffixes = new char[10][]
+            {
+                ("" + HEH + ALEF).ToCharArray(),
+                ("" + ALEF + NOON).ToCharArray(),
+                ("" + ALEF + TEH).ToCharArray(),
+                ("" + WAW + NOON).ToCharArray(),
+                ("" + YEH + NOON).ToCharArray(),
+                ("" + YEH + HEH).ToCharArray(),
+                ("" + YEH + TEH_MARBUTA).ToCharArray(),
+                ("" + HEH).ToCharArray(),
+                ("" + TEH_MARBUTA).ToCharArray(),
+                ("" + YEH).ToCharArray(),
+            };
+        }
 
         /// <summary>
         /// Stem an input buffer of Arabic text.

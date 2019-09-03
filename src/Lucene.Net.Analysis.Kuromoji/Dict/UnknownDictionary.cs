@@ -83,12 +83,12 @@ namespace Lucene.Net.Analysis.Ja.Dict
 
         private class SingletonHolder
         {
-            internal static readonly UnknownDictionary INSTANCE = LoadInstance();
-            private static UnknownDictionary LoadInstance() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+            internal static readonly UnknownDictionary INSTANCE;
+            static SingletonHolder()
             {
                 try
                 {
-                    return new UnknownDictionary();
+                    INSTANCE = new UnknownDictionary();
                 }
                 catch (IOException ioe)
                 {

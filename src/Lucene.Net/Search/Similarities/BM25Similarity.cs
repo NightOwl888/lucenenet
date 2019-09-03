@@ -146,17 +146,15 @@ namespace Lucene.Net.Search.Similarities
 
         /// <summary>
         /// Cache of decoded bytes. </summary>
-        private static readonly float[] NORM_TABLE = LoadNormTable();
+        private static readonly float[] NORM_TABLE = new float[256];
 
-        private static float[] LoadNormTable() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+        static BM25Similarity()
         {
-            float[] normTable = new float[256];
             for (int i = 0; i < 256; i++)
             {
                 float f = SmallSingle.SByte315ToSingle((sbyte)i);
-                normTable[i] = 1.0f / (f * f);
+                NORM_TABLE[i] = 1.0f / (f * f);
             }
-            return normTable;
         }
 
         public override sealed long ComputeNorm(FieldInvertState state)

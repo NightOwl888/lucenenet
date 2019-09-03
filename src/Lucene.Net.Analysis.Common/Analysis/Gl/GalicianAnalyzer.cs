@@ -54,13 +54,13 @@ namespace Lucene.Net.Analysis.Gl
         /// </summary>
         private class DefaultSetHolder
         {
-            internal static readonly CharArraySet DEFAULT_STOP_SET = LoadDefaultStopSet();
+            internal static readonly CharArraySet DEFAULT_STOP_SET;
 
-            private static CharArraySet LoadDefaultStopSet() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+            static DefaultSetHolder()
             {
                 try
                 {
-                    return WordlistLoader.GetWordSet(
+                    DEFAULT_STOP_SET = WordlistLoader.GetWordSet(
                         IOUtils.GetDecodingReader(typeof(GalicianAnalyzer), DEFAULT_STOPWORD_FILE, Encoding.UTF8),
 #pragma warning disable 612, 618
                         LuceneVersion.LUCENE_CURRENT);

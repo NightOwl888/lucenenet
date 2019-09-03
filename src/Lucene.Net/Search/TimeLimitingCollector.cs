@@ -273,13 +273,12 @@ namespace Lucene.Net.Search
 
         private sealed class TimerThreadHolder
         {
-            internal static readonly TimerThread THREAD = LoadTimerThread(); // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+            internal static readonly TimerThread THREAD;
 
-            private static TimerThread LoadTimerThread()
+            static TimerThreadHolder()
             {
-                var thread = new TimerThread(Counter.NewCounter(true));
-                thread.Start();
-                return thread;
+                THREAD = new TimerThread(Counter.NewCounter(true));
+                THREAD.Start();
             }
         }
 

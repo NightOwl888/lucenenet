@@ -70,13 +70,13 @@ namespace Lucene.Net.Analysis.Cn.Smart
         /// </summary>
         private class DefaultSetHolder
         {
-            internal static readonly CharArraySet DEFAULT_STOP_SET = LoadDefaultStopSet();
+            internal static readonly CharArraySet DEFAULT_STOP_SET;
 
-            private static CharArraySet LoadDefaultStopSet() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+            static DefaultSetHolder()
             {
                 try
                 {
-                    return LoadDefaultStopWordSet();
+                    DEFAULT_STOP_SET = LoadDefaultStopWordSet();
                 }
                 catch (IOException ex)
                 {

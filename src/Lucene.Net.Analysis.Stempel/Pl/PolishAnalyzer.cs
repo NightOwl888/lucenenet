@@ -72,14 +72,14 @@ namespace Lucene.Net.Analysis.Pl
         /// </summary>
         private class DefaultsHolder
         {
-            internal static readonly CharArraySet DEFAULT_STOP_SET = LoadDefaultStopSet();
-            internal static readonly Trie DEFAULT_TABLE = LoadDefaultTable();
+            internal static readonly CharArraySet DEFAULT_STOP_SET;
+            internal static readonly Trie DEFAULT_TABLE;
 
-            private static CharArraySet LoadDefaultStopSet() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+            static DefaultsHolder()
             {
                 try
                 {
-                    return WordlistLoader.GetWordSet(IOUtils.GetDecodingReader(typeof(PolishAnalyzer),
+                    DEFAULT_STOP_SET = WordlistLoader.GetWordSet(IOUtils.GetDecodingReader(typeof(PolishAnalyzer),
                         DEFAULT_STOPWORD_FILE, Encoding.UTF8), "#",
 #pragma warning disable 612, 618
                         LuceneVersion.LUCENE_CURRENT);
@@ -91,13 +91,10 @@ namespace Lucene.Net.Analysis.Pl
                     // distribution (embedded resource)
                     throw new InvalidOperationException("Unable to load default stopword set", ex);
                 }
-            }
 
-            private static Trie LoadDefaultTable() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
-            {
                 try
                 {
-                    return StempelStemmer.Load(typeof(PolishAnalyzer).GetTypeInfo().Assembly.FindAndGetManifestResourceStream(typeof(PolishAnalyzer), DEFAULT_STEMMER_FILE));
+                    DEFAULT_TABLE = StempelStemmer.Load(typeof(PolishAnalyzer).GetTypeInfo().Assembly.FindAndGetManifestResourceStream(typeof(PolishAnalyzer), DEFAULT_STEMMER_FILE));
                 }
                 catch (IOException ex)
                 {
