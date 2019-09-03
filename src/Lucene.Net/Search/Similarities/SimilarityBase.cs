@@ -230,17 +230,15 @@ namespace Lucene.Net.Search.Similarities
 
         /// <summary>
         /// Norm -> document length map. </summary>
-        private static readonly float[] NORM_TABLE = LoadNormTable();
+        private static readonly float[] NORM_TABLE = new float[256];
 
-        private static float[] LoadNormTable() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+        static SimilarityBase()
         {
-            float[] normTable = new float[256];
             for (int i = 0; i < 256; i++)
             {
                 float floatNorm = SmallSingle.SByte315ToSingle((sbyte)i);
-                normTable[i] = 1.0f / (floatNorm * floatNorm);
+                NORM_TABLE[i] = 1.0f / (floatNorm * floatNorm);
             }
-            return normTable;
         }
 
         /// <summary>

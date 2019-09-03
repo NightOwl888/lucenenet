@@ -227,11 +227,11 @@ namespace Lucene.Net.Search
             return @out;
         }
 
-        internal static readonly IndexReader[] emptyReaders = LoadEmptyReaders();
+        internal static readonly IndexReader[] emptyReaders = null;// = new IndexReader[8];
 
-        private static IndexReader[] LoadEmptyReaders() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+        static QueryUtils()
         {
-            var emptyReaders = new IndexReader[8];
+            emptyReaders = new IndexReader[8];
             try
             {
                 emptyReaders[0] = new MultiReader();
@@ -243,7 +243,6 @@ namespace Lucene.Net.Search
             {
                 throw new Exception(ex.ToString(), ex);
             }
-            return emptyReaders;
         }
 
         private static IndexReader MakeEmptyIndex(Random random, int numDocs)
