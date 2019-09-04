@@ -36,6 +36,7 @@
     <NoWarn>$(NoWarn);1591;1573</NoWarn>
 
     <DefineConstants>$(DefineConstants);TESTFRAMEWORK_NUNIT</DefineConstants>
+    <RootNamespace>Lucene.Net</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
