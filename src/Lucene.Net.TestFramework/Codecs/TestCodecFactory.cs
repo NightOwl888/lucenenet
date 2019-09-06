@@ -19,6 +19,7 @@
  *
 */
 
+using Lucene.Net.Util;
 using System;
 using System.Reflection;
 
@@ -29,6 +30,27 @@ namespace Lucene.Net.Codecs
     /// </summary>
     public class TestCodecFactory : DefaultCodecFactory
     {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        private readonly LuceneTestCase luceneTestCase;
+
+        public TestCodecFactory(LuceneTestCase luceneTestCase)
+        {
+            this.luceneTestCase = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
+        }
+
+        protected override Codec NewCodec(Type type)
+        {
+            // Inject our LuceneTestCase instance into the codec if there is 
+            // a single parameter of type LuceneTestCase
+            var constructor = type.GetConstructor(new Type[] { typeof(LuceneTestCase) });
+            if (constructor != null)
+            {
+                return (Codec)constructor.Invoke(new object[] { luceneTestCase });
+            }
+            return base.NewCodec(type);
+        }
+#endif
+
         protected override void Initialize()
         {
             base.Initialize();

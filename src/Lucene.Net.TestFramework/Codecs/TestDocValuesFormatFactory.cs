@@ -19,6 +19,8 @@
  *
 */
 
+using Lucene.Net.Util;
+using System;
 using System.Reflection;
 
 namespace Lucene.Net.Codecs
@@ -28,6 +30,27 @@ namespace Lucene.Net.Codecs
     /// </summary>
     public class TestDocValuesFormatFactory : DefaultDocValuesFormatFactory
     {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        private readonly LuceneTestCase luceneTestCase;
+
+        public TestDocValuesFormatFactory(LuceneTestCase luceneTestCase)
+        {
+            this.luceneTestCase = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
+        }
+
+        protected override DocValuesFormat NewDocValuesFormat(Type type)
+        {
+            // Inject our LuceneTestCase instance into the codec if there is 
+            // a single parameter of type LuceneTestCase
+            var constructor = type.GetConstructor(new Type[] { typeof(LuceneTestCase) });
+            if (constructor != null)
+            {
+                return (DocValuesFormat)constructor.Invoke(new object[] { luceneTestCase });
+            }
+            return base.NewDocValuesFormat(type);
+        }
+#endif
+
         protected override void Initialize()
         {
             base.Initialize();

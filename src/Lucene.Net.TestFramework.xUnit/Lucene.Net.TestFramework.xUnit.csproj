@@ -35,7 +35,7 @@
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <NoWarn>$(NoWarn);1591;1573</NoWarn>
 
-    <DefineConstants>$(DefineConstants);TESTFRAMEWORK_XUNIT</DefineConstants>
+    <DefineConstants>$(DefineConstants);TESTFRAMEWORK_XUNIT;FEATURE_INSTANCE_CODEC_IMPERSONATION</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

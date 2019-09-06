@@ -229,7 +229,7 @@ namespace Lucene.Net.Codecs
         /// Gets a list of the available <see cref="Codec"/>s (by name).
         /// </summary>
         /// <returns>A <see cref="T:ICollection{string}"/> of <see cref="Codec"/> names.</returns>
-        public virtual ICollection<string> AvailableServices()
+        public virtual ICollection<string> AvailableServices() // LUCENENET TODO: API - make into a property
         {
             EnsureInitialized();
             return codecNameToTypeMap.Keys;

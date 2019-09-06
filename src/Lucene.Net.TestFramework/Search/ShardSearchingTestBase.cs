@@ -706,7 +706,13 @@ namespace Lucene.Net.Search
             {
                 try
                 {
-                    LineFileDocs docs = new LineFileDocs(Random, DefaultCodecSupportsDocValues);
+                    LineFileDocs docs = new LineFileDocs(Random,
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                        outerInstance.DefaultCodecSupportsDocValues
+#else
+                        DefaultCodecSupportsDocValues
+#endif
+                    );
                     int numDocs = 0;
                     while (Time.NanoTime() < outerInstance.endTimeNanos)
                     {
