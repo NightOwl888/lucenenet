@@ -40,15 +40,18 @@ namespace Lucene.Net.Codecs
 
         /// <summary>
         /// Returns a list of all available format names. </summary>
-        public ICollection<string> AvailablePostingsFormats()
+        public ICollection<string> AvailablePostingsFormats
         {
-            if (luceneTestCase.PostingsFormatFactory is IServiceListable)
+            get
             {
-                return ((IServiceListable)luceneTestCase.PostingsFormatFactory).AvailableServices();
-            }
-            else
-            {
-                throw new NotSupportedException("The current PostingsFormat factory class does not implement IServiceListable.");
+                if (luceneTestCase.PostingsFormatFactory is IServiceListable)
+                {
+                    return ((IServiceListable)luceneTestCase.PostingsFormatFactory).AvailableServices;
+                }
+                else
+                {
+                    throw new NotSupportedException("The current PostingsFormat factory class does not implement IServiceListable.");
+                }
             }
         }
     }

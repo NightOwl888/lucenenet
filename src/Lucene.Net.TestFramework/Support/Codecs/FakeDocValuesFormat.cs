@@ -40,15 +40,18 @@ namespace Lucene.Net.Codecs
 
         /// <summary>
         /// Returns a list of all available format names. </summary>
-        public ICollection<string> AvailableDocValuesFormats()
+        public ICollection<string> AvailableDocValuesFormats
         {
-            if (luceneTestCase.CodecFactory is IServiceListable)
+            get
             {
-                return ((IServiceListable)luceneTestCase.CodecFactory).AvailableServices();
-            }
-            else
-            {
-                throw new NotSupportedException("The current CodecFactory class does not implement IServiceListable.");
+                if (luceneTestCase.CodecFactory is IServiceListable)
+                {
+                    return ((IServiceListable)luceneTestCase.CodecFactory).AvailableServices;
+                }
+                else
+                {
+                    throw new NotSupportedException("The current CodecFactory class does not implement IServiceListable.");
+                }
             }
         }
     }
