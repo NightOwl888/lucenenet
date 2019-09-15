@@ -35,6 +35,6 @@ namespace Lucene.Net.Util
         /// Lists the available services for the current service type.
         /// </summary>
         /// <returns></returns>
-        ICollection<string> AvailableServices(); // LUCENENET TODO: API - make into a property
+        ICollection<string> AvailableServices { get; }
     }
 }
