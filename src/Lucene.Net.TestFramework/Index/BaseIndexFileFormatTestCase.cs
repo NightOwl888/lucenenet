@@ -156,7 +156,7 @@ namespace Lucene.Net.Index
 
                         // LUCENENET specific - changed to use Collections.Equals to ensure Java compatible matching
                         // rules are used to compare the dictionaries.
-                        Assert.True(Collections.Equals(BytesUsedByExtension(dir), BytesUsedByExtension(dir2)));
+                        Assert.AreEqual(BytesUsedByExtension(dir), BytesUsedByExtension(dir2));
 
                     } // dir2.Dispose();
                 } // reader.Dispose();
