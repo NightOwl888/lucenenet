@@ -587,7 +587,13 @@ namespace Lucene.Net.Search
                 // TODO: set warmer
                 MockAnalyzer analyzer = new MockAnalyzer(LuceneTestCase.Random);
                 analyzer.MaxTokenLength = TestUtil.NextInt32(LuceneTestCase.Random, 1, IndexWriter.MAX_TERM_LENGTH);
-                IndexWriterConfig iwc = new IndexWriterConfig(TEST_VERSION_CURRENT, analyzer);
+#if FEATURE_STATIC_TESTDATA_INITIALIZATION
+                // LUCENENET specific - ensure we use our abstracted default codec by using NewIndexWriterConfig method
+                IndexWriterConfig iwc = LuceneTestCase.NewIndexWriterConfig(TEST_VERSION_CURRENT, analyzer);
+#else
+                // LUCENENET specific - ensure we use our abstracted default codec by using NewIndexWriterConfig method
+                IndexWriterConfig iwc = outerInstance.NewIndexWriterConfig(TEST_VERSION_CURRENT, analyzer);
+#endif
                 iwc.SetOpenMode(OpenMode.CREATE);
                 if (VERBOSE)
                 {

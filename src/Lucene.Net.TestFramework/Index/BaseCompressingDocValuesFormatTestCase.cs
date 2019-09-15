@@ -67,7 +67,8 @@ namespace Lucene.Net.Index
         [Test]
         public virtual void TestUniqueValuesCompression()
         {
-            IndexWriterConfig iwc = new IndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
+            // LUCENENET specific - ensure we use our abstracted default codec by using NewIndexWriterConfig method
+            IndexWriterConfig iwc = NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
             using (Directory dir = new RAMDirectory())
             using (IndexWriter iwriter = new IndexWriter(dir, iwc))
             {
@@ -110,7 +111,8 @@ namespace Lucene.Net.Index
         [Test]
         public virtual void TestDateCompression()
         {
-            IndexWriterConfig iwc = new IndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
+            // LUCENENET specific - ensure we use our abstracted default codec by using NewIndexWriterConfig method
+            IndexWriterConfig iwc = NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
             using (Directory dir = new RAMDirectory())
             using (IndexWriter iwriter = new IndexWriter(dir, iwc))
             {
@@ -143,7 +145,8 @@ namespace Lucene.Net.Index
         [Test]
         public virtual void TestSingleBigValueCompression()
         {
-            IndexWriterConfig iwc = new IndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
+            // LUCENENET specific - ensure we use our abstracted default codec by using NewIndexWriterConfig method
+            IndexWriterConfig iwc = NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
             using (Directory dir = new RAMDirectory())
             using (IndexWriter iwriter = new IndexWriter(dir, iwc))
             {

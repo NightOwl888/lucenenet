@@ -77,7 +77,8 @@ namespace Lucene.Net.Analysis
         {
             using (Directory dir = NewDirectory())
             {
-                using (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, analyzer)))
+                // LUCENENET specific - ensure we use our abstracted default codec by using NewIndexWriterConfig method
+                using (IndexWriter writer = new IndexWriter(dir, NewIndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, analyzer)))
                 {
                     Document doc = new Document();
                     doc.Add(new TextField("content", "\u0633\u0627\u0628", Field.Store.YES));
@@ -108,7 +109,8 @@ namespace Lucene.Net.Analysis
         {
             using (Directory dir = NewDirectory())
             {
-                using (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, analyzer)))
+                // LUCENENET specific - ensure we use our abstracted default codec by using NewIndexWriterConfig method
+                using (IndexWriter writer = new IndexWriter(dir, NewIndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, analyzer)))
                 {
                     Document doc = new Document();
 
@@ -138,7 +140,8 @@ namespace Lucene.Net.Analysis
         {
             using (Directory farsiIndex = NewDirectory())
             {
-                using (IndexWriter writer = new IndexWriter(farsiIndex, new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, analyzer)))
+                // LUCENENET specific - ensure we use our abstracted default codec by using NewIndexWriterConfig method
+                using (IndexWriter writer = new IndexWriter(farsiIndex, NewIndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, analyzer)))
                 {
                     Document doc = new Document();
                     doc.Add(new TextField("content", "\u0633\u0627\u0628", Field.Store.YES));
@@ -187,7 +190,8 @@ namespace Lucene.Net.Analysis
         {
             using (Directory indexStore = NewDirectory())
             {
-                using (IndexWriter writer = new IndexWriter(indexStore, new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, new MockAnalyzer(Random, MockTokenizer.WHITESPACE, false))))
+                // LUCENENET specific - ensure we use our abstracted default codec by using NewIndexWriterConfig method
+                using (IndexWriter writer = new IndexWriter(indexStore, NewIndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, new MockAnalyzer(Random, MockTokenizer.WHITESPACE, false))))
                 {
                     // document data:
                     // the tracer field is used to determine which document was hit
