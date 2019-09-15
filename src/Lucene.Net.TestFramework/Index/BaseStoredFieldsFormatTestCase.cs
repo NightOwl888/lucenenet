@@ -297,11 +297,13 @@ namespace Lucene.Net.Index
                 {
                     var numDocs = AtLeast(500);
                     var answers = new object[numDocs];
-                    using (var w = new RandomIndexWriter(Random, dir
-#if !FEATURE_STATIC_TESTDATA_INITIALIZATION
-                        , ClassEnvRule.similarity, ClassEnvRule.timeZone
-#endif             
-                        ))
+#if FEATURE_STATIC_TESTDATA_INITIALIZATION
+                    using (RandomIndexWriter w = new RandomIndexWriter(Random, dir))
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+                    using (RandomIndexWriter w = new RandomIndexWriter(this, Random, dir))
+#else
+                    using (RandomIndexWriter w = new RandomIndexWriter(Random, dir, ClassEnvRule.similarity, ClassEnvRule.timeZone))
+#endif
                     {
                         NumericType[] typeAnswers = new NumericType[numDocs];
                         for (int id = 0; id < numDocs; id++)
@@ -395,11 +397,13 @@ namespace Lucene.Net.Index
                 IndexReader r = null;
                 try
                 {
-                    using (RandomIndexWriter w = new RandomIndexWriter(Random, dir
-#if !FEATURE_STATIC_TESTDATA_INITIALIZATION
-                        , ClassEnvRule.similarity, ClassEnvRule.timeZone
+#if FEATURE_STATIC_TESTDATA_INITIALIZATION
+                    using (RandomIndexWriter w = new RandomIndexWriter(Random, dir))
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+                    using (RandomIndexWriter w = new RandomIndexWriter(this, Random, dir))
+#else
+                    using (RandomIndexWriter w = new RandomIndexWriter(Random, dir, ClassEnvRule.similarity, ClassEnvRule.timeZone))
 #endif
-                        ))
                     {
                         Document doc = new Document();
                         FieldType onlyStored = new FieldType();
@@ -848,11 +852,13 @@ namespace Lucene.Net.Index
                     }
                     w.Commit();
                     w.Dispose();
-                    w = new RandomIndexWriter(Random, dir
-#if !FEATURE_STATIC_TESTDATA_INITIALIZATION
-                        , ClassEnvRule.similarity, ClassEnvRule.timeZone
-#endif  
-                        );
+#if FEATURE_STATIC_TESTDATA_INITIALIZATION
+                    w = new RandomIndexWriter(Random, dir);
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+                    w = new RandomIndexWriter(this, Random, dir);
+#else
+                    w = new RandomIndexWriter(Random, dir, ClassEnvRule.similarity, ClassEnvRule.timeZone);
+#endif
                     w.ForceMerge(TestUtil.NextInt32(Random, 1, 3));
                     w.Commit();
                 }

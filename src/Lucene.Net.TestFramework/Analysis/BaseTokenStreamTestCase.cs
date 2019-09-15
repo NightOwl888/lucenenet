@@ -693,7 +693,11 @@ namespace Lucene.Net.Analysis
                     if (latch != null) latch.Wait();
                     // see the part in checkRandomData where it replays the same text again
                     // to verify reproducability/reuse: hopefully this would catch thread hazards.
+#if !FEATURE_STATIC_TESTDATA_INITIALIZATION
+                    outerInstance.
+#endif
                     CheckRandomData(new Random((int)seed), a, iterations, maxWordLength, useCharFilter, simple, offsetsAreCorrect, iw);
+
                     success = true;
                 }
                 catch (Exception e)
@@ -736,18 +740,24 @@ namespace Lucene.Net.Analysis
             bool useCharFilter = random.NextBoolean();
             Directory dir = null;
             RandomIndexWriter iw = null;
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            string postingsFormat = TestUtil.GetPostingsFormat(this, "dummy");
+#else
             string postingsFormat = TestUtil.GetPostingsFormat("dummy");
+#endif
             bool codecOk = iterations * maxWordLength < 100000
                 || !(postingsFormat.Equals("Memory", StringComparison.Ordinal) 
                 || postingsFormat.Equals("SimpleText", StringComparison.Ordinal));
             if (Rarely(random) && codecOk)
             {
                 dir = NewFSDirectory(CreateTempDir("bttc"));
-                iw = new RandomIndexWriter(new Random((int)seed), dir, a
-#if !FEATURE_STATIC_TESTDATA_INITIALIZATION
-                    , ClassEnvRule.similarity, ClassEnvRule.timeZone
+#if FEATURE_STATIC_TESTDATA_INITIALIZATION
+                iw = new RandomIndexWriter(new Random((int)seed), dir, a);
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+                iw = new RandomIndexWriter(this, new Random((int)seed), dir, a);
+#else
+                iw = new RandomIndexWriter(new Random((int)seed), dir, a, ClassEnvRule.similarity, ClassEnvRule.timeZone);
 #endif
-                    );
             }
 
             bool success = false;
@@ -764,7 +774,7 @@ namespace Lucene.Net.Analysis
                     threads[i] = new AnalysisThread(seed, startingGun, a, iterations, maxWordLength, useCharFilter, simple, offsetsAreCorrect, iw
 #if !FEATURE_STATIC_TESTDATA_INITIALIZATION
                         , this
-#endif                  
+#endif
                         );
                 }
                 
@@ -817,7 +827,11 @@ namespace Lucene.Net.Analysis
             }
         }
 
+#if FEATURE_STATIC_TESTDATA_INITIALIZATION
         private static void CheckRandomData(Random random, Analyzer a, int iterations, int maxWordLength, bool useCharFilter, bool simple, bool offsetsAreCorrect, RandomIndexWriter iw)
+#else
+        private void CheckRandomData(Random random, Analyzer a, int iterations, int maxWordLength, bool useCharFilter, bool simple, bool offsetsAreCorrect, RandomIndexWriter iw)
+#endif
         {
             LineFileDocs docs = new LineFileDocs(random);
             Document doc = null;
@@ -841,7 +855,11 @@ namespace Lucene.Net.Analysis
                 {
                     ft.OmitNorms = true;
                 }
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                string pf = TestUtil.GetPostingsFormat(this, "dummy");
+#else
                 string pf = TestUtil.GetPostingsFormat("dummy");
+#endif
                 bool supportsOffsets = !DoesntSupportOffsets.Contains(pf);
                 switch (random.Next(4))
                 {
