@@ -108,6 +108,30 @@ namespace Lucene.Net.Index
             : this(r, dir, LuceneTestCase.NewIndexWriterConfig(r, v, a))
         {
         }
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+        /// <summary>
+        /// Create a <see cref="RandomIndexWriter"/> with a random config: Uses <see cref="LuceneTestCase.TEST_VERSION_CURRENT"/> and <see cref="MockAnalyzer"/>.
+        /// </summary>
+        public RandomIndexWriter(LuceneTestCase luceneTestCase, Random r, Directory dir)
+            : this(r, dir, LuceneTestCase.NewIndexWriterConfig(luceneTestCase, r, LuceneTestCase.TEST_VERSION_CURRENT, new MockAnalyzer(r)))
+        {
+        }
+
+        /// <summary>
+        /// Create a <see cref="RandomIndexWriter"/> with a random config: Uses <see cref="LuceneTestCase.TEST_VERSION_CURRENT"/>.
+        /// </summary>
+        public RandomIndexWriter(LuceneTestCase luceneTestCase, Random r, Directory dir, Analyzer a)
+            : this(r, dir, LuceneTestCase.NewIndexWriterConfig(luceneTestCase, r, LuceneTestCase.TEST_VERSION_CURRENT, a))
+        {
+        }
+
+        /// <summary>
+        /// Creates a <see cref="RandomIndexWriter"/> with a random config.
+        /// </summary>
+        public RandomIndexWriter(LuceneTestCase luceneTestCase, Random r, Directory dir, LuceneVersion v, Analyzer a)
+            : this(r, dir, LuceneTestCase.NewIndexWriterConfig(luceneTestCase, r, v, a))
+        {
+        }
 #else
         /// <summary>
         /// Create a <see cref="RandomIndexWriter"/> with a random config: Uses <see cref="LuceneTestCase.TEST_VERSION_CURRENT"/> and <see cref="MockAnalyzer"/>.

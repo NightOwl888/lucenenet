@@ -249,9 +249,6 @@ namespace Lucene.Net.Util
 
         public LuceneTestCase(BeforeAfterClass beforeAfter)
         {
-#if !FEATURE_STATIC_TESTDATA_INITIALIZATION
-            ClassEnvRule = new TestRuleSetupAndRestoreClassEnv();
-#endif
             beforeAfter.SetBeforeAfterClassActions(BeforeClass, AfterClass);
             this.SetUp();
         }
@@ -269,12 +266,6 @@ namespace Lucene.Net.Util
         }
 #else
     {
-#if !FEATURE_STATIC_TESTDATA_INITIALIZATION
-        public LuceneTestCase()
-        {
-            ClassEnvRule = new TestRuleSetupAndRestoreClassEnv();
-        }
-#endif
 #endif
 
         // --------------------------------------------------------------------
@@ -579,7 +570,7 @@ namespace Lucene.Net.Util
 #if FEATURE_INSTANCE_CODEC_IMPERSONATION
         /// <summary>
         /// When testing, use this property instead of the static <see cref="Codecs.Codec"/>
-        /// for accessing <see cref="FakeCodec.AvailableCodecs()"/>, <see cref="FakeCodec.Default"/>,
+        /// for accessing <see cref="FakeCodec.AvailableCodecs"/>, <see cref="FakeCodec.Default"/>,
         /// and <see cref="FakeCodec.ForName(string)"/> to ensure you get codec instances that support
         /// <see cref="OLD_FORMAT_IMPERSONATION_IS_ACTIVE"/>.
         /// </summary>
@@ -587,7 +578,7 @@ namespace Lucene.Net.Util
 
         /// <summary>
         /// When testing, use this property instead of the static <see cref="Codecs.DocValuesFormat"/>
-        /// for accessing <see cref="FakeDocValuesFormat.AvailableDocValuesFormats()"/>
+        /// for accessing <see cref="FakeDocValuesFormat.AvailableDocValuesFormats"/>
         /// and <see cref="FakeDocValuesFormat.ForName(string)"/> to ensure you get codec instances that support
         /// <see cref="OLD_FORMAT_IMPERSONATION_IS_ACTIVE"/>.
         /// </summary>
@@ -595,7 +586,7 @@ namespace Lucene.Net.Util
 
         /// <summary>
         /// When testing, use this property instead of the static <see cref="Codecs.PostingsFormat"/>
-        /// for accessing <see cref="FakePostingsFormat.AvailablePostingsFormats()"/>
+        /// for accessing <see cref="FakePostingsFormat.AvailablePostingsFormats"/>
         /// and <see cref="FakePostingsFormat.ForName(string)"/> to ensure you get codec instances that support
         /// <see cref="OLD_FORMAT_IMPERSONATION_IS_ACTIVE"/>.
         /// </summary>
@@ -786,13 +777,13 @@ namespace Lucene.Net.Util
 
         // LUCENENET specific constants to scan the test framework for codecs/docvaluesformats/postingsformats only once
 #if FEATURE_INSTANCE_CODEC_IMPERSONATION
-        public TestCodecFactory CodecFactory { get; set; }
-        public TestDocValuesFormatFactory DocValuesFormatFactory { get; set; }
-        public TestPostingsFormatFactory PostingsFormatFactory { get; set; }
+        public ICodecFactory CodecFactory { get; set; }
+        public IDocValuesFormatFactory DocValuesFormatFactory { get; set; }
+        public IPostingsFormatFactory PostingsFormatFactory { get; set; }
 #else
-        public static TestCodecFactory CodecFactory { get; set; } = new TestCodecFactory();
-        public static TestDocValuesFormatFactory DocValuesFormatFactory { get; set; } = new TestDocValuesFormatFactory();
-        public static TestPostingsFormatFactory PostingsFormatFactory { get; set; } = new TestPostingsFormatFactory();
+        public static ICodecFactory CodecFactory { get; set; } = new TestCodecFactory();
+        public static IDocValuesFormatFactory DocValuesFormatFactory { get; set; } = new TestDocValuesFormatFactory();
+        public static IPostingsFormatFactory PostingsFormatFactory { get; set; } = new TestPostingsFormatFactory();
 #endif
 
 #if FEATURE_STATIC_TESTDATA_INITIALIZATION
@@ -833,9 +824,9 @@ namespace Lucene.Net.Util
             try
             {
                 // Setup the factories
-                Codec.SetCodecFactory(CodecFactory);
-                DocValuesFormat.SetDocValuesFormatFactory(DocValuesFormatFactory);
-                PostingsFormat.SetPostingsFormatFactory(PostingsFormatFactory);
+                Codecs.Codec.SetCodecFactory(CodecFactory);
+                Codecs.DocValuesFormat.SetDocValuesFormatFactory(DocValuesFormatFactory);
+                Codecs.PostingsFormat.SetPostingsFormatFactory(PostingsFormatFactory);
 
                 ClassEnvRule.Before();
 
@@ -856,7 +847,11 @@ namespace Lucene.Net.Util
         {
             try
             {
+                ClassEnvRule = new TestRuleSetupAndRestoreClassEnv();
 #if FEATURE_INSTANCE_CODEC_IMPERSONATION
+
+                // LUCENENT TODO: Make InitializeCodecFactories virtual method that is called here
+                // and contains the following 3 lines...
                 // Setup the factories
                 CodecFactory = new TestCodecFactory(this);
                 DocValuesFormatFactory = new TestDocValuesFormatFactory(this);
@@ -868,9 +863,9 @@ namespace Lucene.Net.Util
                 PostingsFormat = new FakePostingsFormat(this);
 #else
                 // Setup the factories
-                Codec.SetCodecFactory(CodecFactory);
-                DocValuesFormat.SetDocValuesFormatFactory(DocValuesFormatFactory);
-                PostingsFormat.SetPostingsFormatFactory(PostingsFormatFactory);
+                Codecs.Codec.SetCodecFactory(CodecFactory);
+                Codecs.DocValuesFormat.SetDocValuesFormatFactory(DocValuesFormatFactory);
+                Codecs.PostingsFormat.SetPostingsFormatFactory(PostingsFormatFactory);
 #endif
 
                 ClassEnvRule.Before(this);
@@ -1239,8 +1234,11 @@ namespace Lucene.Net.Util
         // Non-static so that we do not depend on any hidden static dependencies
         public IndexWriterConfig NewIndexWriterConfig(Random random, LuceneVersion v, Analyzer a)
         {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            return NewIndexWriterConfig(this, random, v, a);
+#else
             return NewIndexWriterConfig(random, v, a, ClassEnvRule.similarity, ClassEnvRule.timeZone);
-
+#endif
         }
 #endif
 
@@ -1252,6 +1250,16 @@ namespace Lucene.Net.Util
         /// <param name="v"></param>
         /// <param name="a"></param>
         public static IndexWriterConfig NewIndexWriterConfig(Random random, LuceneVersion v, Analyzer a)
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+        /// <summary>
+        /// Create a new <see cref="IndexWriterConfig"/> with random defaults using the specified <paramref name="random"/>.
+        /// </summary>
+        /// <param name="luceneTestCase">The current test class instance.</param>
+        /// <param name="random">A random instance (usually <see cref="LuceneTestCase.Random"/>).</param>
+        /// <param name="v"></param>
+        /// <param name="a"></param>
+        // LUCENENET specific
+        public static IndexWriterConfig NewIndexWriterConfig(LuceneTestCase luceneTestCase, Random random, LuceneVersion v, Analyzer a)
 #else
         /// <summary>
         /// Create a new <see cref="IndexWriterConfig"/> with random defaults using the specified <paramref name="random"/>.
@@ -1264,12 +1272,15 @@ namespace Lucene.Net.Util
         // LUCENENET specific
         // This is the only static ctor for IndexWriterConfig because it removes the dependency
         // on ClassEnvRule by using parameters Similarity and TimeZone.
-        public static IndexWriterConfig NewIndexWriterConfig(Random random, LuceneVersion v, Analyzer a, Similarity similarity, TimeZoneInfo timeZone)
+        public static IndexWriterConfig NewIndexWriterConfig(Random random, LuceneVersion v, Analyzer a, Similarity similarity, TimeZoneInfo timeZone) // LUCENENT TODO: Replace with NewIndexWriterConfig(LuceneTestCase, Random, LuceneVersion, Analyzer)
 #endif
         {
             IndexWriterConfig c = new IndexWriterConfig(v, a);
 #if FEATURE_STATIC_TESTDATA_INITIALIZATION
             c.SetSimilarity(ClassEnvRule.similarity);
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+            c.SetSimilarity(luceneTestCase.ClassEnvRule.similarity);
+            c.SetCodec(luceneTestCase.Codec.Default); // LUCENENET specific - ensure we use our abstracted default codec
 #else
             c.SetSimilarity(similarity);
 #endif
@@ -1368,6 +1379,8 @@ namespace Lucene.Net.Util
             }
 #if FEATURE_STATIC_TESTDATA_INITIALIZATION
             c.SetMergePolicy(NewMergePolicy(random));
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+            c.SetMergePolicy(NewMergePolicy(luceneTestCase, random));
 #else
             c.SetMergePolicy(NewMergePolicy(random, timeZone));
 #endif
@@ -1384,6 +1397,9 @@ namespace Lucene.Net.Util
 
 #if FEATURE_STATIC_TESTDATA_INITIALIZATION
         public static MergePolicy NewMergePolicy(Random r)
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+        // LUCENENET specific
+        public static MergePolicy NewMergePolicy(LuceneTestCase luceneTestCase, Random r)
 #else
         /// <param name="timeZone">
         /// LUCENENET specific
@@ -1404,6 +1420,8 @@ namespace Lucene.Net.Util
             {
 #if FEATURE_STATIC_TESTDATA_INITIALIZATION
                 return NewAlcoholicMergePolicy(r, ClassEnvRule.timeZone);
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+                return NewAlcoholicMergePolicy(r, luceneTestCase.ClassEnvRule.timeZone);
 #else
                 return NewAlcoholicMergePolicy(r, timeZone);
 #endif
@@ -1415,6 +1433,11 @@ namespace Lucene.Net.Util
         public static MergePolicy NewMergePolicy()
         {
             return NewMergePolicy(Random);
+        }
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public static MergePolicy NewMergePolicy(LuceneTestCase luceneTestCase)
+        {
+            return NewMergePolicy(luceneTestCase, Random);
         }
 #else
         /// <param name="timeZone">Generally, this should always be <see cref="LuceneTestCase.TimeZone"/>.</param>
@@ -1442,6 +1465,10 @@ namespace Lucene.Net.Util
         public static AlcoholicMergePolicy NewAlcoholicMergePolicy()
         {
             return NewAlcoholicMergePolicy(Random, ClassEnvRule.timeZone);
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public static AlcoholicMergePolicy NewAlcoholicMergePolicy(LuceneTestCase luceneTestCase)
+        {
+            return NewAlcoholicMergePolicy(Random, luceneTestCase.ClassEnvRule.timeZone);
 #else
         public static AlcoholicMergePolicy NewAlcoholicMergePolicy(TimeZoneInfo timeZone)
         {
@@ -1709,33 +1736,112 @@ namespace Lucene.Net.Util
             }
         }
 
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public Field NewStringField(string name, string value, Field.Store stored)
 
-        public static Field NewStringField(string name, string value, Field.Store stored)
         {
-            return NewField(Random, name, value, stored == Field.Store.YES ? StringField.TYPE_STORED : StringField.TYPE_NOT_STORED);
+            return NewStringField(this, name, value, stored);
         }
 
-        public static Field NewTextField(string name, string value, Field.Store stored)
+        public Field NewTextField(string name, string value, Field.Store stored)
         {
-            return NewField(Random, name, value, stored == Field.Store.YES ? TextField.TYPE_STORED : TextField.TYPE_NOT_STORED);
+            return NewTextField(this, name, value, stored);
         }
 
-        public static Field NewStringField(Random random, string name, string value, Field.Store stored)
+        public Field NewStringField(Random random, string name, string value, Field.Store stored)
         {
-            return NewField(random, name, value, stored == Field.Store.YES ? StringField.TYPE_STORED : StringField.TYPE_NOT_STORED);
+            return NewStringField(this, random, name, value, stored);
         }
 
-        public static Field NewTextField(Random random, string name, string value, Field.Store stored)
+        public Field NewTextField(Random random, string name, string value, Field.Store stored)
         {
-            return NewField(random, name, value, stored == Field.Store.YES ? TextField.TYPE_STORED : TextField.TYPE_NOT_STORED);
+            return NewTextField(this, random, name, value, stored);
         }
 
-        public static Field NewField(string name, string value, FieldType type)
+        public Field NewField(string name, string value, FieldType type)
         {
-            return NewField(Random, name, value, type);
+            return NewField(this, name, value, type);
         }
 
+        public Field NewField(Random random, string name, string value, FieldType type)
+
+        {
+            return NewField(this, random, name, value, type);
+        }
+#endif
+
+        public static Field NewStringField(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            string name, string value, Field.Store stored)
+
+        {
+            return NewField(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                Random, name, value, stored == Field.Store.YES ? StringField.TYPE_STORED : StringField.TYPE_NOT_STORED);
+        }
+
+        public static Field NewTextField(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            string name, string value, Field.Store stored)
+        {
+            return NewField(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                Random, name, value, stored == Field.Store.YES ? TextField.TYPE_STORED : TextField.TYPE_NOT_STORED);
+        }
+
+        public static Field NewStringField(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            Random random, string name, string value, Field.Store stored)
+        {
+            return NewField(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                random, name, value, stored == Field.Store.YES ? StringField.TYPE_STORED : StringField.TYPE_NOT_STORED);
+        }
+
+        public static Field NewTextField(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            Random random, string name, string value, Field.Store stored)
+        {
+            return NewField(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                random, name, value, stored == Field.Store.YES ? TextField.TYPE_STORED : TextField.TYPE_NOT_STORED);
+        }
+
+        public static Field NewField(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            string name, string value, FieldType type)
+        {
+            return NewField(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                Random, name, value, type);
+        }
+
+
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public static Field NewField(LuceneTestCase luceneTestCase, Random random, string name, string value, FieldType type)
+#else
         public static Field NewField(Random random, string name, string value, FieldType type)
+#endif
         {
             name = new string(name.ToCharArray());
             if (Usually(random) || !type.IsIndexed)

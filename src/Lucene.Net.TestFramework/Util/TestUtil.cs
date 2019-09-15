@@ -1,3 +1,4 @@
+using Lucene.Net.Codecs;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Randomized.Generators;
@@ -233,26 +234,30 @@ namespace Lucene.Net.Util
 
         public static CheckIndex.Status CheckIndex(Directory dir, bool crossCheckTermVectors)
         {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-            CheckIndex checker = new CheckIndex(dir);
-            checker.CrossCheckTermVectors = crossCheckTermVectors;
-            checker.InfoStream = new StreamWriter(bos, Encoding.UTF8);
-            CheckIndex.Status indexStatus = checker.DoCheckIndex(null);
-            if (indexStatus == null || indexStatus.Clean == false)
+            using (ByteArrayOutputStream bos = new ByteArrayOutputStream(1024))
             {
-                Console.WriteLine("CheckIndex failed");
-                checker.FlushInfoStream();
-                Console.WriteLine(bos.ToString());
-                throw new Exception("CheckIndex failed");
-            }
-            else
-            {
-                if (LuceneTestCase.INFOSTREAM)
+                CheckIndex checker = new CheckIndex(dir)
                 {
-                    checker.FlushInfoStream(); 
+                    CrossCheckTermVectors = crossCheckTermVectors,
+                    InfoStream = new StreamWriter(bos, Encoding.UTF8)
+                };
+                CheckIndex.Status indexStatus = checker.DoCheckIndex(null);
+                if (indexStatus == null || indexStatus.Clean == false)
+                {
+                    Console.WriteLine("CheckIndex failed");
+                    checker.FlushInfoStream();
                     Console.WriteLine(bos.ToString());
+                    throw new Exception("CheckIndex failed");
                 }
-                return indexStatus;
+                else
+                {
+                    if (LuceneTestCase.INFOSTREAM)
+                    {
+                        checker.FlushInfoStream();
+                        Console.WriteLine(bos.ToString());
+                    }
+                    return indexStatus;
+                }
             }
         }
 
@@ -969,11 +974,17 @@ namespace Lucene.Net.Util
 
         // TODO: generalize all 'test-checks-for-crazy-codecs' to
         // annotations (LUCENE-3489)
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public static string GetPostingsFormat(LuceneTestCase luceneTestCase, string field)
+        {
+            return GetPostingsFormat(luceneTestCase.Codec.Default, field);
+        }
+#else
         public static string GetPostingsFormat(string field)
         {
             return GetPostingsFormat(Codec.Default, field);
         }
-
+#endif
         public static string GetPostingsFormat(Codec codec, string field)
         {
             PostingsFormat p = codec.PostingsFormat;
@@ -987,10 +998,17 @@ namespace Lucene.Net.Util
             }
         }
 
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public static string GetDocValuesFormat(LuceneTestCase luceneTestCase, string field)
+        {
+            return GetDocValuesFormat(luceneTestCase.Codec.Default, field);
+        }
+#else
         public static string GetDocValuesFormat(string field)
         {
             return GetDocValuesFormat(Codec.Default, field);
         }
+#endif
 
         public static string GetDocValuesFormat(Codec codec, string field)
         {
@@ -1006,9 +1024,15 @@ namespace Lucene.Net.Util
         }
 
         // TODO: remove this, push this test to Lucene40/Lucene42 codec tests
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public static bool FieldSupportsHugeBinaryDocValues(LuceneTestCase luceneTestCase, string field)
+        {
+            string dvFormat = GetDocValuesFormat(luceneTestCase, field);
+#else
         public static bool FieldSupportsHugeBinaryDocValues(string field)
         {
             string dvFormat = GetDocValuesFormat(field);
+#endif
             if (dvFormat.Equals("Lucene40", StringComparison.Ordinal) 
                 || dvFormat.Equals("Lucene42", StringComparison.Ordinal) 
                 || dvFormat.Equals("Memory", StringComparison.Ordinal))

@@ -105,45 +105,48 @@ namespace Lucene.Net.Search
             m_stopword = "" + GetRandomChar();
             CharacterRunAutomaton stopset = new CharacterRunAutomaton(BasicAutomata.MakeString(m_stopword));
             m_analyzer = new MockAnalyzer(random, MockTokenizer.WHITESPACE, false, stopset);
-            RandomIndexWriter iw = new RandomIndexWriter(random, m_directory, m_analyzer
-#if !FEATURE_STATIC_TESTDATA_INITIALIZATION
-                , ClassEnvRule.similarity, ClassEnvRule.timeZone
+#if FEATURE_STATIC_TESTDATA_INITIALIZATION
+            using (RandomIndexWriter iw = new RandomIndexWriter(Random, m_directory))
+#elif FEATURE_INSTANCE_CODEC_IMPERSONATION
+            using (RandomIndexWriter iw = new RandomIndexWriter(this, Random, m_directory))
+#else
+            using (RandomIndexWriter iw = new RandomIndexWriter(Random, m_directory, ClassEnvRule.similarity, ClassEnvRule.timeZone))
 #endif
-                );
-            Document doc = new Document();
-            Field id = new StringField("id", "", Field.Store.NO);
-            Field field = new TextField("field", "", Field.Store.NO);
-            doc.Add(id);
-            doc.Add(field);
-
-            // index some docs
-            int numDocs = AtLeast(1000);
-            for (int i = 0; i < numDocs; i++)
             {
-                id.SetStringValue(Convert.ToString(i, CultureInfo.InvariantCulture));
-                field.SetStringValue(RandomFieldContents());
-                iw.AddDocument(doc);
-            }
+                Document doc = new Document();
+                Field id = new StringField("id", "", Field.Store.NO);
+                Field field = new TextField("field", "", Field.Store.NO);
+                doc.Add(id);
+                doc.Add(field);
 
-            // delete some docs
-            int numDeletes = numDocs / 20;
-            for (int i = 0; i < numDeletes; i++)
-            {
-                Term toDelete = new Term("id", Convert.ToString(random.Next(numDocs), CultureInfo.InvariantCulture));
-                if (random.NextBoolean())
+                // index some docs
+                int numDocs = AtLeast(1000);
+                for (int i = 0; i < numDocs; i++)
                 {
-                    iw.DeleteDocuments(toDelete);
+                    id.SetStringValue(Convert.ToString(i, CultureInfo.InvariantCulture));
+                    field.SetStringValue(RandomFieldContents());
+                    iw.AddDocument(doc);
                 }
-                else
-                {
-                    iw.DeleteDocuments(new TermQuery(toDelete));
-                }
-            }
 
-            m_reader = iw.GetReader();
-            m_s1 = NewSearcher(m_reader);
-            m_s2 = NewSearcher(m_reader);
-            iw.Dispose();
+                // delete some docs
+                int numDeletes = numDocs / 20;
+                for (int i = 0; i < numDeletes; i++)
+                {
+                    Term toDelete = new Term("id", Convert.ToString(random.Next(numDocs), CultureInfo.InvariantCulture));
+                    if (random.NextBoolean())
+                    {
+                        iw.DeleteDocuments(toDelete);
+                    }
+                    else
+                    {
+                        iw.DeleteDocuments(new TermQuery(toDelete));
+                    }
+                }
+
+                m_reader = iw.GetReader();
+                m_s1 = NewSearcher(m_reader);
+                m_s2 = NewSearcher(m_reader);
+            } // iw.Dispose();
         }
 
 #if FEATURE_STATIC_TESTDATA_INITIALIZATION
