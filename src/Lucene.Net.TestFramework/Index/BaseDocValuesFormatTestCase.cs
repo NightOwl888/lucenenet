@@ -2590,7 +2590,10 @@ namespace Lucene.Net.Index
         {
             using (Directory dir = NewDirectory())
             {
-                IndexWriterConfig conf = new IndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
+                IndexWriterConfig conf = new IndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random))
+                {
+                    Codec = Codec.Default // LUCENENET specific - ensure we use our abstracted default codec
+                };
                 using (RandomIndexWriter writer = new RandomIndexWriter(Random, dir, conf))
                 {
 
@@ -2855,7 +2858,10 @@ namespace Lucene.Net.Index
         {
             using (Directory dir = NewDirectory())
             {
-                IndexWriterConfig conf = new IndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
+                IndexWriterConfig conf = new IndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random))
+                {
+                    Codec = Codec.Default // LUCENENET specific - ensure we use our abstracted default codec
+                };
                 using (RandomIndexWriter writer = new RandomIndexWriter(Random, dir, conf))
                 {
 
