@@ -1,7 +1,9 @@
+using System;
+using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
+using SegmentWriteState = Lucene.Net.Index.SegmentWriteState;
+
 namespace Lucene.Net.Codecs.Lucene42
 {
-    using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
-
     /*
     * Licensed to the Apache Software Foundation (ASF) under one or more
     * contributor license agreements.  See the NOTICE file distributed with
@@ -19,17 +21,31 @@ namespace Lucene.Net.Codecs.Lucene42
     * limitations under the License.
     */
 
-    using SegmentWriteState = Lucene.Net.Index.SegmentWriteState;
-
     /// <summary>
     /// Read-write version of <see cref="Lucene42DocValuesFormat"/> for testing.
     /// </summary>
 #pragma warning disable 612, 618
     public class Lucene42RWDocValuesFormat : Lucene42DocValuesFormat
     {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        private readonly LuceneTestCase luceneTestCase;
+        public Lucene42RWDocValuesFormat(LuceneTestCase luceneTestCase)
+            : base(luceneTestCase)
+        {
+            this.luceneTestCase = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
+        }
+#else
+        public Lucene42RWDocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+#endif
         public override DocValuesConsumer FieldsConsumer(SegmentWriteState state)
         {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            if (!luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
             if (!LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
             {
                 return base.FieldsConsumer(state);
             }

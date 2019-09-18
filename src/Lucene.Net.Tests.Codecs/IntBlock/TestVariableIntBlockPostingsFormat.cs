@@ -33,7 +33,13 @@ namespace Lucene.Net.Codecs.IntBlock
     public class TestVariableIntBlockPostingsFormat : BasePostingsFormatTestCase
     {
         // TODO: randomize blocksize
-        private readonly Codec codec = TestUtil.AlwaysPostingsFormat(new MockVariableInt32BlockPostingsFormat());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestVariableIntBlockPostingsFormat()
+        {
+            codec = TestUtil.AlwaysPostingsFormat(new MockVariableInt32BlockPostingsFormat(this));
+        }
 
         protected override Codec GetCodec()
         {

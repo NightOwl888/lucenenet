@@ -1,8 +1,9 @@
+using System;
+using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
+using SegmentWriteState = Lucene.Net.Index.SegmentWriteState;
+
 namespace Lucene.Net.Codecs.Lucene40
 {
-    using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
-    using SegmentWriteState = Lucene.Net.Index.SegmentWriteState;
-
     /*
      * Licensed to the Apache Software Foundation (ASF) under one or more
      * contributor license agreements.  See the NOTICE file distributed with
@@ -26,9 +27,26 @@ namespace Lucene.Net.Codecs.Lucene40
 #pragma warning disable 612, 618
     public class Lucene40RWPostingsFormat : Lucene40PostingsFormat
     {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        private readonly LuceneTestCase luceneTestCase;
+        public Lucene40RWPostingsFormat(LuceneTestCase luceneTestCase)
+            : base(luceneTestCase)
+        {
+            this.luceneTestCase = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
+        }
+#else
+        public Lucene40RWPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+#endif
+
         public override FieldsConsumer FieldsConsumer(SegmentWriteState state)
         {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            if (!luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
             if (!LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
             {
                 return base.FieldsConsumer(state);
             }

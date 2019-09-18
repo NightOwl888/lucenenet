@@ -44,11 +44,12 @@ namespace Lucene.Net.Codecs.Asserting
     [DocValuesFormatName("Asserting")]
     public class AssertingDocValuesFormat : DocValuesFormat
     {
-        private readonly DocValuesFormat @in = new Lucene45DocValuesFormat();
+        private readonly DocValuesFormat @in;
 
-        public AssertingDocValuesFormat()
-            : base()
+        public AssertingDocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
+            @in = new Lucene45DocValuesFormat(codecProvider);
         }
 
         public override DocValuesConsumer FieldsConsumer(SegmentWriteState state)

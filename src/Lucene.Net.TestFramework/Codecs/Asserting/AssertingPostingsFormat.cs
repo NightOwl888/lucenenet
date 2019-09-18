@@ -39,11 +39,12 @@ namespace Lucene.Net.Codecs.Asserting
     [PostingsFormatName("Asserting")] // LUCENENET specific - using PostingsFormatName attribute to ensure the default name passed from subclasses is the same as this class name
     public sealed class AssertingPostingsFormat : PostingsFormat
     {
-        private readonly PostingsFormat @in = new Lucene41PostingsFormat();
+        private readonly PostingsFormat @in;
 
-        public AssertingPostingsFormat()
-            : base()
+        public AssertingPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
+            @in = new Lucene41PostingsFormat(codecProvider);
         }
 
         public override FieldsConsumer FieldsConsumer(SegmentWriteState state)

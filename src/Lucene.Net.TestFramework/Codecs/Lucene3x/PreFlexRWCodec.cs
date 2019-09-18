@@ -1,3 +1,6 @@
+using System;
+using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
+
 namespace Lucene.Net.Codecs.Lucene3x
 {
     /*
@@ -17,8 +20,6 @@ namespace Lucene.Net.Codecs.Lucene3x
      * limitations under the License.
      */
 
-    using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
-
     /// <summary>
     /// Writes 3.x-like indexes (not perfect emulation yet) for testing only!
     /// <para/>
@@ -27,18 +28,39 @@ namespace Lucene.Net.Codecs.Lucene3x
 #pragma warning disable 612, 618
     public class PreFlexRWCodec : Lucene3xCodec
     {
-        private readonly PostingsFormat postings = new PreFlexRWPostingsFormat();
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        private readonly LuceneTestCase luceneTestCase;
+        public PreFlexRWCodec(LuceneTestCase luceneTestCase)
+            : base(luceneTestCase)
+        {
+            this.luceneTestCase = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
+            this.postings = new PreFlexRWPostingsFormat(luceneTestCase);
+        }
+#else
+        public PreFlexRWCodec(ICodecProvider codecProvider)
+            : base(codecProvider)
+        {
+            this.postings = new PreFlexRWPostingsFormat(codecProvider);
+        }
+#endif
+
+        private readonly PostingsFormat postings;
         private readonly Lucene3xNormsFormat norms = new PreFlexRWNormsFormat();
         private readonly FieldInfosFormat fieldInfos = new PreFlexRWFieldInfosFormat();
         private readonly TermVectorsFormat termVectors = new PreFlexRWTermVectorsFormat();
         private readonly SegmentInfoFormat segmentInfos = new PreFlexRWSegmentInfoFormat();
         private readonly StoredFieldsFormat storedFields = new PreFlexRWStoredFieldsFormat();
 
+
         public override PostingsFormat PostingsFormat
         {
             get
             {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                if (luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
                 if (LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
                 {
                     return postings;
                 }
@@ -53,7 +75,11 @@ namespace Lucene.Net.Codecs.Lucene3x
         {
             get
             {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                if (luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
                 if (LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
                 {
                     return norms;
                 }
@@ -68,7 +94,11 @@ namespace Lucene.Net.Codecs.Lucene3x
         {
             get
             {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                if (luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
                 if (LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
                 {
                     return segmentInfos;
                 }
@@ -83,7 +113,11 @@ namespace Lucene.Net.Codecs.Lucene3x
         {
             get
             {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                if (luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
                 if (LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
                 {
                     return fieldInfos;
                 }
@@ -98,7 +132,11 @@ namespace Lucene.Net.Codecs.Lucene3x
         {
             get
             {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                if (luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
                 if (LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
                 {
                     return termVectors;
                 }
@@ -113,7 +151,11 @@ namespace Lucene.Net.Codecs.Lucene3x
         {
             get
             {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                if (luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
                 if (LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
                 {
                     return storedFields;
                 }

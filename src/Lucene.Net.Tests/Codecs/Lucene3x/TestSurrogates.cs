@@ -344,8 +344,9 @@ namespace Lucene.Net.Codecs.Lucene3x
         public virtual void TestSurrogatesOrder()
         {
             Directory dir = NewDirectory();
+            // LUCENENET specific - pass test instance as ICodecProvider
             RandomIndexWriter w = new RandomIndexWriter(Random, dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random))
-                .SetCodec(new PreFlexRWCodec()));
+                .SetCodec(new PreFlexRWCodec(this)));
 
             int numField = TestUtil.NextInt32(Random, 2, 5);
 

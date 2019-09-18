@@ -34,6 +34,7 @@ namespace Lucene.Net.Codecs
         private readonly LuceneTestCase luceneTestCase;
 
         public TestPostingsFormatFactory(LuceneTestCase luceneTestCase)
+            : base(luceneTestCase)
         {
             this.luceneTestCase = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
         }
@@ -49,6 +50,10 @@ namespace Lucene.Net.Codecs
             }
             return base.NewPostingsFormat(type);
         }
+#else
+        public TestPostingsFormatFactory()
+            : base(Codecs.CodecProvider.Default)
+        { }
 #endif
         protected override void Initialize()
         {

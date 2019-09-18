@@ -29,7 +29,13 @@ namespace Lucene.Net.Codecs.BlockTerms
     // TODO: ensure both of these are also in rotation in RandomCodec
     public class TestFixedGapPostingsFormat : BasePostingsFormatTestCase
     {
-        private readonly Codec codec = TestUtil.AlwaysPostingsFormat(new Lucene41WithOrds());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestFixedGapPostingsFormat()
+        {
+            codec = TestUtil.AlwaysPostingsFormat(new Lucene41WithOrds(this));
+        }
 
         protected override Codec GetCodec()
         {

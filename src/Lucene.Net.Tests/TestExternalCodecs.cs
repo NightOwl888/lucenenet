@@ -46,23 +46,31 @@ namespace Lucene.Net
         private sealed class CustomPerFieldCodec : Lucene46Codec
         {
 
-            internal readonly PostingsFormat RamFormat = Codecs.PostingsFormat.ForName("RAMOnly");
-            internal readonly PostingsFormat DefaultFormat = Codecs.PostingsFormat.ForName("Lucene41");
-            internal readonly PostingsFormat PulsingFormat = Codecs.PostingsFormat.ForName("Pulsing41");
+            internal readonly PostingsFormat ramFormat;
+            internal readonly PostingsFormat defaultFormat;
+            internal readonly PostingsFormat pulsingFormat;
+
+            public CustomPerFieldCodec(TestExternalCodecs outerInstance)
+                : base(outerInstance) // LUCENENET specific - pass test instance as ICodecProvider
+            {
+                this.ramFormat = CodecProvider.PostingsFormat.ForName("RAMOnly");
+                this.defaultFormat = CodecProvider.PostingsFormat.ForName("Lucene41");
+                this.pulsingFormat = CodecProvider.PostingsFormat.ForName("Pulsing41");
+            }
 
             public override PostingsFormat GetPostingsFormatForField(string field)
             {
                 if (field.Equals("field2", StringComparison.Ordinal) || field.Equals("id", StringComparison.Ordinal))
                 {
-                    return PulsingFormat;
+                    return pulsingFormat;
                 }
                 else if (field.Equals("field1", StringComparison.Ordinal))
                 {
-                    return DefaultFormat;
+                    return defaultFormat;
                 }
                 else
                 {
-                    return RamFormat;
+                    return ramFormat;
                 }
             }
         }
@@ -83,7 +91,7 @@ namespace Lucene.Net
             using (BaseDirectoryWrapper dir = NewDirectory())
             {
                 dir.CheckIndexOnDispose = false; // we use a custom codec provider
-                using (IndexWriter w = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(new CustomPerFieldCodec()).SetMergePolicy(NewLogMergePolicy(3))))
+                using (IndexWriter w = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(new CustomPerFieldCodec(this)).SetMergePolicy(NewLogMergePolicy(3))))
                 {
                     Documents.Document doc = new Documents.Document();
                     // uses default codec:

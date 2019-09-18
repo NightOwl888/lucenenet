@@ -1,3 +1,4 @@
+using Lucene.Net.Codecs;
 using Lucene.Net.Support;
 using Lucene.Net.Support.IO;
 using System;
@@ -163,7 +164,7 @@ namespace Lucene.Net.Index
         private static TextWriter infoStream = null;
 
         /// <summary>
-        /// Sole constructor. Typically you call this and then
+        /// Creates a new <see cref="SegmentInfos"/> instance. Typically you call this and then
         /// use <see cref="Read(Directory)"/> or
         /// <see cref="Read(Directory, string)"/> to populate each
         /// <see cref="SegmentCommitInfo"/>.  Alternatively, you can add/remove your
@@ -375,7 +376,8 @@ namespace Lucene.Net.Index
                     for (var seg = 0; seg < numSegments; seg++)
                     {
                         var segName = input.ReadString();
-                        var codec = Codec.ForName(input.ReadString());
+                        // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                        var codec = directory.CodecProvider.Codec.ForName(input.ReadString());
                         //System.out.println("SIS.read seg=" + seg + " codec=" + codec);
                         var info = codec.SegmentInfoFormat.SegmentInfoReader.Read(directory, segName, IOContext.READ);
                         info.Codec = codec;
@@ -417,7 +419,8 @@ namespace Lucene.Net.Index
                 {
                     actualFormat = -1;
                     Lucene3xSegmentInfoReader.ReadLegacyInfos(this, directory, input, format);
-                    Codec codec = Codec.ForName("Lucene3x");
+                    // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                    Codec codec = directory.CodecProvider.Codec.ForName("Lucene3x");
                     foreach (SegmentCommitInfo info in segments)
                     {
                         info.Info.Codec = codec;

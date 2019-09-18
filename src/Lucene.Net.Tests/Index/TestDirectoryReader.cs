@@ -890,7 +890,9 @@ namespace Lucene.Net.Index
         public virtual void TestNoTermsIndex()
         {
             Directory dir = NewDirectory();
-            IndexWriter writer = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat())));
+            IndexWriter writer = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random))
+                // LUCENENET specific - pass test instance as ICodecProvider
+                .SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat(this))));
             Document doc = new Document();
             doc.Add(NewTextField("field", "a b c d e f g h i j k l m n o p q r s t u v w x y z", Field.Store.NO));
             doc.Add(NewTextField("number", "0 1 2 3 4 5 6 7 8 9", Field.Store.NO));
@@ -912,7 +914,10 @@ namespace Lucene.Net.Index
             }
 
             Assert.AreEqual(-1, ((SegmentReader)r.Leaves[0].Reader).TermInfosIndexDivisor);
-            writer = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat())).SetMergePolicy(NewLogMergePolicy(10)));
+            writer = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random))
+                // LUCENENET specific - pass test instance as ICodecProvider
+                .SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat(this)))
+                .SetMergePolicy(NewLogMergePolicy(10)));
             writer.AddDocument(doc);
             writer.Dispose();
 
@@ -1276,7 +1281,9 @@ namespace Lucene.Net.Index
         public virtual void TestBackwards()
         {
             Directory dir = NewDirectory();
-            IndexWriter writer = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat())));
+            IndexWriter writer = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random))
+                // LUCENENET specific - pass test instance as ICodecProvider
+                .SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat(this))));
             Document doc = new Document();
             doc.Add(NewTextField("field", "a b c d e f g h i j k l m n o p q r s t u v w x y z", Field.Store.NO));
             doc.Add(NewTextField("number", "0 1 2 3 4 5 6 7 8 9", Field.Store.NO));

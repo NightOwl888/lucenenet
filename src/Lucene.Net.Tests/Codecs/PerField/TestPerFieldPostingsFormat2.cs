@@ -91,7 +91,7 @@ namespace Lucene.Net.Codecs.PerField
         {
             Directory dir = NewDirectory();
             IndexWriterConfig iwconf = NewIndexWriterConfig(TEST_VERSION_CURRENT, 
-                new MockAnalyzer(Random)).SetOpenMode(OpenMode.CREATE).SetCodec(new MockCodec());
+                new MockAnalyzer(Random)).SetOpenMode(OpenMode.CREATE).SetCodec(new MockCodec(this));
             IndexWriter writer = NewWriter(dir, iwconf);
             AddDocs(writer, 10);
             writer.Commit();
@@ -120,7 +120,7 @@ namespace Lucene.Net.Codecs.PerField
                 Console.WriteLine("TEST: make new index");
             }
             IndexWriterConfig iwconf = NewIndexWriterConfig(TEST_VERSION_CURRENT, 
-                new MockAnalyzer(Random)).SetOpenMode(OpenMode.CREATE).SetCodec(new MockCodec());
+                new MockAnalyzer(Random)).SetOpenMode(OpenMode.CREATE).SetCodec(new MockCodec(this));
             iwconf.SetMaxBufferedDocs(IndexWriterConfig.DISABLE_AUTO_FLUSH);
             // ((LogMergePolicy)iwconf.getMergePolicy()).setMergeFactor(10);
             IndexWriter writer = NewWriter(dir, iwconf);
@@ -146,7 +146,7 @@ namespace Lucene.Net.Codecs.PerField
             // ((LogMergePolicy)iwconf.getMergePolicy()).setMergeFactor(10);
             iwconf.SetMaxBufferedDocs(IndexWriterConfig.DISABLE_AUTO_FLUSH);
 
-            iwconf.SetCodec(new MockCodec2()); // uses standard for field content
+            iwconf.SetCodec(new MockCodec2(this)); // uses standard for field content
             writer = NewWriter(dir, iwconf);
             // swap in new codec for currently written segments
             if (VERBOSE)
@@ -201,41 +201,58 @@ namespace Lucene.Net.Codecs.PerField
 
         private class MockCodec : Lucene46Codec
         {
-            internal readonly PostingsFormat Lucene40 = new Lucene41PostingsFormat();
-            internal readonly PostingsFormat SimpleText = new SimpleTextPostingsFormat();
-            internal readonly PostingsFormat MockSep = new MockSepPostingsFormat();
+            internal readonly PostingsFormat lucene40;
+            internal readonly PostingsFormat simpleText;
+            internal readonly PostingsFormat mockSep;
+
+            public MockCodec(TestPerFieldPostingsFormat2 outerInstance)
+                : base(outerInstance) // LUCENENET specific - pass test instance as ICodecProvider
+            {
+                // LUCENENET specific - pass test instance as ICodecProvider
+                lucene40 = new Lucene41PostingsFormat(outerInstance);
+                simpleText = new SimpleTextPostingsFormat(outerInstance);
+                mockSep = new MockSepPostingsFormat(outerInstance);
+            }
 
             public override PostingsFormat GetPostingsFormatForField(string field)
             {
                 if (field.Equals("id", StringComparison.Ordinal))
                 {
-                    return SimpleText;
+                    return simpleText;
                 }
                 else if (field.Equals("content", StringComparison.Ordinal))
                 {
-                    return MockSep;
+                    return mockSep;
                 }
                 else
                 {
-                    return Lucene40;
+                    return lucene40;
                 }
             }
         }
 
         private class MockCodec2 : Lucene46Codec
         {
-            internal readonly PostingsFormat Lucene40 = new Lucene41PostingsFormat();
-            internal readonly PostingsFormat SimpleText = new SimpleTextPostingsFormat();
+            internal readonly PostingsFormat lucene40;
+            internal readonly PostingsFormat simpleText;
+
+            public MockCodec2(TestPerFieldPostingsFormat2 outerInstance)
+                : base(outerInstance) // LUCENENET specific - pass test instance as ICodecProvider
+            {
+                // LUCENENET specific - pass test instance as ICodecProvider
+                lucene40 = new Lucene41PostingsFormat(outerInstance);
+                simpleText = new SimpleTextPostingsFormat(outerInstance);
+            }
 
             public override PostingsFormat GetPostingsFormatForField(string field)
             {
                 if (field.Equals("id", StringComparison.Ordinal))
                 {
-                    return SimpleText;
+                    return simpleText;
                 }
                 else
                 {
-                    return Lucene40;
+                    return lucene40;
                 }
             }
         }
@@ -288,22 +305,25 @@ namespace Lucene.Net.Codecs.PerField
 
         private class Lucene46CodecAnonymousInnerClassHelper : Lucene46Codec
         {
-            private readonly TestPerFieldPostingsFormat2 OuterInstance;
+            private readonly TestPerFieldPostingsFormat2 outerInstance;
 
             public Lucene46CodecAnonymousInnerClassHelper(TestPerFieldPostingsFormat2 outerInstance)
+                : base(outerInstance) // LUCENENET specific - pass test instance as ICodecProvider
             {
-                this.OuterInstance = outerInstance;
+                this.outerInstance = outerInstance;
             }
 
             public override PostingsFormat GetPostingsFormatForField(string field)
             {
                 if ("id".Equals(field, StringComparison.Ordinal))
                 {
-                    return new Pulsing41PostingsFormat(1);
+                    // LUCENENET specific - pass test instance as ICodecProvider
+                    return new Pulsing41PostingsFormat(this.outerInstance, 1);
                 }
                 else if ("date".Equals(field, StringComparison.Ordinal))
                 {
-                    return new Pulsing41PostingsFormat(1);
+                    // LUCENENET specific - pass test instance as ICodecProvider
+                    return new Pulsing41PostingsFormat(this.outerInstance, 1);
                 }
                 else
                 {
@@ -315,28 +335,31 @@ namespace Lucene.Net.Codecs.PerField
         [Test]
         public virtual void TestSameCodecDifferentParams()
         {
-          Codec codec = new Lucene46CodecAnonymousInnerClassHelper2(this);
-          DoTestMixedPostings(codec);
+            Codec codec = new Lucene46CodecAnonymousInnerClassHelper2(this);
+            DoTestMixedPostings(codec);
         }
 
         private class Lucene46CodecAnonymousInnerClassHelper2 : Lucene46Codec
         {
-            private readonly TestPerFieldPostingsFormat2 OuterInstance;
+            private readonly TestPerFieldPostingsFormat2 outerInstance;
 
             public Lucene46CodecAnonymousInnerClassHelper2(TestPerFieldPostingsFormat2 outerInstance)
+                : base(outerInstance) // LUCENENET specific - pass test instance as ICodecProvider
             {
-                this.OuterInstance = outerInstance;
+                this.outerInstance = outerInstance;
             }
 
             public override PostingsFormat GetPostingsFormatForField(string field)
             {
                 if ("id".Equals(field, StringComparison.Ordinal))
                 {
-                    return new Pulsing41PostingsFormat(1);
+                    // LUCENENET specific - pass test instance as ICodecProvider
+                    return new Pulsing41PostingsFormat(this.outerInstance, 1);
                 }
                 else if ("date".Equals(field, StringComparison.Ordinal))
                 {
-                    return new Pulsing41PostingsFormat(2);
+                    // LUCENENET specific - pass test instance as ICodecProvider
+                    return new Pulsing41PostingsFormat(this.outerInstance, 2);
                 }
                 else
                 {

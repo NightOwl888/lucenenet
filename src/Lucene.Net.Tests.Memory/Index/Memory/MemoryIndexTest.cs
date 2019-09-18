@@ -113,10 +113,12 @@ namespace Lucene.Net.Index.Memory
                 termField.append(RandomTerm());
             }
 
-            Store.Directory ramdir = new RAMDirectory();
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Store.Directory ramdir = new RAMDirectory() { CodecProvider = this };
             Analyzer analyzer = RandomAnalyzer();
+            // LUCENENET specific - pass test instance as ICodecProvider
             IndexWriter writer = new IndexWriter(ramdir,
-                                                 new IndexWriterConfig(TEST_VERSION_CURRENT, analyzer).SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat())));
+                                                 new IndexWriterConfig(TEST_VERSION_CURRENT, analyzer).SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat(this))));
             Document doc = new Document();
             Field field1 = NewTextField("foo", fooField.toString(), Field.Store.NO);
             Field field2 = NewTextField("term", termField.toString(), Field.Store.NO);

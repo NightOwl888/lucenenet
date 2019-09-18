@@ -26,7 +26,13 @@ namespace Lucene.Net.Codecs.Lucene40
     /// </summary>
     public class TestLucene40PostingsFormat : BasePostingsFormatTestCase
     {
-        private readonly Codec codec = new Lucene40RWCodec();
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestLucene40PostingsFormat()
+        {
+            codec = new Lucene40RWCodec(this);
+        }
 
         [OneTimeSetUp]
         public override void BeforeClass()

@@ -1,7 +1,8 @@
+using System;
+using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
+
 namespace Lucene.Net.Codecs.Lucene40
 {
-    using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
-
     /*
      * Licensed to the Apache Software Foundation (ASF) under one or more
      * contributor license agreements.  See the NOTICE file distributed with
@@ -24,15 +25,47 @@ namespace Lucene.Net.Codecs.Lucene40
 #pragma warning disable 612, 618
     public sealed class Lucene40RWCodec : Lucene40Codec
     {
-        private readonly FieldInfosFormat fieldInfos = new Lucene40FieldInfosFormatAnonymousInnerClassHelper();
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public Lucene40RWCodec(LuceneTestCase luceneTestCase)
+            : base(luceneTestCase)
+        {
+            this.fieldInfos = new Lucene40FieldInfosFormatAnonymousInnerClassHelper(luceneTestCase);
+            this.docValues = new Lucene40RWDocValuesFormat(luceneTestCase);
+            this.norms = new Lucene40RWNormsFormat(luceneTestCase);
+        }
+#else
+        public Lucene40RWCodec(ICodecProvider codecProvider)
+            : base(codecProvider)
+        {
+            this.docValues = new Lucene40RWDocValuesFormat(codecProvider);
+        }
+#endif
+
+        private readonly FieldInfosFormat fieldInfos
+#if !FEATURE_INSTANCE_CODEC_IMPERSONATION
+            = new Lucene40FieldInfosFormatAnonymousInnerClassHelper()
+#endif
+            ;
 
         private class Lucene40FieldInfosFormatAnonymousInnerClassHelper : Lucene40FieldInfosFormat
         {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            private readonly LuceneTestCase luceneTestCase;
+            public Lucene40FieldInfosFormatAnonymousInnerClassHelper(LuceneTestCase luceneTestCase)
+            {
+                this.luceneTestCase = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
+            }
+#endif
+
             public override FieldInfosWriter FieldInfosWriter
             {
                 get
                 {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                    if (!luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
                     if (!LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
                     {
                         return base.FieldInfosWriter;
                     }
@@ -44,8 +77,12 @@ namespace Lucene.Net.Codecs.Lucene40
             }
         }
 
-        private readonly DocValuesFormat docValues = new Lucene40RWDocValuesFormat();
-        private readonly NormsFormat norms = new Lucene40RWNormsFormat();
+        private readonly DocValuesFormat docValues;
+        private readonly NormsFormat norms
+#if !FEATURE_INSTANCE_CODEC_IMPERSONATION
+            = new Lucene40RWNormsFormat()
+#endif
+            ;
 
         public override FieldInfosFormat FieldInfosFormat
         {

@@ -59,7 +59,7 @@ namespace Lucene.Net.Codecs
         /// and a unique name to this ctor.
         /// </summary>
         protected internal FilterCodec(Codec @delegate)
-            : base()
+            : base(@delegate.CodecProvider)
         {
             this.m_delegate = @delegate;
         }

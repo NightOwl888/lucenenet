@@ -31,8 +31,8 @@ namespace Lucene.Net.Codecs.MockSep
     [PostingsFormatName("MockSep")] // LUCENENET specific - using PostingsFormatName attribute to ensure the default name passed from subclasses is the same as this class name
     public sealed class MockSepPostingsFormat : PostingsFormat
     {
-        public MockSepPostingsFormat()
-            : base()
+        public MockSepPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
         }
 

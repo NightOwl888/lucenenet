@@ -36,13 +36,13 @@
         private readonly PostingsBaseFormat _wrappedPostingsBaseFormat;
         private readonly int _freqCutoff;
 
-        public FSTPulsing41PostingsFormat() 
-            : this(1)
+        public FSTPulsing41PostingsFormat(ICodecProvider codecProvider) 
+            : this(codecProvider, 1)
         {
         }
 
-        public FSTPulsing41PostingsFormat(int freqCutoff) 
-            : base()
+        public FSTPulsing41PostingsFormat(ICodecProvider codecProvider, int freqCutoff) 
+            : base(codecProvider)
         {
             _wrappedPostingsBaseFormat = new Lucene41PostingsBaseFormat();
             _freqCutoff = freqCutoff;

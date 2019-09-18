@@ -584,17 +584,17 @@ namespace Lucene.Net.Search
             {
                 this.outerInstance = shardSearchingTestBase;
                 MyNodeID = nodeID;
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                Dir = NewFSDirectory(outerInstance, CreateTempDir("ShardSearchingTestBase"));
+#else
                 Dir = NewFSDirectory(CreateTempDir("ShardSearchingTestBase"));
+#endif
                 // TODO: set warmer
                 MockAnalyzer analyzer = new MockAnalyzer(LuceneTestCase.Random);
                 analyzer.MaxTokenLength = TestUtil.NextInt32(LuceneTestCase.Random, 1, IndexWriter.MAX_TERM_LENGTH);
                 IndexWriterConfig iwc = new IndexWriterConfig(TEST_VERSION_CURRENT, analyzer)
                 {
-                    Codec =
-#if FEATURE_INSTANCE_CODEC_IMPERSONATION
-                        outerInstance.
-#endif
-                        Codec.Default, // LUCENENET specific - ensure we use our abstracted default codec
+                    Codec = outerInstance.Codec.Default, // LUCENENET specific - ensure we use our abstracted default codec
                     OpenMode = OpenMode.CREATE
                 };
                 if (VERBOSE)

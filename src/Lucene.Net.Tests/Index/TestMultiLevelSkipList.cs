@@ -80,7 +80,10 @@ namespace Lucene.Net.Index
         public virtual void TestSimpleSkip()
         {
             Directory dir = new CountingRAMDirectory(this, new RAMDirectory());
-            IndexWriter writer = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new PayloadAnalyzer()).SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat())).SetMergePolicy(NewLogMergePolicy()));
+            IndexWriter writer = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new PayloadAnalyzer())
+                // LUCENENET specific - pass test instance as ICodecProvider
+                .SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat(this)))
+                .SetMergePolicy(NewLogMergePolicy()));
             Term term = new Term("test", "a");
             for (int i = 0; i < 5000; i++)
             {

@@ -26,7 +26,13 @@ namespace Lucene.Net.Codecs.Lucene42
     /// </summary>
     public class TestLucene42DocValuesFormat : BaseCompressingDocValuesFormatTestCase
     {
-        private readonly Codec codec = new Lucene42RWCodec();
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestLucene42DocValuesFormat()
+        {
+            codec = new Lucene42RWCodec(this);
+        }
 
         [OneTimeSetUp]
         public override void BeforeClass()

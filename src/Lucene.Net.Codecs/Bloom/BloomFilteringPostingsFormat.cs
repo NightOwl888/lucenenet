@@ -80,8 +80,8 @@ namespace Lucene.Net.Codecs.Bloom
         /// </summary>
         /// <param name="delegatePostingsFormat">The <see cref="PostingsFormat"/> that records all the non-bloom filter data i.e. postings info.</param>
         /// <param name="bloomFilterFactory">The <see cref="BloomFilterFactory"/> responsible for sizing BloomFilters appropriately.</param>
-        public BloomFilteringPostingsFormat(PostingsFormat delegatePostingsFormat,
-            BloomFilterFactory bloomFilterFactory) : base()
+        public BloomFilteringPostingsFormat(ICodecProvider codecProvider, PostingsFormat delegatePostingsFormat,
+            BloomFilterFactory bloomFilterFactory) : base(codecProvider)
         {
             _delegatePostingsFormat = delegatePostingsFormat;
             _bloomFilterFactory = bloomFilterFactory;
@@ -96,8 +96,8 @@ namespace Lucene.Net.Codecs.Bloom
         /// configuring per-field BloomFilters.
         /// </summary>
         /// <param name="delegatePostingsFormat">The <see cref="PostingsFormat"/> that records all the non-bloom filter data i.e. postings info.</param>
-        public BloomFilteringPostingsFormat(PostingsFormat delegatePostingsFormat)
-            : this(delegatePostingsFormat, new DefaultBloomFilterFactory())
+        public BloomFilteringPostingsFormat(ICodecProvider codecProvider, PostingsFormat delegatePostingsFormat)
+            : this(codecProvider, delegatePostingsFormat, new DefaultBloomFilterFactory())
         {
         }
 
@@ -105,8 +105,8 @@ namespace Lucene.Net.Codecs.Bloom
         /// Used only by core Lucene at read-time via Service Provider instantiation -
         /// do not use at Write-time in application code.
         /// </summary>
-        public BloomFilteringPostingsFormat() 
-            : base()
+        public BloomFilteringPostingsFormat(ICodecProvider codecProvider) 
+            : base(codecProvider)
         {
         }
 
@@ -144,7 +144,8 @@ namespace Lucene.Net.Codecs.Bloom
                     // Load the hash function used in the BloomFilter
                     // hashFunction = HashFunction.forName(bloomIn.readString());
                     // Load the delegate postings format
-                    var delegatePostingsFormat = ForName(bloomIn.ReadString());
+                    // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                    var delegatePostingsFormat = outerInstance.CodecProvider.PostingsFormat.ForName(bloomIn.ReadString());
 
                     _delegateFieldsProducer = delegatePostingsFormat
                         .FieldsProducer(state);

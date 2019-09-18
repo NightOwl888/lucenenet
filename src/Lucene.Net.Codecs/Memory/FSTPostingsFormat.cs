@@ -29,8 +29,8 @@
     [PostingsFormatName("FST41")] // LUCENENET specific - using PostingsFormatName attribute to ensure the default name passed from subclasses is the same as this class name
     public sealed class FSTPostingsFormat : PostingsFormat
     {
-        public FSTPostingsFormat() 
-            : base()
+        public FSTPostingsFormat(ICodecProvider codecProvider) 
+            : base(codecProvider)
         {
         }
 

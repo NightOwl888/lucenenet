@@ -129,8 +129,8 @@ namespace Lucene.Net.Codecs.Lucene40
 
         /// <summary>
         /// Sole constructor. </summary>
-        public Lucene40DocValuesFormat()
-            : base()
+        public Lucene40DocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
         }
 

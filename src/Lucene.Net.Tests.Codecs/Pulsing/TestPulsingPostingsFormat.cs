@@ -27,7 +27,13 @@ namespace Lucene.Net.Codecs.Pulsing
     public class TestPulsingPostingsFormat : BasePostingsFormatTestCase
     {
         // TODO: randomize cutoff
-        private readonly Codec codec = TestUtil.AlwaysPostingsFormat(new Pulsing41PostingsFormat());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestPulsingPostingsFormat()
+        {
+            codec = TestUtil.AlwaysPostingsFormat(new Pulsing41PostingsFormat(this));
+        }
 
         protected override Codec GetCodec()
         {

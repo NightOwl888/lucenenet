@@ -67,10 +67,21 @@ namespace Lucene.Net.Codecs
         /// <summary>
         /// Creates a new instance of <see cref="DefaultCodecFactory"/>.
         /// </summary>
-        public DefaultCodecFactory()
+        /// <param name="codecProvider">A <see cref="ICodecProvider"/> that is used to provide instances of codec types (subclasses of
+        /// the static members of <see cref="Codecs.Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>).</param>
+        public DefaultCodecFactory(ICodecProvider codecProvider)
         {
+            this.CodecProvider = codecProvider ?? throw new ArgumentNullException(nameof(codecProvider));
             codecNameToTypeMap = new Dictionary<string, Type>();
             codecInstanceCache = new Dictionary<Type, Codec>();
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="DefaultCodecFactory"/> using the <see cref="CodecProvider.Default"/>.
+        /// </summary>
+        public DefaultCodecFactory()
+            : this(Codecs.CodecProvider.Default)
+        {
         }
 
         /// <summary>
@@ -83,6 +94,12 @@ namespace Lucene.Net.Codecs
         /// the custom type will replace the Lucene type with the same name.
         /// </summary>
         public IEnumerable<Type> CustomCodecTypes { get; set; }
+
+        /// <summary>
+        /// Provides instances of <see cref="Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>.
+        /// </summary>
+        // LUCENENET specific
+        protected ICodecProvider CodecProvider { get; private set; }
 
         /// <summary>
         /// Initializes the codec type cache with the known <see cref="Codec"/> types.
@@ -213,6 +230,15 @@ namespace Lucene.Net.Codecs
         /// <returns>The new instance.</returns>
         protected virtual Codec NewCodec(Type type)
         {
+            // Inject our codec provider instance into the codec if there is 
+            // a single parameter of type ICodecProvider
+            var constructor = type.GetConstructor(new Type[] { typeof(ICodecProvider) });
+            if (constructor != null)
+            {
+                return (Codec)constructor.Invoke(new object[] { this.CodecProvider });
+            }
+
+            // Try default constructor as a last resort
             return (Codec)Activator.CreateInstance(type, IsFullyTrusted);
         }
 

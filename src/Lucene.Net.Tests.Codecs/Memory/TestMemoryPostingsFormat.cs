@@ -27,7 +27,13 @@ namespace Lucene.Net.Codecs.Memory
     public class TestMemoryPostingsFormat : BasePostingsFormatTestCase
     {
         // TODO: randomize doPack
-        private readonly Codec codec = TestUtil.AlwaysPostingsFormat(new MemoryPostingsFormat());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestMemoryPostingsFormat()
+        {
+            codec = TestUtil.AlwaysPostingsFormat(new MemoryPostingsFormat(this));
+        }
 
         protected override Codec GetCodec()
         {

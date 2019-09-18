@@ -47,7 +47,8 @@ namespace Lucene.Net.Index
         {
             Directory dir = NewDirectory();
             IndexWriterConfig conf = NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
-            conf.SetCodec(new Lucene46Codec());
+            // LUCENENET specific - pass test instance as ICodecProvider
+            conf.SetCodec(new Lucene46Codec(this));
             RandomIndexWriter riw = new RandomIndexWriter(Random, dir, conf);
             Document doc = new Document();
             // these fields should sometimes get term vectors, etc

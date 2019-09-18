@@ -83,7 +83,8 @@ namespace Lucene.Net.Codecs.Lucene3x
 
             Directory = NewDirectory();
 
-            config.SetCodec(new PreFlexRWCodec());
+            // LUCENENET specific - pass test instance as ICodecProvider
+            config.SetCodec(new PreFlexRWCodec(this));
             LogMergePolicy mp = NewLogMergePolicy();
             // NOTE: turn off compound file, this test will open some index files directly.
             mp.NoCFSRatio = 0.0;
@@ -96,7 +97,8 @@ namespace Lucene.Net.Codecs.Lucene3x
             string segment = r.SegmentName;
             r.Dispose();
 
-            FieldInfosReader infosReader = (new PreFlexRWCodec()).FieldInfosFormat.FieldInfosReader;
+            // LUCENENET specific - pass test instance as ICodecProvider
+            FieldInfosReader infosReader = (new PreFlexRWCodec(this)).FieldInfosFormat.FieldInfosReader;
             FieldInfos fieldInfos = infosReader.Read(Directory, segment, "", IOContext.READ_ONCE);
             string segmentFileName = IndexFileNames.SegmentFileName(segment, "", Lucene3xPostingsFormat.TERMS_INDEX_EXTENSION);
             long tiiFileLength = Directory.FileLength(segmentFileName);

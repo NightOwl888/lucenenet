@@ -411,7 +411,8 @@ namespace Lucene.Net.Index
             if (TestUtil.GetPostingsFormat("id").Equals("SimpleText", StringComparison.Ordinal))
             {
                 // no
-                iwc.SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat()));
+                // LUCENENET specific - pass test instance as ICodecProvider
+                iwc.SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat(this)));
             }
             RandomIndexWriter w = new RandomIndexWriter(Random, d, iwc);
             for (int i = 0; i < 1000; i++)

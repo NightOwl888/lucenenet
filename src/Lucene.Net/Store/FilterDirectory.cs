@@ -41,6 +41,7 @@ namespace Lucene.Net.Store
         protected FilterDirectory(Directory @in)
         {
             this.m_input = @in;
+            this.CodecProvider = @in.CodecProvider;
         }
 
         /// <summary>

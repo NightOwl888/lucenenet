@@ -26,7 +26,13 @@ namespace Lucene.Net.Codecs.Memory
     /// </summary>
     public class TestDirectDocValuesFormat : BaseDocValuesFormatTestCase
     {
-        private readonly Codec codec = TestUtil.AlwaysDocValuesFormat(new DirectDocValuesFormat());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestDirectDocValuesFormat()
+        {
+            codec = TestUtil.AlwaysDocValuesFormat(new DirectDocValuesFormat(this));
+        }
 
         protected override Codec GetCodec()
         {

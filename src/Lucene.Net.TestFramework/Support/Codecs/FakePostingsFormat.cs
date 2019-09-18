@@ -22,7 +22,7 @@ namespace Lucene.Net.Codecs
      * limitations under the License.
      */
 
-    public sealed class FakePostingsFormat
+    public sealed class FakePostingsFormat : IPostingsFormat
     {
         private readonly LuceneTestCase luceneTestCase;
 

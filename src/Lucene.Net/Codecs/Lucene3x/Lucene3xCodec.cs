@@ -32,12 +32,14 @@ namespace Lucene.Net.Codecs.Lucene3x
     [CodecName("Lucene3x")] // LUCENENET specific - using CodecName attribute to ensure the default name passed from subclasses is the same as this class name
     public class Lucene3xCodec : Codec
     {
-        public Lucene3xCodec()
-            : base()
+        public Lucene3xCodec(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
+            postingsFormat = new Lucene3xPostingsFormat(codecProvider);
+            docValuesFormat = new DocValuesFormatAnonymousInnerClassHelper(codecProvider);
         }
 
-        private readonly PostingsFormat postingsFormat = new Lucene3xPostingsFormat();
+        private readonly PostingsFormat postingsFormat;
 
         private readonly StoredFieldsFormat fieldsFormat = new Lucene3xStoredFieldsFormat();
 
@@ -57,12 +59,12 @@ namespace Lucene.Net.Codecs.Lucene3x
         private readonly LiveDocsFormat liveDocsFormat = new Lucene40LiveDocsFormat();
 
         // 3.x doesn't support docvalues
-        private readonly DocValuesFormat docValuesFormat = new DocValuesFormatAnonymousInnerClassHelper();
+        private readonly DocValuesFormat docValuesFormat;
 
         private class DocValuesFormatAnonymousInnerClassHelper : DocValuesFormat
         {
-            public DocValuesFormatAnonymousInnerClassHelper()
-                : base()
+            public DocValuesFormatAnonymousInnerClassHelper(ICodecProvider codecProvider)
+                : base(codecProvider)
             {
             }
 

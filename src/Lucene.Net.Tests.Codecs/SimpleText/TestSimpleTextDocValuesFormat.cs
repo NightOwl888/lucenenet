@@ -33,7 +33,13 @@ namespace Lucene.Net.Codecs.SimpleText
     /// </summary>
     public class TestSimpleTextDocValuesFormat : BaseDocValuesFormatTestCase
     {
-        private readonly Codec codec = new SimpleTextCodec();
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestSimpleTextDocValuesFormat()
+        {
+            codec = new SimpleTextCodec(this);
+        }
 
         protected override Codec GetCodec()
         {

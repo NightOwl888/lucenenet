@@ -58,14 +58,14 @@ namespace Lucene.Net.Codecs.MockRandom
             }
         }
 
-        public MockRandomPostingsFormat()
-            : this(null)
+        public MockRandomPostingsFormat(ICodecProvider codecProvider)
+            : this(codecProvider, null)
         {
             // This ctor should *only* be used at read-time: get NPE if you use it!
         }
 
-        public MockRandomPostingsFormat(Random random)
-            : base()
+        public MockRandomPostingsFormat(ICodecProvider codecProvider, Random random)
+            : base(codecProvider)
         {
             if (random == null)
             {

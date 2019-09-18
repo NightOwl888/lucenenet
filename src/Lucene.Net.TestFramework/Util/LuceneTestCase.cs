@@ -202,9 +202,9 @@ namespace Lucene.Net.Util
 #if TESTFRAMEWORK_XUNIT
     [Xunit.Collection("NonParallel")]
 #endif
-    public abstract partial class LuceneTestCase //: Assert // Wait long for leaked threads to complete before failure. zk needs this. -  See LUCENE-3995 for rationale.
+    public abstract partial class LuceneTestCase : ICodecProvider //: Assert // Wait long for leaked threads to complete before failure. zk needs this. -  See LUCENE-3995 for rationale.
 #if TESTFRAMEWORK_XUNIT
-        : IDisposable, Xunit.IClassFixture<BeforeAfterClass>
+        , IDisposable, Xunit.IClassFixture<BeforeAfterClass>
     {
         private int isDisposed = 0;
 
@@ -482,11 +482,11 @@ namespace Lucene.Net.Util
         /// <para/>
         /// @lucene.internal
         /// </summary>
-//#if FEATURE_INSTANCE_CODEC_IMPERSONATION
-//        public bool OLD_FORMAT_IMPERSONATION_IS_ACTIVE = false; // LUCENENET TODO: API - make into a property and rename
-//#else
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public bool OLD_FORMAT_IMPERSONATION_IS_ACTIVE = false; // LUCENENET TODO: API - make into a property and rename
+#else
         public static bool OLD_FORMAT_IMPERSONATION_IS_ACTIVE = false;
-//#endif
+#endif
 
         // -----------------------------------------------------------------
         // Class level (suite) rules.
@@ -528,30 +528,37 @@ namespace Lucene.Net.Util
         public TimeZoneInfo TimeZone { get { return ClassEnvRule.timeZone; } }
 #endif
 
-#if FEATURE_INSTANCE_CODEC_IMPERSONATION
         /// <summary>
         /// When testing, use this property instead of the static <see cref="Codecs.Codec"/>
-        /// for accessing <see cref="FakeCodec.AvailableCodecs"/>, <see cref="FakeCodec.Default"/>,
-        /// and <see cref="FakeCodec.ForName(string)"/> to ensure you get codec instances that support
+        /// for accessing <see cref="ICodec.AvailableCodecs"/>, <see cref="ICodec.Default"/>,
+        /// and <see cref="ICodec.ForName(string)"/> to ensure you get codec instances that support
         /// <see cref="OLD_FORMAT_IMPERSONATION_IS_ACTIVE"/>.
         /// </summary>
-        public FakeCodec Codec { get; private set; }
+        public ICodec Codec { get; private set; }
+#if !FEATURE_INSTANCE_CODEC_IMPERSONATION
+            = new DefaultCodec();
+#endif
 
         /// <summary>
         /// When testing, use this property instead of the static <see cref="Codecs.DocValuesFormat"/>
-        /// for accessing <see cref="FakeDocValuesFormat.AvailableDocValuesFormats"/>
-        /// and <see cref="FakeDocValuesFormat.ForName(string)"/> to ensure you get codec instances that support
+        /// for accessing <see cref="IDocValuesFormat.AvailableDocValuesFormats"/>
+        /// and <see cref="IDocValuesFormat.ForName(string)"/> to ensure you get codec instances that support
         /// <see cref="OLD_FORMAT_IMPERSONATION_IS_ACTIVE"/>.
         /// </summary>
-        public FakeDocValuesFormat DocValuesFormat { get; private set; }
+        public IDocValuesFormat DocValuesFormat { get; private set; }
+#if !FEATURE_INSTANCE_CODEC_IMPERSONATION
+            = new DefaultDocValuesFormat();
+#endif
 
         /// <summary>
         /// When testing, use this property instead of the static <see cref="Codecs.PostingsFormat"/>
-        /// for accessing <see cref="FakePostingsFormat.AvailablePostingsFormats"/>
-        /// and <see cref="FakePostingsFormat.ForName(string)"/> to ensure you get codec instances that support
+        /// for accessing <see cref="IPostingsFormat.AvailablePostingsFormats"/>
+        /// and <see cref="IPostingsFormat.ForName(string)"/> to ensure you get codec instances that support
         /// <see cref="OLD_FORMAT_IMPERSONATION_IS_ACTIVE"/>.
         /// </summary>
-        public FakePostingsFormat PostingsFormat { get; private set; }
+        public IPostingsFormat PostingsFormat { get; private set; }
+#if !FEATURE_INSTANCE_CODEC_IMPERSONATION
+            = new DefaultPostingsFormat();
 #endif
 
         // LUCENENET TODO
@@ -1550,6 +1557,7 @@ namespace Lucene.Net.Util
             return logmp;
         }
 
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
         /// <summary>
         /// Returns a new <see cref="Directory"/> instance. Use this when the test does not
         /// care about the specific <see cref="Directory"/> implementation (most tests).
@@ -1560,35 +1568,33 @@ namespace Lucene.Net.Util
         /// some features of Windows, such as not allowing open files to be
         /// overwritten.
         /// </summary>
-        public static BaseDirectoryWrapper NewDirectory()
+        public BaseDirectoryWrapper NewDirectory()
         {
-            return NewDirectory(Random);
+            return NewDirectory(this);
         }
 
         /// <summary>
         /// Returns a new <see cref="Directory"/> instance, using the specified <paramref name="random"/>.
         /// See <see cref="NewDirectory()"/> for more information.
         /// </summary>
-        public static BaseDirectoryWrapper NewDirectory(Random random)
+        public BaseDirectoryWrapper NewDirectory(Random random)
         {
-            var newDir = NewDirectoryImpl(random, TEST_DIRECTORY);
-
-            return WrapDirectory(random, newDir, Rarely(random));
+            return NewDirectory(this, random);
         }
 
-        public static MockDirectoryWrapper NewMockDirectory()
+        public MockDirectoryWrapper NewMockDirectory()
         {
-            return NewMockDirectory(Random);
+            return NewMockDirectory(this);
         }
 
-        public static MockDirectoryWrapper NewMockDirectory(Random random)
+        public MockDirectoryWrapper NewMockDirectory(Random random)
         {
-            return (MockDirectoryWrapper)WrapDirectory(random, NewDirectoryImpl(random, TEST_DIRECTORY), false);
+            return NewMockDirectory(this, random);
         }
 
-        public static MockDirectoryWrapper NewMockFSDirectory(DirectoryInfo d)
+        public MockDirectoryWrapper NewMockFSDirectory(DirectoryInfo d)
         {
-            return (MockDirectoryWrapper)NewFSDirectory(d, null, false);
+            return NewMockFSDirectory(this, d);
         }
 
         /// <summary>
@@ -1596,26 +1602,180 @@ namespace Lucene.Net.Util
         /// provided directory. See <see cref="NewDirectory()"/> for more
         /// information.
         /// </summary>
-        public static BaseDirectoryWrapper NewDirectory(Directory d)
+        public BaseDirectoryWrapper NewDirectory(Directory d)
         {
-            return NewDirectory(Random, d);
+            return NewDirectory(this, d);
         }
 
         /// <summary>
         /// Returns a new <see cref="FSDirectory"/> instance over the given file, which must be a folder. </summary>
-        public static BaseDirectoryWrapper NewFSDirectory(DirectoryInfo d)
+        public BaseDirectoryWrapper NewFSDirectory(DirectoryInfo d)
         {
-            return NewFSDirectory(d, null);
+            return NewFSDirectory(this, d);
         }
 
         /// <summary>
         /// Returns a new <see cref="FSDirectory"/> instance over the given file, which must be a folder. </summary>
-        public static BaseDirectoryWrapper NewFSDirectory(DirectoryInfo d, LockFactory lf)
+        public BaseDirectoryWrapper NewFSDirectory(DirectoryInfo d, LockFactory lf)
         {
-            return NewFSDirectory(d, lf, Rarely());
+            return NewFSDirectory(this, d, lf);
         }
 
-        private static BaseDirectoryWrapper NewFSDirectory(DirectoryInfo d, LockFactory lf, bool bare)
+        private BaseDirectoryWrapper NewFSDirectory(DirectoryInfo d, LockFactory lf, bool bare)
+        {
+            return NewFSDirectory(this, d, lf, bare);
+        }
+
+        /// <summary>
+        /// Returns a new <see cref="Directory"/> instance, using the specified <paramref name="random"/>
+        /// with contents copied from the provided <paramref name="directory"/>. See
+        /// <see cref="NewDirectory()"/> for more information.
+        /// </summary>
+        public BaseDirectoryWrapper NewDirectory(Random random, Directory directory)
+        {
+            return NewDirectory(this, random, directory);
+        }
+#endif
+
+        /// <summary>
+        /// Returns a new <see cref="Directory"/> instance. Use this when the test does not
+        /// care about the specific <see cref="Directory"/> implementation (most tests).
+        /// <para/>
+        /// The <see cref="Directory"/> is wrapped with <see cref="BaseDirectoryWrapper"/>.
+        /// This means usually it will be picky, such as ensuring that you
+        /// properly dispose it and close all open files in your test. It will emulate
+        /// some features of Windows, such as not allowing open files to be
+        /// overwritten.
+        /// </summary>
+
+        public static BaseDirectoryWrapper NewDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase
+#endif
+            )
+        {
+            return NewDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                Random);
+        }
+
+        /// <summary>
+        /// Returns a new <see cref="Directory"/> instance, using the specified <paramref name="random"/>.
+        /// See <see cref="NewDirectory()"/> for more information.
+        /// </summary>
+        public static BaseDirectoryWrapper NewDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            Random random)
+        {
+            var newDir = NewDirectoryImpl(random, TEST_DIRECTORY);
+
+            return WrapDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                random, newDir, Rarely(random));
+        }
+
+
+        public static MockDirectoryWrapper NewMockDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase
+#endif
+            )
+        {
+            return NewMockDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                Random);
+        }
+
+        public static MockDirectoryWrapper NewMockDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            Random random)
+        {
+            return (MockDirectoryWrapper)WrapDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                random, NewDirectoryImpl(random, TEST_DIRECTORY), false);
+        }
+
+        public static MockDirectoryWrapper NewMockFSDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            DirectoryInfo d)
+        {
+            return (MockDirectoryWrapper)NewFSDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                d, null, false);
+        }
+
+        /// <summary>
+        /// Returns a new <see cref="Directory"/> instance, with contents copied from the
+        /// provided directory. See <see cref="NewDirectory()"/> for more
+        /// information.
+        /// </summary>
+        public static BaseDirectoryWrapper NewDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            Directory d)
+        {
+            return NewDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                Random, d);
+        }
+
+
+        /// <summary>
+        /// Returns a new <see cref="FSDirectory"/> instance over the given file, which must be a folder. </summary>
+        public static BaseDirectoryWrapper NewFSDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            DirectoryInfo d)
+        {
+            return NewFSDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                d, null);
+        }
+
+
+        /// <summary>
+        /// Returns a new <see cref="FSDirectory"/> instance over the given file, which must be a folder. </summary>
+
+        public static BaseDirectoryWrapper NewFSDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            DirectoryInfo d, LockFactory lf)
+        {
+            return NewFSDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                d, lf, Rarely());
+        }
+
+        private static BaseDirectoryWrapper NewFSDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            DirectoryInfo d, LockFactory lf, bool bare)
         {
             string fsdirClass = TEST_DIRECTORY;
             if (fsdirClass.Equals("random", StringComparison.Ordinal))
@@ -1637,7 +1797,11 @@ namespace Lucene.Net.Util
             }
 
             Directory fsdir = NewFSDirectoryImpl(clazz, d);
-            BaseDirectoryWrapper wrapped = WrapDirectory(Random, fsdir, bare);
+            BaseDirectoryWrapper wrapped = WrapDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                Random, fsdir, bare);
             if (lf != null)
             {
                 wrapped.SetLockFactory(lf);
@@ -1645,26 +1809,45 @@ namespace Lucene.Net.Util
             return wrapped;
         }
 
+
         /// <summary>
         /// Returns a new <see cref="Directory"/> instance, using the specified <paramref name="random"/>
         /// with contents copied from the provided <paramref name="directory"/>. See
         /// <see cref="NewDirectory()"/> for more information.
         /// </summary>
-        public static BaseDirectoryWrapper NewDirectory(Random random, Directory directory)
+        public static BaseDirectoryWrapper NewDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            Random random, Directory directory)
         {
             Directory impl = NewDirectoryImpl(random, TEST_DIRECTORY);
             foreach (string file in directory.ListAll())
             {
                 directory.Copy(impl, file, file, NewIOContext(random));
             }
-            return WrapDirectory(random, impl, Rarely(random));
+            return WrapDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                random, impl, Rarely(random));
         }
 
-        private static BaseDirectoryWrapper WrapDirectory(Random random, Directory directory, bool bare)
+        private static BaseDirectoryWrapper WrapDirectory(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            Random random, Directory directory, bool bare)
         {
             if (Rarely(random))
             {
-                directory = new NRTCachingDirectory(directory, random.NextDouble(), random.NextDouble());
+                directory = new NRTCachingDirectory(directory, random.NextDouble(), random.NextDouble())
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                {
+                    CodecProvider = luceneTestCase
+                }
+#endif
+                ;
             }
 
             if (Rarely(random))
@@ -1695,13 +1878,21 @@ namespace Lucene.Net.Util
 
             if (bare)
             {
-                BaseDirectoryWrapper @base = new BaseDirectoryWrapper(directory);
+                BaseDirectoryWrapper @base = new BaseDirectoryWrapper(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                    luceneTestCase,
+#endif
+                    directory);
                 // LUCENENET TODO: CloseAfterSuite(new DisposableDirectory(@base, SuiteFailureMarker));
                 return @base;
             }
             else
             {
-                MockDirectoryWrapper mock = new MockDirectoryWrapper(random, directory);
+                MockDirectoryWrapper mock = new MockDirectoryWrapper(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                    luceneTestCase,
+#endif
+                    random, directory);
 
                 mock.Throttling = TEST_THROTTLING;
                 // LUCENENET TODO: CloseAfterSuite(new DisposableDirectory(mock, SuiteFailureMarker));
@@ -1844,7 +2035,13 @@ namespace Lucene.Net.Util
                 {
                     newType.StoreTermVectorPositions = random.NextBoolean();
 
-                    if (newType.StoreTermVectorPositions && !newType.StoreTermVectorPayloads && !OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+                    if (newType.StoreTermVectorPositions && !newType.StoreTermVectorPayloads && !
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                        luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE
+#else
+                        OLD_FORMAT_IMPERSONATION_IS_ACTIVE
+#endif
+                        )
                     {
                         newType.StoreTermVectorPayloads = random.NextBoolean();
                     }
@@ -1923,12 +2120,16 @@ namespace Lucene.Net.Util
 
 #if FEATURE_INSTANCE_CODEC_IMPERSONATION
         public bool DefaultCodecSupportsDocValues
+        {
+            get { return !Codec.Default.Name.Equals("Lucene3x", StringComparison.Ordinal); }
+        }
 #else
         public static bool DefaultCodecSupportsDocValues
-#endif
         {
-            get{ return !Codec.Default.Name.Equals("Lucene3x", StringComparison.Ordinal); }
+            get { return !Codecs.Codec.Default.Name.Equals("Lucene3x", StringComparison.Ordinal); }
         }
+#endif
+
 
         private static Directory NewFSDirectoryImpl(Type clazz, DirectoryInfo file)
         {
@@ -2299,7 +2500,11 @@ namespace Lucene.Net.Util
         {
             get
             {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
                 string name = Codec.Default.Name;
+#else
+                string name = Codecs.Codec.Default.Name;
+#endif
                 if (name.Equals("Lucene3x", StringComparison.Ordinal)
                     || name.Equals("Lucene40", StringComparison.Ordinal)
                     || name.Equals("Appending", StringComparison.Ordinal)
@@ -2326,7 +2531,11 @@ namespace Lucene.Net.Util
                 {
                     return false;
                 }
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
                 string name = Codec.Default.Name;
+#else
+                string name = Codecs.Codec.Default.Name;
+#endif
                 if (name.Equals("Lucene40", StringComparison.Ordinal)
                     || name.Equals("Lucene41", StringComparison.Ordinal)
                     || name.Equals("Appending", StringComparison.Ordinal))
@@ -2353,7 +2562,11 @@ namespace Lucene.Net.Util
                 {
                     return false;
                 }
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
                 string name = Codec.Default.Name;
+#else
+                string name = Codecs.Codec.Default.Name;
+#endif
                 if (name.Equals("Appending", StringComparison.Ordinal)
                     || name.Equals("Lucene40", StringComparison.Ordinal)
                     || name.Equals("Lucene41", StringComparison.Ordinal)
@@ -2375,7 +2588,11 @@ namespace Lucene.Net.Util
         {
             get
             {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
                 string name = Codec.Default.Name;
+#else
+                string name = Codecs.Codec.Default.Name;
+#endif
                 if (name.Equals("Lucene3x", StringComparison.Ordinal)
                     || name.Equals("Appending", StringComparison.Ordinal)
                     || name.Equals("Lucene40", StringComparison.Ordinal)
@@ -3259,7 +3476,8 @@ namespace Lucene.Net.Util
                 // LUCENENET specific - need to use a random file name instead of a sequential one or two threads may attempt to do 
                 // two operations on a file at the same time.
                 //f = new DirectoryInfo(Path.Combine(System.IO.Path.GetTempPath(), "LuceneTemp", prefix + "-" + attempt));
-                f = new DirectoryInfo(Path.Combine(System.IO.Path.GetTempPath(), "LuceneTemp", prefix + "-" + Path.GetFileNameWithoutExtension(Path.GetRandomFileName())));
+                //f = new DirectoryInfo(Path.Combine(System.IO.Path.GetTempPath(), "LuceneTemp", prefix + "-" + Path.GetFileNameWithoutExtension(Path.GetRandomFileName())));
+                f = new DirectoryInfo(FileSupport.NewTempFileName(prefix + "-", null, new DirectoryInfo(Path.Combine(Path.GetTempPath(), "LuceneTemp"))));
 
                 try
                 {

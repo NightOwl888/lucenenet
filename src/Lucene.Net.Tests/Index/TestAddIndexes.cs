@@ -1095,7 +1095,7 @@ namespace Lucene.Net.Index
             // two auxiliary directories
             Directory aux = NewDirectory();
             Directory aux2 = NewDirectory();
-            Codec codec = new CustomPerFieldCodec();
+            Codec codec = new CustomPerFieldCodec(this);
             IndexWriter writer = null;
 
             writer = NewWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetOpenMode(OpenMode.CREATE).SetCodec(codec));
@@ -1134,30 +1134,32 @@ namespace Lucene.Net.Index
 
         private sealed class CustomPerFieldCodec : Lucene46Codec
         {
-            internal readonly PostingsFormat SimpleTextFormat;
-            internal readonly PostingsFormat DefaultFormat;
-            internal readonly PostingsFormat MockSepFormat;
+            internal readonly PostingsFormat simpleTextFormat;
+            internal readonly PostingsFormat defaultFormat;
+            internal readonly PostingsFormat mockSepFormat;
 
-            public CustomPerFieldCodec()
+            public CustomPerFieldCodec(TestAddIndexes outerInstance)
+                : base(outerInstance) // LUCENENET specific - pass test instance as ICodecProvider
             {
-                SimpleTextFormat = Codecs.PostingsFormat.ForName("SimpleText");
-                DefaultFormat = Codecs.PostingsFormat.ForName("Lucene41");
-                MockSepFormat = Codecs.PostingsFormat.ForName("MockSep");
+                // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                simpleTextFormat = CodecProvider.PostingsFormat.ForName("SimpleText");
+                defaultFormat = CodecProvider.PostingsFormat.ForName("Lucene41");
+                mockSepFormat = CodecProvider.PostingsFormat.ForName("MockSep");
             }
 
             public override PostingsFormat GetPostingsFormatForField(string field)
             {
                 if (field.Equals("id", StringComparison.Ordinal))
                 {
-                    return SimpleTextFormat;
+                    return simpleTextFormat;
                 }
                 else if (field.Equals("content", StringComparison.Ordinal))
                 {
-                    return MockSepFormat;
+                    return mockSepFormat;
                 }
                 else
                 {
-                    return DefaultFormat;
+                    return defaultFormat;
                 }
             }
         }
@@ -1199,8 +1201,8 @@ namespace Lucene.Net.Index
         [CodecName("NotRegistered")]
         private sealed class UnRegisteredCodec : FilterCodec
         {
-            public UnRegisteredCodec()
-                : base(new Lucene46Codec())
+            public UnRegisteredCodec(TestAddIndexes outerInstance)
+                : base(new Lucene46Codec(outerInstance)) // LUCENENET specific - pass test instance as ICodecProvider
             {
             }
         }
@@ -1217,7 +1219,7 @@ namespace Lucene.Net.Index
             toAdd.CheckIndexOnDispose = false;
             {
                 IndexWriterConfig conf = NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
-                conf.SetCodec(new UnRegisteredCodec());
+                conf.SetCodec(new UnRegisteredCodec(this));
                 using (var w = new IndexWriter(toAdd, conf))
                 {
                     Document doc = new Document();
@@ -1232,7 +1234,8 @@ namespace Lucene.Net.Index
                 using (Directory dir = NewDirectory())
                 {
                     IndexWriterConfig conf = NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
-                    conf.SetCodec(TestUtil.AlwaysPostingsFormat(new Pulsing41PostingsFormat(1 + Random.Next(20))));
+                    // LUCENENET specific - pass test instance as ICodecProvider
+                    conf.SetCodec(TestUtil.AlwaysPostingsFormat(new Pulsing41PostingsFormat(this, 1 + Random.Next(20))));
                     IndexWriter w = new IndexWriter(dir, conf);
                     try
                     {

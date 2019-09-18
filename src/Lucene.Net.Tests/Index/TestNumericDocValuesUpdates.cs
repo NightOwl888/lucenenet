@@ -654,16 +654,18 @@ namespace Lucene.Net.Index
 
         private class Lucene46CodecAnonymousInnerClassHelper : Lucene46Codec
         {
-            private readonly TestNumericDocValuesUpdates OuterInstance;
+            private readonly TestNumericDocValuesUpdates outerInstance;
 
             public Lucene46CodecAnonymousInnerClassHelper(TestNumericDocValuesUpdates outerInstance)
+                : base(outerInstance) // LUCENENET specific - pass test instance as ICodecProvider
             {
-                this.OuterInstance = outerInstance;
+                this.outerInstance = outerInstance;
             }
 
             public override DocValuesFormat GetDocValuesFormatForField(string field)
             {
-                return new Lucene45DocValuesFormat();
+                // LUCENENET specific - pass test instance as ICodecProvider
+                return new Lucene45DocValuesFormat(outerInstance);
             }
         }
 
@@ -1070,7 +1072,8 @@ namespace Lucene.Net.Index
         [Test]
         public virtual void TestUpdateOldSegments()
         {
-            Codec[] oldCodecs = new Codec[] { new Lucene40RWCodec(), new Lucene41RWCodec(), new Lucene42RWCodec(), new Lucene45RWCodec() };
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Codec[] oldCodecs = new Codec[] { new Lucene40RWCodec(this), new Lucene41RWCodec(this), new Lucene42RWCodec(this), new Lucene45RWCodec(this) };
             Directory dir = NewDirectory();
 
             bool oldValue = OLD_FORMAT_IMPERSONATION_IS_ACTIVE;
@@ -1406,31 +1409,35 @@ namespace Lucene.Net.Index
 
         private class Lucene46CodecAnonymousInnerClassHelper2 : Lucene46Codec
         {
-            private readonly TestNumericDocValuesUpdates OuterInstance;
+            private readonly TestNumericDocValuesUpdates outerInstance;
 
             public Lucene46CodecAnonymousInnerClassHelper2(TestNumericDocValuesUpdates outerInstance)
+                : base(outerInstance) // LUCENENET specific - pass test instance as ICodecProvider
             {
-                this.OuterInstance = outerInstance;
+                this.outerInstance = outerInstance;
             }
 
             public override DocValuesFormat GetDocValuesFormatForField(string field)
             {
-                return new Lucene45DocValuesFormat();
+                // LUCENENET specific - pass test instance as ICodecProvider
+                return new Lucene45DocValuesFormat(outerInstance);
             }
         }
 
         private class Lucene46CodecAnonymousInnerClassHelper3 : Lucene46Codec
         {
-            private readonly TestNumericDocValuesUpdates OuterInstance;
+            private readonly TestNumericDocValuesUpdates outerInstance;
 
             public Lucene46CodecAnonymousInnerClassHelper3(TestNumericDocValuesUpdates outerInstance)
+                : base(outerInstance) // LUCENENET specific - pass test instance as ICodecProvider
             {
-                this.OuterInstance = outerInstance;
+                this.outerInstance = outerInstance;
             }
 
             public override DocValuesFormat GetDocValuesFormatForField(string field)
             {
-                return new AssertingDocValuesFormat();
+                // LUCENENET specific - pass test instance as ICodecProvider
+                return new AssertingDocValuesFormat(outerInstance);
             }
         }
 
