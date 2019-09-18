@@ -220,8 +220,8 @@ namespace Lucene.Net.Codecs.Lucene40
         /// Creates <see cref="Lucene40PostingsFormat"/> with default
         /// settings.
         /// </summary>
-        public Lucene40PostingsFormat()
-            : this(BlockTreeTermsWriter.DEFAULT_MIN_BLOCK_SIZE, BlockTreeTermsWriter.DEFAULT_MAX_BLOCK_SIZE)
+        public Lucene40PostingsFormat(ICodecProvider codecProvider)
+            : this(codecProvider, BlockTreeTermsWriter.DEFAULT_MIN_BLOCK_SIZE, BlockTreeTermsWriter.DEFAULT_MAX_BLOCK_SIZE)
         {
         }
 
@@ -230,8 +230,8 @@ namespace Lucene.Net.Codecs.Lucene40
         /// values for <paramref name="minBlockSize"/> and 
         /// <paramref name="maxBlockSize"/> passed to block terms dictionary. </summary>
         ///  <seealso cref="BlockTreeTermsWriter.BlockTreeTermsWriter(SegmentWriteState,PostingsWriterBase,int,int)"/>
-        private Lucene40PostingsFormat(int minBlockSize, int maxBlockSize)
-            : base()
+        private Lucene40PostingsFormat(ICodecProvider codecProvider, int minBlockSize, int maxBlockSize)
+            : base(codecProvider)
         {
             this.m_minBlockSize = minBlockSize;
             Debug.Assert(minBlockSize > 1);

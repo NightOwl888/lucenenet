@@ -36,7 +36,8 @@ namespace Lucene.Net.Codecs.Lucene3x
 
         protected override Codec GetCodec()
         {
-            return new PreFlexRWCodec();
+            // LUCENENET specific - pass test instance as ICodecProvider
+            return new PreFlexRWCodec(this);
         }
 
         protected override IEnumerable<Options> ValidOptions()

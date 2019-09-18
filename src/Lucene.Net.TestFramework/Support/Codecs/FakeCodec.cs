@@ -22,7 +22,7 @@ namespace Lucene.Net.Codecs
      * limitations under the License.
      */
 
-    public sealed class FakeCodec
+    public sealed class FakeCodec : ICodec
     {
         private readonly LuceneTestCase luceneTestCase;
 

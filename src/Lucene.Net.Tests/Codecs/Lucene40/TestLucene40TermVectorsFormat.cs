@@ -33,7 +33,8 @@ namespace Lucene.Net.Codecs.Lucene40
 
         protected override Codec GetCodec()
         {
-            return new Lucene40RWCodec();
+            // LUCENENET specific - pass test instance as ICodecProvider
+            return new Lucene40RWCodec(this);
         }
     }
 }

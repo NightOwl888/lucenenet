@@ -64,10 +64,21 @@ namespace Lucene.Net.Codecs
         /// <summary>
         /// Creates a new instance of <see cref="DefaultPostingsFormatFactory"/>.
         /// </summary>
-        public DefaultPostingsFormatFactory()
+        /// <param name="codecProvider">A <see cref="ICodecProvider"/> that is used to provide instances of codec types (subclasses of
+        /// the static members of <see cref="Codecs.Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>).</param>
+        public DefaultPostingsFormatFactory(ICodecProvider codecProvider)
         {
+            this.CodecProvider = codecProvider ?? throw new ArgumentNullException(nameof(codecProvider));
             postingsFormatNameToTypeMap = new Dictionary<string, Type>();
             postingsFormatInstanceCache = new Dictionary<Type, PostingsFormat>();
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="DefaultPostingsFormatFactory"/> using the <see cref="CodecProvider.Default"/>.
+        /// </summary>
+        public DefaultPostingsFormatFactory()
+            : this(Codecs.CodecProvider.Default)
+        {
         }
 
         /// <summary>
@@ -80,6 +91,12 @@ namespace Lucene.Net.Codecs
         /// the custom type will replace the Lucene type with the same name.
         /// </summary>
         public IEnumerable<Type> CustomPostingsFormatTypes { get; set; }
+
+        /// <summary>
+        /// Provides instances of <see cref="Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>.
+        /// </summary>
+        // LUCENENET specific
+        protected ICodecProvider CodecProvider { get; private set; }
 
         /// <summary>
         /// Initializes the codec type cache with the known <see cref="PostingsFormat"/> types.
@@ -210,6 +227,15 @@ namespace Lucene.Net.Codecs
         /// <returns>The new instance.</returns>
         protected virtual PostingsFormat NewPostingsFormat(Type type)
         {
+            // Inject our LuceneTestCase instance into the codec if there is 
+            // a single parameter of type ICodecProvider
+            var constructor = type.GetConstructor(new Type[] { typeof(ICodecProvider) });
+            if (constructor != null)
+            {
+                return (PostingsFormat)constructor.Invoke(new object[] { this.CodecProvider });
+            }
+
+            // Try default constructor as a last resort
             return (PostingsFormat)Activator.CreateInstance(type, IsFullyTrusted);
         }
 

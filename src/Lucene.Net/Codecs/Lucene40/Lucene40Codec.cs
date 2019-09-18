@@ -49,6 +49,7 @@ namespace Lucene.Net.Codecs.Lucene40
             private readonly Lucene40Codec outerInstance;
 
             public PerFieldPostingsFormatAnonymousInnerClassHelper(Lucene40Codec outerInstance)
+                : base(outerInstance.CodecProvider)
             {
                 this.outerInstance = outerInstance;
             }
@@ -61,10 +62,11 @@ namespace Lucene.Net.Codecs.Lucene40
 
         /// <summary>
         /// Sole constructor. </summary>
-        public Lucene40Codec()
-            : base()
+        public Lucene40Codec(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
             postingsFormat = new PerFieldPostingsFormatAnonymousInnerClassHelper(this);
+            defaultDVFormat = new Lucene40DocValuesFormat(codecProvider);
         }
 
         public override sealed StoredFieldsFormat StoredFieldsFormat
@@ -92,7 +94,7 @@ namespace Lucene.Net.Codecs.Lucene40
             get { return infosFormat; }
         }
 
-        private readonly DocValuesFormat defaultDVFormat = new Lucene40DocValuesFormat();
+        private readonly DocValuesFormat defaultDVFormat;
 
         public override DocValuesFormat DocValuesFormat
         {
@@ -122,7 +124,8 @@ namespace Lucene.Net.Codecs.Lucene40
             // LUCENENET specific - lazy initialize the codec to ensure we get the correct type if overridden.
             if (defaultFormat == null)
             {
-                defaultFormat = Codecs.PostingsFormat.ForName("Lucene40");
+                // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                defaultFormat = CodecProvider.PostingsFormat.ForName("Lucene40");
             }
             return defaultFormat;
         }

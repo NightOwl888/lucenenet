@@ -42,7 +42,8 @@ namespace Lucene.Net.Codecs.Pulsing
         public virtual void Test10kPulsed()
         {
             // we always run this test with pulsing codec.
-            Codec cp = TestUtil.AlwaysPostingsFormat(new Pulsing41PostingsFormat(1));
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Codec cp = TestUtil.AlwaysPostingsFormat(new Pulsing41PostingsFormat(this, 1));
 
             DirectoryInfo f = CreateTempDir("10kpulsed");
             BaseDirectoryWrapper dir = NewFSDirectory(f);
@@ -106,7 +107,8 @@ namespace Lucene.Net.Codecs.Pulsing
         {
             // we always run this test with pulsing codec.
             int freqCutoff = TestUtil.NextInt32(Random, 1, 10);
-            Codec cp = TestUtil.AlwaysPostingsFormat(new Pulsing41PostingsFormat(freqCutoff));
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Codec cp = TestUtil.AlwaysPostingsFormat(new Pulsing41PostingsFormat(this, freqCutoff));
 
             DirectoryInfo f = CreateTempDir("10knotpulsed");
             BaseDirectoryWrapper dir = NewFSDirectory(f);

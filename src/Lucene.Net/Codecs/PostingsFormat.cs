@@ -84,9 +84,7 @@ namespace Lucene.Net.Codecs
         /// <exception cref="ArgumentNullException">The <paramref name="postingsFormatFactory"/> parameter is <c>null</c>.</exception>
         public static void SetPostingsFormatFactory(IPostingsFormatFactory postingsFormatFactory)
         {
-            if (postingsFormatFactory == null)
-                throw new ArgumentNullException("postingsFormatFactory");
-            PostingsFormat.postingsFormatFactory = postingsFormatFactory;
+            PostingsFormat.postingsFormatFactory = postingsFormatFactory ?? throw new ArgumentNullException(nameof(postingsFormatFactory));
         }
 
         /// <summary>
@@ -106,10 +104,19 @@ namespace Lucene.Net.Codecs
         /// for the segment to be read this class should be registered by subclassing <see cref="DefaultPostingsFormatFactory"/> and
         /// calling <see cref="DefaultPostingsFormatFactory.ScanForPostingsFormats(System.Reflection.Assembly)"/> in the class constructor. 
         /// The new <see cref="IPostingsFormatFactory"/> can be registered by calling <see cref="SetPostingsFormatFactory(IPostingsFormatFactory)"/> at application startup.</summary>
-        protected PostingsFormat()
+        /// <param name="codecProvider">A <see cref="ICodecProvider"/> that is used to provide instances of codec types (subclasses of
+        /// the static members of <see cref="Codecs.Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>).</param>
+        protected PostingsFormat(ICodecProvider codecProvider)
         {
+            this.CodecProvider = codecProvider ?? throw new ArgumentNullException(nameof(codecProvider));
             this.name = NamedServiceFactory<PostingsFormat>.GetServiceName(this.GetType());
         }
+
+        /// <summary>
+        /// Provides instances of <see cref="Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>.
+        /// </summary>
+        // LUCENENET specific
+        protected internal ICodecProvider CodecProvider { get; private set; }
 
         /// <summary>
         /// Returns this posting format's name. </summary>
@@ -144,6 +151,8 @@ namespace Lucene.Net.Codecs
 
         /// <summary>
         /// Looks up a format by name. </summary>
+        [Obsolete("Use CodecProvider.PostingsFormat.ForName(string) instead. The CodecProvider property can be found on Codec-derived types as well as on Directory-derived types.")]
+        // LUCENENET specific - marked obsolete because we want to ensure there is a seam between the static method and the caller
         public static PostingsFormat ForName(string name)
         {
             return postingsFormatFactory.GetPostingsFormat(name);
@@ -151,6 +160,8 @@ namespace Lucene.Net.Codecs
 
         /// <summary>
         /// Returns a list of all available format names. </summary>
+        [Obsolete("Use CodecProvider.PostingsFormat.AvailablePostingsFormats instead. The CodecProvider property can be found on Codec-derived types as well as on Directory-derived types.")]
+        // LUCENENET specific - marked obsolete because we want to ensure there is a seam between the static method and the caller
         public static ICollection<string> AvailablePostingsFormats
         {
             get

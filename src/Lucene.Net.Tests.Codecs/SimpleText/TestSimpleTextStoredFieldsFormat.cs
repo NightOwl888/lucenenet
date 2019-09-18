@@ -26,7 +26,8 @@ namespace Lucene.Net.Codecs.SimpleText
 
         protected override Codec GetCodec()
         {
-            return new SimpleTextCodec();
+            // LUCENENET specific - pass test instance as ICodecProvider
+            return new SimpleTextCodec(this);
         }
     }
 }

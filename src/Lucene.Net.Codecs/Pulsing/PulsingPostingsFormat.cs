@@ -35,16 +35,16 @@ namespace Lucene.Net.Codecs.Pulsing
         private readonly int _maxBlockSize;
         private readonly PostingsBaseFormat _wrappedPostingsBaseFormat;
 
-        public PulsingPostingsFormat(PostingsBaseFormat wrappedPostingsBaseFormat, int freqCutoff) 
-            : this(wrappedPostingsBaseFormat, freqCutoff, BlockTreeTermsWriter.DEFAULT_MIN_BLOCK_SIZE,
+        public PulsingPostingsFormat(ICodecProvider codecProvider, PostingsBaseFormat wrappedPostingsBaseFormat, int freqCutoff) 
+            : this(codecProvider, wrappedPostingsBaseFormat, freqCutoff, BlockTreeTermsWriter.DEFAULT_MIN_BLOCK_SIZE,
             BlockTreeTermsWriter.DEFAULT_MAX_BLOCK_SIZE)
         {
         }
 
         /// <summary>Terms with freq less than or equal <paramref name="freqCutoff"/> are inlined into terms dict.</summary>
-        public PulsingPostingsFormat(PostingsBaseFormat wrappedPostingsBaseFormat, int freqCutoff,
+        public PulsingPostingsFormat(ICodecProvider codecProvider, PostingsBaseFormat wrappedPostingsBaseFormat, int freqCutoff,
             int minBlockSize, int maxBlockSize) 
-            : base()
+            : base(codecProvider)
         {
             Debug.Assert(minBlockSize > 1);
 

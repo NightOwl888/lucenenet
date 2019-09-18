@@ -187,7 +187,7 @@ namespace Lucene.Net.Codecs
             {
                 if (name.Equals("ThisIsATest", StringComparison.Ordinal))
                 {
-                    return new NotIgnoredPostingsFormat();
+                    return new NotIgnoredPostingsFormat(this.CodecProvider);
                 }
 
                 return base.GetPostingsFormat(name);
@@ -201,7 +201,7 @@ namespace Lucene.Net.Codecs
                 if (type.Equals(typeof(Lucene40.Lucene40PostingsFormat)))
 #pragma warning restore 612, 618
                 {
-                    return new CustomNamedPostingsFormat();
+                    return new CustomNamedPostingsFormat(this.CodecProvider);
                 }
 
                 return base.GetPostingsFormat(type);
@@ -242,6 +242,10 @@ namespace Lucene.Net.Codecs
     #region Test Classes
     public class PublicPostingsFormat : PostingsFormat
     {
+        public PublicPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override FieldsConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();
@@ -255,6 +259,10 @@ namespace Lucene.Net.Codecs
 
     internal class PrivatePostingsFormat : PostingsFormat
     {
+        public PrivatePostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override FieldsConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();
@@ -268,6 +276,10 @@ namespace Lucene.Net.Codecs
 
     public class NotIgnoredPostingsFormat : PostingsFormat
     {
+        public NotIgnoredPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override FieldsConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();
@@ -283,6 +295,10 @@ namespace Lucene.Net.Codecs
     [PostingsFormatName("FooBar")]
     public class CustomNamedPostingsFormat : PostingsFormat
     {
+        public CustomNamedPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override FieldsConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();
@@ -298,6 +314,10 @@ namespace Lucene.Net.Codecs
     [PostingsFormatName("My-PostingsFormat|With-Bad_Name")]
     public class InvalidNamedPostingsFormat : PostingsFormat
     {
+        public InvalidNamedPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override FieldsConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();
@@ -312,6 +332,10 @@ namespace Lucene.Net.Codecs
     [PostingsFormatName("Lucene40")]
     public class TestLucene40PostingsFormat : PostingsFormat
     {
+        public TestLucene40PostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override FieldsConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();

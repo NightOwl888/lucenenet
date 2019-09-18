@@ -1,3 +1,4 @@
+using Lucene.Net.Codecs;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,6 +43,22 @@ namespace Lucene.Net.Store
     /// </summary>
     public abstract class Directory : IDisposable // LUCENENET TODO: Subclass System.IO.FileSystemInfo ?
     {
+        // LUCENENET specific
+        private ICodecProvider codecProvider = Codecs.CodecProvider.Default;
+        /// <summary>
+        /// A facade around the static members of <see cref="Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>
+        /// which should always be used instead of accessing the static members directly. This provides a seam that can be exploited during testing.
+        /// </summary>
+        // LUCENENET specific
+        // Placing this here because it is basically the only way to piggyback off of an instance to every location where SegmentInfos is instantiated,
+        // since many of those locations are within static methods.
+        public ICodecProvider CodecProvider
+        {
+            get => codecProvider;
+            set => codecProvider = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+
         /// <summary>
         /// Returns an array of strings, one for each file in the directory.
         /// </summary>

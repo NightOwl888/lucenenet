@@ -641,11 +641,11 @@ namespace Lucene.Net.Index
             Codec otherCodec;
             if ("SimpleText".Equals(Codec.Default.Name, StringComparison.Ordinal))
             {
-                otherCodec = new Lucene46Codec();
+                otherCodec = new Lucene46Codec(this);
             }
             else
             {
-                otherCodec = new SimpleTextCodec();
+                otherCodec = new SimpleTextCodec(this);
             }
             using (Directory dir = NewDirectory())
             {
@@ -755,7 +755,11 @@ namespace Lucene.Net.Index
             // for this test we force a FS dir
             // we can't just use newFSDirectory, because this test doesn't really index anything.
             // so if we get NRTCachingDir+SimpleText, we make massive stored fields and OOM (LUCENE-4484)
-            using (Directory dir = new MockDirectoryWrapper(Random, new MMapDirectory(CreateTempDir("testBigDocuments"))))
+            using (Directory dir = new MockDirectoryWrapper(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                this,
+#endif
+                Random, new MMapDirectory(CreateTempDir("testBigDocuments"))))
             {
                 IndexWriterConfig iwConf = NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
                 iwConf.SetMaxBufferedDocs(RandomInts.RandomInt32Between(Random, 2, 30));

@@ -64,10 +64,21 @@ namespace Lucene.Net.Codecs
         /// <summary>
         /// Creates a new instance of <see cref="DefaultDocValuesFormatFactory"/>.
         /// </summary>
-        public DefaultDocValuesFormatFactory()
+        /// <param name="codecProvider">A <see cref="ICodecProvider"/> that is used to provide instances of codec types (subclasses of
+        /// the static members of <see cref="Codecs.Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>).</param>
+        public DefaultDocValuesFormatFactory(ICodecProvider codecProvider)
         {
+            this.CodecProvider = codecProvider ?? throw new ArgumentNullException(nameof(codecProvider));
             docValuesFormatNameToTypeMap = new Dictionary<string, Type>();
             docValuesFormatInstanceCache = new Dictionary<Type, DocValuesFormat>();
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="DefaultDocValuesFormatFactory"/> using the <see cref="CodecProvider.Default"/>.
+        /// </summary>
+        public DefaultDocValuesFormatFactory()
+            : this(Codecs.CodecProvider.Default)
+        {
         }
 
         /// <summary>
@@ -80,6 +91,12 @@ namespace Lucene.Net.Codecs
         /// the custom type will replace the Lucene type with the same name.
         /// </summary>
         public IEnumerable<Type> CustomDocValuesFormatTypes { get; set; }
+
+        /// <summary>
+        /// Provides instances of <see cref="Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>.
+        /// </summary>
+        // LUCENENET specific
+        protected ICodecProvider CodecProvider { get; private set; }
 
         /// <summary>
         /// Initializes the doc values type cache with the known <see cref="DocValuesFormat"/> types.
@@ -210,6 +227,15 @@ namespace Lucene.Net.Codecs
         /// <returns>The new instance.</returns>
         protected virtual DocValuesFormat NewDocValuesFormat(Type type)
         {
+            // Inject our LuceneTestCase instance into the codec if there is 
+            // a single parameter of type ICodecProvider
+            var constructor = type.GetConstructor(new Type[] { typeof(ICodecProvider) });
+            if (constructor != null)
+            {
+                return (DocValuesFormat)constructor.Invoke(new object[] { this.CodecProvider });
+            }
+
+            // Try default constructor as a last resort
             return (DocValuesFormat)Activator.CreateInstance(type, IsFullyTrusted);
         }
 

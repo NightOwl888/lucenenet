@@ -47,9 +47,9 @@ namespace Lucene.Net.Index
     {
         private class MyField : IIndexableField
         {
-            private readonly TestIndexableField OuterInstance;
+            private readonly TestIndexableField outerInstance;
 
-            internal readonly int Counter;
+            internal readonly int counter;
             internal readonly IIndexableFieldType fieldType;
 
             public MyField()
@@ -59,21 +59,21 @@ namespace Lucene.Net.Index
 
             private class IndexableFieldTypeAnonymousInnerClassHelper : IIndexableFieldType
             {
-                private MyField OuterInstance;
+                private MyField outerInstance;
 
                 public IndexableFieldTypeAnonymousInnerClassHelper(MyField outerInstance)
                 {
-                    OuterInstance = outerInstance;
+                    this.outerInstance = outerInstance;
                 }
 
                 public bool IsIndexed
                 {
-                    get { return (OuterInstance.Counter % 10) != 3; }
+                    get { return (outerInstance.counter % 10) != 3; }
                 }
 
                 public bool IsStored
                 {
-                    get { return (OuterInstance.Counter & 1) == 0 || (OuterInstance.Counter % 10) == 3; }
+                    get { return (outerInstance.counter & 1) == 0 || (outerInstance.counter % 10) == 3; }
                 }
 
                 public bool IsTokenized
@@ -83,17 +83,17 @@ namespace Lucene.Net.Index
 
                 public bool StoreTermVectors
                 {
-                    get { return IsIndexed && OuterInstance.Counter % 2 == 1 && OuterInstance.Counter % 10 != 9; }
+                    get { return IsIndexed && outerInstance.counter % 2 == 1 && outerInstance.counter % 10 != 9; }
                 }
 
                 public bool StoreTermVectorOffsets
                 {
-                    get { return StoreTermVectors && OuterInstance.Counter % 10 != 9; }
+                    get { return StoreTermVectors && outerInstance.counter % 10 != 9; }
                 }
 
                 public bool StoreTermVectorPositions
                 {
-                    get { return StoreTermVectors && OuterInstance.Counter % 10 != 9; }
+                    get { return StoreTermVectors && outerInstance.counter % 10 != 9; }
                 }
 
                 public bool StoreTermVectorPayloads
@@ -101,14 +101,14 @@ namespace Lucene.Net.Index
                     get
                     {
 #pragma warning disable 612, 618
-                        if (Codec.Default is Lucene3xCodec)
+                        if (outerInstance.outerInstance.Codec.Default is Lucene3xCodec)
 #pragma warning restore 612, 618
                         {
                             return false; // 3.x doesnt support
                         }
                         else
                         {
-                            return StoreTermVectors && OuterInstance.Counter % 10 != 9;
+                            return StoreTermVectors && outerInstance.counter % 10 != 9;
                         }
                     }
                 }
@@ -132,13 +132,13 @@ namespace Lucene.Net.Index
             public MyField(TestIndexableField outerInstance, int counter)
                 : this()
             {
-                this.OuterInstance = outerInstance;
-                this.Counter = counter;
+                this.outerInstance = outerInstance;
+                this.counter = counter;
             }
 
             public string Name
             {
-                get { return "f" + Counter; }
+                get { return "f" + counter; }
             }
 
             public float Boost
@@ -148,12 +148,12 @@ namespace Lucene.Net.Index
 
             public BytesRef GetBinaryValue()
             {
-                if ((Counter % 10) == 3)
+                if ((counter % 10) == 3)
                 {
                     var bytes = new byte[10];
                     for (int idx = 0; idx < bytes.Length; idx++)
                     {
-                        bytes[idx] = (byte)(Counter + idx);
+                        bytes[idx] = (byte)(counter + idx);
                     }
                     return new BytesRef(bytes, 0, bytes.Length);
                 }
@@ -165,10 +165,10 @@ namespace Lucene.Net.Index
 
             public string GetStringValue()
             {
-                int fieldID = Counter % 10;
+                int fieldID = counter % 10;
                 if (fieldID != 3 && fieldID != 7)
                 {
-                    return "text " + Counter;
+                    return "text " + counter;
                 }
                 else
                 {
@@ -196,9 +196,9 @@ namespace Lucene.Net.Index
 
             public TextReader GetReaderValue()
             {
-                if (Counter % 10 == 7)
+                if (counter % 10 == 7)
                 {
-                    return new StringReader("text " + Counter);
+                    return new StringReader("text " + counter);
                 }
                 else
                 {

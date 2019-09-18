@@ -930,6 +930,7 @@ namespace Lucene.Net.Util
             private PostingsFormat format;
 
             public Lucene46CodecAnonymousInnerClassHelper(PostingsFormat format)
+                : base(format.CodecProvider)
             {
                 this.format = format;
             }
@@ -962,6 +963,7 @@ namespace Lucene.Net.Util
             private DocValuesFormat format;
 
             public Lucene46CodecAnonymousInnerClassHelper2(DocValuesFormat format)
+                : base(format.CodecProvider)
             {
                 this.format = format;
             }

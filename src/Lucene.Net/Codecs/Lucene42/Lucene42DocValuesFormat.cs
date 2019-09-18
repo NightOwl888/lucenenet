@@ -129,10 +129,10 @@ namespace Lucene.Net.Codecs.Lucene42
         protected readonly float m_acceptableOverheadRatio;
 
         /// <summary>
-        /// Calls <c>Lucene42DocValuesFormat(PackedInts.DEFAULT)</c> (<see cref="Lucene42DocValuesFormat(float)"/>.
+        /// Calls <c>Lucene42DocValuesFormat(PackedInts.DEFAULT)</c> (<see cref="Lucene42DocValuesFormat(ICodecProvider, float)"/>.
         /// </summary>
-        public Lucene42DocValuesFormat()
-            : this(PackedInt32s.DEFAULT)
+        public Lucene42DocValuesFormat(ICodecProvider codecProvider)
+            : this(codecProvider, PackedInt32s.DEFAULT)
         {
         }
 
@@ -144,8 +144,8 @@ namespace Lucene.Net.Codecs.Lucene42
         /// </summary>
         /// <param name="acceptableOverheadRatio"> Compression parameter for numerics.
         ///        Currently this is only used when the number of unique values is small.</param>
-        public Lucene42DocValuesFormat(float acceptableOverheadRatio)
-            : base()
+        public Lucene42DocValuesFormat(ICodecProvider codecProvider, float acceptableOverheadRatio)
+            : base(codecProvider)
         {
             this.m_acceptableOverheadRatio = acceptableOverheadRatio;
         }

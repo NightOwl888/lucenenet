@@ -120,6 +120,9 @@ namespace Lucene.Net.Store
         private Throttling throttling = Throttling.SOMETIMES;
         protected LockFactory m_lockFactory;
 
+        // for testing (from LUCENE 8.2.0 - note this doesn't actually do anything because the methods that read this field/property have not been migrated yet)
+        internal bool AlwaysCorrupt { get; set; } 
+
         internal readonly AtomicInt32 inputCloneCount = new AtomicInt32();
 
         // use this for tracking files for crash.
@@ -157,8 +160,16 @@ namespace Lucene.Net.Store
             }
         }
 
-        public MockDirectoryWrapper(Random random, Directory @delegate)
-            : base(@delegate)
+        public MockDirectoryWrapper(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            Random random, Directory @delegate)
+            : base(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                  luceneTestCase,
+#endif
+                  @delegate)
         {
             // must make a private random since our methods are
             // called from different threads; else test failures may
@@ -255,7 +266,7 @@ namespace Lucene.Net.Store
         }
 
         /// <summary>
-        /// Returns true if <see cref="m_input"/> must sync its files.
+        /// Returns true if <see cref="FilterDirectory.m_input"/> must sync its files.
         /// Currently, only <see cref="NRTCachingDirectory"/> requires sync'ing its files
         /// because otherwise they are cached in an internal <see cref="RAMDirectory"/>. If
         /// other directories require that too, they should be added to this method.
@@ -1014,8 +1025,11 @@ namespace Lucene.Net.Store
                                 HashSet<string> allFiles = new HashSet<string>(Arrays.AsList(ListAll()));
                                 allFiles.ExceptWith(pendingDeletions);
                                 string[] startFiles = allFiles.ToArray(/*new string[0]*/);
-                                IndexWriterConfig iwc = new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, null);
-                                iwc.SetIndexDeletionPolicy(NoDeletionPolicy.INSTANCE);
+                                IndexWriterConfig iwc = new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, null)
+                                {
+                                    Codec = CodecProvider.Codec.Default, // LUCENENET specific - ensure we use our abstracted default codec
+                                    IndexDeletionPolicy = NoDeletionPolicy.INSTANCE
+                                };
                                 new IndexWriter(m_input, iwc).Rollback();
                                 string[] endFiles = m_input.ListAll();
 
@@ -1046,6 +1060,7 @@ namespace Lucene.Net.Store
                                             Console.WriteLine("MDW: Unreferenced check: Ignoring segments file: " + file + " that we could not delete.");
                                         }
                                         SegmentInfos sis = new SegmentInfos();
+
                                         try
                                         {
                                             sis.Read(m_input, file);
@@ -1131,7 +1146,8 @@ namespace Lucene.Net.Store
                                 DirectoryReader ir1 = DirectoryReader.Open(this);
                                 int numDocs1 = ir1.NumDocs;
                                 ir1.Dispose();
-                                (new IndexWriter(this, new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, null))).Dispose();
+                                // LUCENENET specific - ensure we use our abstracted default codec
+                                (new IndexWriter(this, new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, null) { Codec = CodecProvider.Codec.Default })).Dispose();
                                 DirectoryReader ir2 = DirectoryReader.Open(this);
                                 int numDocs2 = ir2.NumDocs;
                                 ir2.Dispose();

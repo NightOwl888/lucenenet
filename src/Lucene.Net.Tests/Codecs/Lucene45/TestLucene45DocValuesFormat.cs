@@ -27,11 +27,17 @@ namespace Lucene.Net.Codecs.Lucene45
     /// </summary>
     public class TestLucene45DocValuesFormat : BaseCompressingDocValuesFormatTestCase
     {
-        private readonly Codec Codec_Renamed = TestUtil.AlwaysDocValuesFormat(new Lucene45DocValuesFormat());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestLucene45DocValuesFormat()
+        {
+            codec = TestUtil.AlwaysDocValuesFormat(new Lucene45DocValuesFormat(this));
+        }
 
         protected override Codec GetCodec()
         {
-            return Codec_Renamed;
+            return codec;
         }
     }
 }

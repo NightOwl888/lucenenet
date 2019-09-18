@@ -179,7 +179,7 @@ namespace Lucene.Net.Codecs
             {
                 if (name.Equals("ThisIsATest", StringComparison.Ordinal))
                 {
-                    return new NotIgnoredCodec();
+                    return new NotIgnoredCodec(this.CodecProvider);
                 }
 
                 return base.GetCodec(name);
@@ -191,7 +191,7 @@ namespace Lucene.Net.Codecs
             {
                 if (type.Equals(typeof(Lucene46.Lucene46Codec)))
                 {
-                    return new CustomNamedCodec();
+                    return new CustomNamedCodec(this.CodecProvider);
                 }
 
                 return base.GetCodec(type);
@@ -232,6 +232,10 @@ namespace Lucene.Net.Codecs
     #region Test Classes
     public class PublicCodec : Codec
     {
+        public PublicCodec(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesFormat DocValuesFormat
         {
             get
@@ -299,6 +303,10 @@ namespace Lucene.Net.Codecs
 
     internal class PrivateCodec : Codec
     {
+        public PrivateCodec(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesFormat DocValuesFormat
         {
             get
@@ -366,6 +374,10 @@ namespace Lucene.Net.Codecs
 
     public class NotIgnoredCodec : Codec
     {
+        public NotIgnoredCodec(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesFormat DocValuesFormat
         {
             get
@@ -435,6 +447,10 @@ namespace Lucene.Net.Codecs
     [CodecName("FooBar")]
     public class CustomNamedCodec : Codec
     {
+        public CustomNamedCodec(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesFormat DocValuesFormat
         {
             get
@@ -504,6 +520,10 @@ namespace Lucene.Net.Codecs
     [CodecName("My-Codec|With-Bad_Name")]
     public class InvalidNamedCodec : Codec
     {
+        public InvalidNamedCodec(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesFormat DocValuesFormat
         {
             get
@@ -572,6 +592,10 @@ namespace Lucene.Net.Codecs
     [CodecName("Lucene40")]
     public class TestLucene40Codec : Codec
     {
+        public TestLucene40Codec(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesFormat DocValuesFormat
         {
             get

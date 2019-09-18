@@ -27,7 +27,13 @@ namespace Lucene.Net.Codecs.DiskDV
     /// </summary>
     public class TestDiskDocValuesFormat : BaseCompressingDocValuesFormatTestCase
     {
-        private readonly Codec codec = TestUtil.AlwaysDocValuesFormat(new DiskDocValuesFormat());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestDiskDocValuesFormat()
+        {
+            codec = TestUtil.AlwaysDocValuesFormat(new DiskDocValuesFormat(this));
+        }
 
         protected override Codec GetCodec()
         {

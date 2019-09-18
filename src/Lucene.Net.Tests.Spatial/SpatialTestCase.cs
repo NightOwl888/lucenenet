@@ -59,8 +59,9 @@ namespace Lucene.Net.Spatial
         {
             IndexWriterConfig indexWriterConfig = NewIndexWriterConfig(random, TEST_VERSION_CURRENT, new MockAnalyzer(random));
             //TODO can we randomly choose a doc-values supported format?
+            // LUCENENET specific - pass test instance as ICodecProvider
             if (NeedsDocValues())
-                indexWriterConfig.SetCodec(TestUtil.AlwaysDocValuesFormat(new Lucene45DocValuesFormat())); ;
+                indexWriterConfig.SetCodec(TestUtil.AlwaysDocValuesFormat(new Lucene45DocValuesFormat(this)));
             return indexWriterConfig;
         }
 

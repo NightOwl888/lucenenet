@@ -1,6 +1,7 @@
 ﻿using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.NGram;
 using Lucene.Net.Analysis.TokenAttributes;
+using Lucene.Net.Codecs;
 using Lucene.Net.Codecs.Lucene46;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
@@ -165,7 +166,9 @@ namespace Lucene.Net.Search.Suggest.Analyzing
         {
             IndexWriterConfig iwc = new IndexWriterConfig(matchVersion, indexAnalyzer)
             {
-                Codec = new Lucene46Codec(),
+                // LUCENENET specific - use the CodecProvider from the provided directory
+                //Codec = new Lucene46Codec(this.dir.CodecProvider),
+                Codec = this.dir.CodecProvider.Codec.ForName("Lucene46"),
                 OpenMode = openMode
             };
 

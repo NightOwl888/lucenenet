@@ -154,8 +154,8 @@ namespace Lucene.Net.Codecs.Lucene45
     {
         /// <summary>
         /// Sole Constructor </summary>
-        public Lucene45DocValuesFormat()
-            : base()
+        public Lucene45DocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
         }
 

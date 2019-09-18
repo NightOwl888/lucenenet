@@ -25,15 +25,17 @@ namespace Lucene.Net.Codecs.Asserting
     [CodecName("Asserting")]
     public sealed class AssertingCodec : FilterCodec
     {
-        private readonly PostingsFormat postings = new AssertingPostingsFormat();
+        private readonly PostingsFormat postings;
         private readonly TermVectorsFormat vectors = new AssertingTermVectorsFormat();
         private readonly StoredFieldsFormat storedFields = new AssertingStoredFieldsFormat();
-        private readonly DocValuesFormat docValues = new AssertingDocValuesFormat();
+        private readonly DocValuesFormat docValues;
         private readonly NormsFormat norms = new AssertingNormsFormat();
 
-        public AssertingCodec()
-            : base(new Lucene46Codec())
+        public AssertingCodec(ICodecProvider codecProvider)
+            : base(new Lucene46Codec(codecProvider))
         {
+            postings = new AssertingPostingsFormat(codecProvider);
+            docValues = new AssertingDocValuesFormat(codecProvider);
         }
 
         public override PostingsFormat PostingsFormat

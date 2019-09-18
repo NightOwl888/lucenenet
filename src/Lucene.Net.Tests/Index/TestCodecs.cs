@@ -490,7 +490,8 @@ namespace Lucene.Net.Index
             Directory dir = NewDirectory();
             IndexWriterConfig config = NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));
             config.SetMergePolicy(NewLogMergePolicy());
-            config.SetCodec(TestUtil.AlwaysPostingsFormat(new MockSepPostingsFormat()));
+            // LUCENENET specific - pass test instance as ICodecProvider
+            config.SetCodec(TestUtil.AlwaysPostingsFormat(new MockSepPostingsFormat(this)));
             IndexWriter writer = new IndexWriter(dir, config);
 
             try
@@ -899,7 +900,8 @@ namespace Lucene.Net.Index
         [Test]
         public virtual void TestDisableImpersonation()
         {
-            Codec[] oldCodecs = new Codec[] { new Lucene40RWCodec(), new Lucene41RWCodec(), new Lucene42RWCodec() };
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Codec[] oldCodecs = new Codec[] { new Lucene40RWCodec(this), new Lucene41RWCodec(this), new Lucene42RWCodec(this) };
             using (Directory dir = NewDirectory())
             {
                 IndexWriterConfig conf = NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random));

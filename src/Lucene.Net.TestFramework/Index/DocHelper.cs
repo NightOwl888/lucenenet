@@ -163,7 +163,10 @@ namespace Lucene.Net.Index
         /// </summary>
         public static SegmentCommitInfo WriteDoc(Random random, Directory dir, Analyzer analyzer, Similarity similarity, Document doc)
         {
-            using (IndexWriter writer = new IndexWriter(dir, (new IndexWriterConfig(Util.LuceneTestCase.TEST_VERSION_CURRENT, analyzer)).SetSimilarity(similarity ?? IndexSearcher.DefaultSimilarity))) // LuceneTestCase.newIndexWriterConfig(random,
+            using (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(Util.LuceneTestCase.TEST_VERSION_CURRENT, analyzer)
+                // LUCENENET specific - ensure we use our abstracted default codec
+                .SetCodec(dir.CodecProvider.Codec.Default)
+                .SetSimilarity(similarity ?? IndexSearcher.DefaultSimilarity)))
             {
                 //writer.SetNoCFSRatio(0.0);
                 writer.AddDocument(doc);

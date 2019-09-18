@@ -57,6 +57,7 @@ namespace Lucene.Net.Codecs.Lucene42
             private readonly Lucene42Codec outerInstance;
 
             public PerFieldPostingsFormatAnonymousInnerClassHelper(Lucene42Codec outerInstance)
+                : base(outerInstance.CodecProvider) // LUCENENET specific - set the ICodecProvider to be the same as the containing codec
             {
                 this.outerInstance = outerInstance;
             }
@@ -74,6 +75,7 @@ namespace Lucene.Net.Codecs.Lucene42
             private readonly Lucene42Codec outerInstance;
 
             public PerFieldDocValuesFormatAnonymousInnerClassHelper(Lucene42Codec outerInstance)
+                : base(outerInstance.CodecProvider) // LUCENENET specific - set the ICodecProvider to be the same as the containing codec
             {
                 this.outerInstance = outerInstance;
             }
@@ -86,8 +88,8 @@ namespace Lucene.Net.Codecs.Lucene42
 
         /// <summary>
         /// Sole constructor. </summary>
-        public Lucene42Codec()
-            : base()
+        public Lucene42Codec(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
             postingsFormat = new PerFieldPostingsFormatAnonymousInnerClassHelper(this);
             docValuesFormat = new PerFieldDocValuesFormatAnonymousInnerClassHelper(this);
@@ -134,7 +136,8 @@ namespace Lucene.Net.Codecs.Lucene42
             // LUCENENET specific - lazy initialize the codec to ensure we get the correct type if overridden.
             if (defaultFormat == null)
             {
-                defaultFormat = Codecs.PostingsFormat.ForName("Lucene41");
+                // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                defaultFormat = CodecProvider.PostingsFormat.ForName("Lucene41");
             }
             return defaultFormat;
         }
@@ -150,7 +153,8 @@ namespace Lucene.Net.Codecs.Lucene42
             // LUCENENET specific - lazy initialize the codec to ensure we get the correct type if overridden.
             if (defaultDVFormat == null)
             {
-                defaultDVFormat = Codecs.DocValuesFormat.ForName("Lucene42");
+                // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                defaultDVFormat = CodecProvider.DocValuesFormat.ForName("Lucene42");
             }
             return defaultDVFormat;
         }

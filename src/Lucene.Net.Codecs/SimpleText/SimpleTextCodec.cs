@@ -27,18 +27,20 @@
     [CodecName("SimpleText")] // LUCENENET specific - using CodecName attribute to ensure the default name passed from subclasses is the same as this class name
     public sealed class SimpleTextCodec : Codec
     {
-        private readonly PostingsFormat _postings = new SimpleTextPostingsFormat();
+        private readonly PostingsFormat _postings;
         private readonly StoredFieldsFormat _storedFields = new SimpleTextStoredFieldsFormat();
         private readonly SegmentInfoFormat _segmentInfos = new SimpleTextSegmentInfoFormat();
         private readonly FieldInfosFormat _fieldInfosFormatRenamed = new SimpleTextFieldInfosFormat();
         private readonly TermVectorsFormat _vectorsFormat = new SimpleTextTermVectorsFormat();
         private readonly NormsFormat _normsFormatRenamed = new SimpleTextNormsFormat();
         private readonly LiveDocsFormat _liveDocs = new SimpleTextLiveDocsFormat();
-        private readonly DocValuesFormat _dvFormat = new SimpleTextDocValuesFormat();
+        private readonly DocValuesFormat _dvFormat;
 
-        public SimpleTextCodec() 
-            : base()
+        public SimpleTextCodec(ICodecProvider codecProvider) 
+            : base(codecProvider)
         {
+            _postings = new SimpleTextPostingsFormat(codecProvider);
+            _dvFormat = new SimpleTextDocValuesFormat(codecProvider);
         }
 
         public override PostingsFormat PostingsFormat

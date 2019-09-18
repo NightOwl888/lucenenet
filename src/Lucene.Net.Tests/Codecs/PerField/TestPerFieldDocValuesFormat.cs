@@ -56,18 +56,19 @@ namespace Lucene.Net.Codecs.PerField
     [TestFixture]
     public class TestPerFieldDocValuesFormat : BaseDocValuesFormatTestCase
     {
-        private Codec Codec_Renamed;
+        private Codec codec;
 
         [SetUp]
         public override void SetUp()
         {
-            Codec_Renamed = new RandomCodec(new Random(Random.Next()), new HashSet<string>());
+            // LUCENENET specific - pass test instance as ICodecProvider
+            codec = new RandomCodec(this, new Random(Random.Next()), new HashSet<string>());
             base.SetUp();
         }
 
         protected override Codec GetCodec()
         {
-            return Codec_Renamed;
+            return codec;
         }
 
         protected override bool CodecAcceptsHugeBinaryValues(string field)
@@ -127,27 +128,28 @@ namespace Lucene.Net.Codecs.PerField
 
         private class Lucene46CodecAnonymousInnerClassHelper : Lucene46Codec
         {
-            private readonly TestPerFieldDocValuesFormat OuterInstance;
+            private readonly TestPerFieldDocValuesFormat outerInstance;
 
-            private DocValuesFormat Fast;
-            private DocValuesFormat Slow;
+            private DocValuesFormat fast;
+            private DocValuesFormat slow;
 
             public Lucene46CodecAnonymousInnerClassHelper(TestPerFieldDocValuesFormat outerInstance, DocValuesFormat fast, DocValuesFormat slow)
+                : base(outerInstance) // LUCENENET specific - pass test instance as ICodecProvider
             {
-                this.OuterInstance = outerInstance;
-                this.Fast = fast;
-                this.Slow = slow;
+                this.outerInstance = outerInstance;
+                this.fast = fast;
+                this.slow = slow;
             }
 
             public override DocValuesFormat GetDocValuesFormatForField(string field)
             {
                 if ("dv1".Equals(field, StringComparison.Ordinal))
                 {
-                    return Fast;
+                    return fast;
                 }
                 else
                 {
-                    return Slow;
+                    return slow;
                 }
             }
         }

@@ -27,11 +27,17 @@ namespace Lucene.Net.Codecs.Lucene41
     /// </summary>
     public class TestBlockPostingsFormat : BasePostingsFormatTestCase
     {
-        private readonly Codec Codec_Renamed = TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestBlockPostingsFormat()
+        {
+            codec = TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat(this));
+        }
 
         protected override Codec GetCodec()
         {
-            return Codec_Renamed;
+            return codec;
         }
     }
 }

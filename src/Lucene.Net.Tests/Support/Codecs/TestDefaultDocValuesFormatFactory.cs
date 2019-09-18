@@ -179,7 +179,7 @@ namespace Lucene.Net.Codecs
             {
                 if (name.Equals("ThisIsATest", StringComparison.Ordinal))
                 {
-                    return new NotIgnoredDocValuesFormat();
+                    return new NotIgnoredDocValuesFormat(this.CodecProvider);
                 }
 
                 return base.GetDocValuesFormat(name);
@@ -191,7 +191,7 @@ namespace Lucene.Net.Codecs
             {
                 if (type.Equals(typeof(Lucene45.Lucene45DocValuesFormat)))
                 {
-                    return new CustomNamedDocValuesFormat();
+                    return new CustomNamedDocValuesFormat(this.CodecProvider);
                 }
 
                 return base.GetDocValuesFormat(type);
@@ -232,6 +232,10 @@ namespace Lucene.Net.Codecs
     #region Test Classes
     public class PublicDocValuesFormat : DocValuesFormat
     {
+        public PublicDocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();
@@ -245,6 +249,10 @@ namespace Lucene.Net.Codecs
 
     internal class PrivateDocValuesFormat : DocValuesFormat
     {
+        public PrivateDocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();
@@ -258,6 +266,10 @@ namespace Lucene.Net.Codecs
 
     public class NotIgnoredDocValuesFormat : DocValuesFormat
     {
+        public NotIgnoredDocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();
@@ -273,6 +285,10 @@ namespace Lucene.Net.Codecs
     [DocValuesFormatName("FooBar")]
     public class CustomNamedDocValuesFormat : DocValuesFormat
     {
+        public CustomNamedDocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();
@@ -288,6 +304,10 @@ namespace Lucene.Net.Codecs
     [DocValuesFormatName("My-DocValuesFormat|With-Bad_Name")]
     public class InvalidNamedDocValuesFormat : DocValuesFormat
     {
+        public InvalidNamedDocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();
@@ -302,6 +322,10 @@ namespace Lucene.Net.Codecs
     [DocValuesFormatName("Lucene40")]
     public class TestLucene40DocValuesFormat : DocValuesFormat
     {
+        public TestLucene40DocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+
         public override DocValuesConsumer FieldsConsumer(SegmentWriteState state)
         {
             throw new NotImplementedException();

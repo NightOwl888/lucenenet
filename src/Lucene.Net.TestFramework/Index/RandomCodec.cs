@@ -141,7 +141,8 @@ namespace Lucene.Net.Index
             return codec;
         }
 
-        public RandomCodec(Random random, ISet<string> avoidCodecs)
+        public RandomCodec(ICodecProvider codecProvider, Random random, ISet<string> avoidCodecs)
+            : base(codecProvider)
         {
             this.perFieldSeed = random.Next();
             // TODO: make it possible to specify min/max iterms per
@@ -151,37 +152,37 @@ namespace Lucene.Net.Index
             int lowFreqCutoff = TestUtil.NextInt32(random, 2, 100);
 
             Add(avoidCodecs,
-                new Lucene41PostingsFormat(minItemsPerBlock, maxItemsPerBlock),
-                new FSTPostingsFormat(),
-                new FSTOrdPostingsFormat(),
-                new FSTPulsing41PostingsFormat(1 + random.Next(20)), new FSTOrdPulsing41PostingsFormat(1 + random.Next(20)),
-                new DirectPostingsFormat(LuceneTestCase.Rarely(random) ? 1 : (LuceneTestCase.Rarely(random) ? int.MaxValue : maxItemsPerBlock), 
+                new Lucene41PostingsFormat(codecProvider, minItemsPerBlock, maxItemsPerBlock),
+                new FSTPostingsFormat(codecProvider),
+                new FSTOrdPostingsFormat(codecProvider),
+                new FSTPulsing41PostingsFormat(codecProvider, 1 + random.Next(20)), new FSTOrdPulsing41PostingsFormat(codecProvider, 1 + random.Next(20)),
+                new DirectPostingsFormat(codecProvider, LuceneTestCase.Rarely(random) ? 1 : (LuceneTestCase.Rarely(random) ? int.MaxValue : maxItemsPerBlock), 
                                         LuceneTestCase.Rarely(random) ? 1 : (LuceneTestCase.Rarely(random) ? int.MaxValue : lowFreqCutoff)),
-                new Pulsing41PostingsFormat(1 + random.Next(20), minItemsPerBlock, maxItemsPerBlock),
+                new Pulsing41PostingsFormat(codecProvider, 1 + random.Next(20), minItemsPerBlock, maxItemsPerBlock),
                 // add pulsing again with (usually) different parameters
-                new Pulsing41PostingsFormat(1 + random.Next(20), minItemsPerBlock, maxItemsPerBlock),
+                new Pulsing41PostingsFormat(codecProvider, 1 + random.Next(20), minItemsPerBlock, maxItemsPerBlock),
                 //TODO as a PostingsFormat which wraps others, we should allow TestBloomFilteredLucene41Postings to be constructed 
                 //with a choice of concrete PostingsFormats. Maybe useful to have a generic means of marking and dealing 
                 //with such "wrapper" classes?
-                new TestBloomFilteredLucene41Postings(), 
-                new MockSepPostingsFormat(), 
-                new MockFixedInt32BlockPostingsFormat(TestUtil.NextInt32(random, 1, 2000)),
-                new MockVariableInt32BlockPostingsFormat(TestUtil.NextInt32(random, 1, 127)), 
-                new MockRandomPostingsFormat(random),
-                new NestedPulsingPostingsFormat(), 
-                new Lucene41WithOrds(), 
-                new SimpleTextPostingsFormat(),
-                new AssertingPostingsFormat(),
-                new MemoryPostingsFormat(true, random.nextFloat()), 
-                new MemoryPostingsFormat(false, random.nextFloat())
+                new TestBloomFilteredLucene41Postings(codecProvider), 
+                new MockSepPostingsFormat(codecProvider), 
+                new MockFixedInt32BlockPostingsFormat(codecProvider, TestUtil.NextInt32(random, 1, 2000)),
+                new MockVariableInt32BlockPostingsFormat(codecProvider, TestUtil.NextInt32(random, 1, 127)), 
+                new MockRandomPostingsFormat(codecProvider, random),
+                new NestedPulsingPostingsFormat(codecProvider), 
+                new Lucene41WithOrds(codecProvider), 
+                new SimpleTextPostingsFormat(codecProvider),
+                new AssertingPostingsFormat(codecProvider),
+                new MemoryPostingsFormat(codecProvider, true, random.nextFloat()), 
+                new MemoryPostingsFormat(codecProvider, false, random.nextFloat())
             );
 
             AddDocValues(avoidCodecs, 
-                new Lucene45DocValuesFormat(), 
-                new DiskDocValuesFormat(), 
-                new MemoryDocValuesFormat(), 
-                new SimpleTextDocValuesFormat(), 
-                new AssertingDocValuesFormat());
+                new Lucene45DocValuesFormat(codecProvider), 
+                new DiskDocValuesFormat(codecProvider), 
+                new MemoryDocValuesFormat(codecProvider), 
+                new SimpleTextDocValuesFormat(codecProvider), 
+                new AssertingDocValuesFormat(codecProvider));
 
             Collections.Shuffle(formats, random);
             Collections.Shuffle(dvFormats, random);
@@ -197,8 +198,8 @@ namespace Lucene.Net.Index
             }
         }
 
-        public RandomCodec(Random random)
-            : this(random, new HashSet<string>())
+        public RandomCodec(ICodecProvider codecProvider, Random random)
+            : this(codecProvider, random, new HashSet<string>())
         {
         }
 

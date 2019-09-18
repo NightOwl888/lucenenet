@@ -34,13 +34,13 @@ namespace Lucene.Net.Codecs.MockIntBlock
     {
         private readonly int blockSize;
 
-        public MockFixedInt32BlockPostingsFormat()
-            : this(1)
+        public MockFixedInt32BlockPostingsFormat(ICodecProvider codecProvider)
+            : this(codecProvider, 1)
         {
         }
 
-        public MockFixedInt32BlockPostingsFormat(int blockSize)
-            : base()
+        public MockFixedInt32BlockPostingsFormat(ICodecProvider codecProvider, int blockSize)
+            : base(codecProvider)
         {
             this.blockSize = blockSize;
         }
