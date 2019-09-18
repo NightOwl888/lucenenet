@@ -31,7 +31,7 @@
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <RuntimeIdentifiers>win7-x86;win7-x64</RuntimeIdentifiers>
 
-    <DefineConstants>$(DefineConstants);TESTFRAMEWORK_XUNIT</DefineConstants>
+    <DefineConstants>$(DefineConstants);TESTFRAMEWORK_XUNIT;FEATURE_INSTANCE_CODEC_IMPERSONATION</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
