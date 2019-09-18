@@ -406,7 +406,11 @@ namespace Lucene.Net.Search
             Random random, int numDocs)
         {
             Debug.Assert(numDocs > 0);
-            Directory d = new MockDirectoryWrapper(random, new RAMDirectory());
+            Directory d = new MockDirectoryWrapper(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                luceneTestCase,
+#endif
+                random, new RAMDirectory());
             IndexWriter w = new IndexWriter(d, new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, new MockAnalyzer(random))
 #if FEATURE_INSTANCE_CODEC_IMPERSONATION
             { Codec = luceneTestCase.Codec.Default }

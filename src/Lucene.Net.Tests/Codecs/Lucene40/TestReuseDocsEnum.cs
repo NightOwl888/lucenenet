@@ -58,7 +58,8 @@ namespace Lucene.Net.Codecs.Lucene40
         public virtual void TestReuseDocsEnumNoReuse()
         {
             Directory dir = NewDirectory();
-            Codec cp = TestUtil.AlwaysPostingsFormat(new Lucene40RWPostingsFormat());
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Codec cp = TestUtil.AlwaysPostingsFormat(new Lucene40RWPostingsFormat(this));
             RandomIndexWriter writer = new RandomIndexWriter(Random, dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(cp));
             int numdocs = AtLeast(20);
             CreateRandomIndex(numdocs, writer, Random);
@@ -88,7 +89,8 @@ namespace Lucene.Net.Codecs.Lucene40
         public virtual void TestReuseDocsEnumSameBitsOrNull()
         {
             Directory dir = NewDirectory();
-            Codec cp = TestUtil.AlwaysPostingsFormat(new Lucene40RWPostingsFormat());
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Codec cp = TestUtil.AlwaysPostingsFormat(new Lucene40RWPostingsFormat(this));
             RandomIndexWriter writer = new RandomIndexWriter(Random, dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(cp));
             int numdocs = AtLeast(20);
             CreateRandomIndex(numdocs, writer, Random);
@@ -137,7 +139,8 @@ namespace Lucene.Net.Codecs.Lucene40
         public virtual void TestReuseDocsEnumDifferentReader()
         {
             Directory dir = NewDirectory();
-            Codec cp = TestUtil.AlwaysPostingsFormat(new Lucene40RWPostingsFormat());
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Codec cp = TestUtil.AlwaysPostingsFormat(new Lucene40RWPostingsFormat(this));
             MockAnalyzer analyzer = new MockAnalyzer(Random);
             analyzer.MaxTokenLength = TestUtil.NextInt32(Random, 1, IndexWriter.MAX_TERM_LENGTH);
 

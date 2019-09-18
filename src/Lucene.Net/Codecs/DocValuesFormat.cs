@@ -82,9 +82,7 @@ namespace Lucene.Net.Codecs
         /// <exception cref="ArgumentNullException">The <paramref name="docValuesFormatFactory"/> parameter is <c>null</c>.</exception>
         public static void SetDocValuesFormatFactory(IDocValuesFormatFactory docValuesFormatFactory)
         {
-            if (docValuesFormatFactory == null)
-                throw new ArgumentNullException("docValuesFormatFactory");
-            DocValuesFormat.docValuesFormatFactory = docValuesFormatFactory;
+            DocValuesFormat.docValuesFormatFactory = docValuesFormatFactory ?? throw new ArgumentNullException(nameof(docValuesFormatFactory));
         }
 
         /// <summary>
@@ -106,10 +104,19 @@ namespace Lucene.Net.Codecs
         /// The new <see cref="IDocValuesFormatFactory"/> can be registered by calling <see cref="SetDocValuesFormatFactory(IDocValuesFormatFactory)"/>
         /// at application startup.
         /// </summary>
-        protected DocValuesFormat()
+        /// <param name="codecProvider">A <see cref="ICodecProvider"/> that is used to provide instances of codec types (subclasses of
+        /// the static members of <see cref="Codecs.Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>).</param>
+        protected DocValuesFormat(ICodecProvider codecProvider)
         {
+            this.CodecProvider = codecProvider ?? throw new ArgumentNullException(nameof(codecProvider));
             this.name = NamedServiceFactory<DocValuesFormat>.GetServiceName(this.GetType());
         }
+
+        /// <summary>
+        /// Provides instances of <see cref="Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>.
+        /// </summary>
+        // LUCENENET specific
+        protected internal ICodecProvider CodecProvider { get; private set; }
 
         /// <summary>
         /// Returns a <see cref="DocValuesConsumer"/> to write docvalues to the
@@ -148,6 +155,8 @@ namespace Lucene.Net.Codecs
 
         /// <summary>
         /// Looks up a format by name. </summary>
+        [Obsolete("Use CodecProvider.DocValuesFormat.ForName(string) instead. The CodecProvider property can be found on Codec-derived types as well as on Directory-derived types.")]
+        // LUCENENET specific - marked obsolete because we want to ensure there is a seam between the static method and the caller
         public static DocValuesFormat ForName(string name)
         {
             return docValuesFormatFactory.GetDocValuesFormat(name);
@@ -155,6 +164,8 @@ namespace Lucene.Net.Codecs
 
         /// <summary>
         /// Returns a list of all available format names. </summary>
+        [Obsolete("Use CodecProvider.DocValuesFormat.AvailableDocValuesFormats instead. The CodecProvider property can be found on Codec-derived types as well as on Directory-derived types.")]
+        // LUCENENET specific - marked obsolete because we want to ensure there is a seam between the static method and the caller
         public static ICollection<string> AvailableDocValuesFormats
         {
             get

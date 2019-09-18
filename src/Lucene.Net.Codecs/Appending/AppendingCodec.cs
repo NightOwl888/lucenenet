@@ -33,11 +33,12 @@ namespace Lucene.Net.Codecs.Appending
     [CodecName("Appending")] // LUCENENET specific - using CodecName attribute to ensure the default name passed from subclasses is the same as this class name
     public class AppendingCodec : FilterCodec
     {
-        private readonly PostingsFormat _postings = new AppendingPostingsFormat();
+        private readonly PostingsFormat _postings;
 
-        public AppendingCodec() 
-            : base(new Lucene40Codec())
+        public AppendingCodec(ICodecProvider codecProvider) 
+            : base(new Lucene40Codec(codecProvider))
         {
+            _postings = new AppendingPostingsFormat(codecProvider);
         }
 
         public override PostingsFormat PostingsFormat

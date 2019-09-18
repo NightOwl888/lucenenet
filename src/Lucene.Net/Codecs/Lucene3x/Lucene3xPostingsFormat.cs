@@ -48,8 +48,8 @@ namespace Lucene.Net.Codecs.Lucene3x
         /// Extension of prox postings file </summary>
         public const string PROX_EXTENSION = "prx";
 
-        public Lucene3xPostingsFormat()
-            : base()
+        public Lucene3xPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
         }
 

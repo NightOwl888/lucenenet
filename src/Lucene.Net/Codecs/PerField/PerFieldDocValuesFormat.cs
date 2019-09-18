@@ -74,8 +74,8 @@ namespace Lucene.Net.Codecs.PerField
 
         /// <summary>
         /// Sole constructor. </summary>
-        public PerFieldDocValuesFormat()
-            : base()
+        public PerFieldDocValuesFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
         }
 
@@ -139,7 +139,8 @@ namespace Lucene.Net.Codecs.PerField
                     // this means the field never existed in that segment, yet is applied updates
                     if (formatName != null)
                     {
-                        format = DocValuesFormat.ForName(formatName);
+                        // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                        format = outerInstance.CodecProvider.DocValuesFormat.ForName(formatName);
                     }
                 }
                 if (format == null)
@@ -264,7 +265,8 @@ namespace Lucene.Net.Codecs.PerField
                                 // null formatName means the field is in fieldInfos, but has no docvalues!
                                 string suffix = fi.GetAttribute(PER_FIELD_SUFFIX_KEY);
                                 Debug.Assert(suffix != null);
-                                DocValuesFormat format = DocValuesFormat.ForName(formatName);
+                                // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                                DocValuesFormat format = outerInstance.CodecProvider.DocValuesFormat.ForName(formatName);
                                 string segmentSuffix = GetFullSegmentSuffix(readState.SegmentSuffix, GetSuffix(formatName, suffix));
                                 if (!formats.ContainsKey(segmentSuffix))
                                 {

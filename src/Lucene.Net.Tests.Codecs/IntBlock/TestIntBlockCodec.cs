@@ -31,7 +31,8 @@ namespace Lucene.Net.Codecs.IntBlock
         {
             Directory dir = NewDirectory();
 
-            Int32StreamFactory f = (new MockFixedInt32BlockPostingsFormat(128)).GetInt32Factory();
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Int32StreamFactory f = (new MockFixedInt32BlockPostingsFormat(this, 128)).GetInt32Factory();
 
             Int32IndexOutput @out = f.CreateOutput(dir, "test", NewIOContext(Random));
             for (int i = 0; i < 11777; i++)
@@ -57,7 +58,8 @@ namespace Lucene.Net.Codecs.IntBlock
         {
             Directory dir = NewDirectory();
 
-            Int32StreamFactory f = (new MockFixedInt32BlockPostingsFormat(128)).GetInt32Factory();
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Int32StreamFactory f = (new MockFixedInt32BlockPostingsFormat(this, 128)).GetInt32Factory();
             Int32IndexOutput @out = f.CreateOutput(dir, "test", NewIOContext(Random));
 
             // write no ints

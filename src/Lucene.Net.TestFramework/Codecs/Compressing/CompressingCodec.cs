@@ -35,19 +35,24 @@ namespace Lucene.Net.Codecs.Compressing
         /// </summary>
         public static CompressingCodec RandomInstance(Random random, int chunkSize, bool withSegmentSuffix)
         {
+            // LUCENENET specific - since none of these classes make calls to ICodecProvider and there
+            // is no way to override this method, we can safely use the default CodecProvider.
+            // However, since they are not sealed, we are adding it to the constructor so the codecs
+            // can be extended by end users and initialized in the correct order.
+            var codecProvider = Codecs.CodecProvider.Default;
             switch (random.Next(4))
             {
                 case 0:
-                    return new FastCompressingCodec(chunkSize, withSegmentSuffix);
+                    return new FastCompressingCodec(codecProvider, chunkSize, withSegmentSuffix);
 
                 case 1:
-                    return new FastDecompressionCompressingCodec(chunkSize, withSegmentSuffix);
+                    return new FastDecompressionCompressingCodec(codecProvider, chunkSize, withSegmentSuffix);
 
                 case 2:
-                    return new HighCompressionCompressingCodec(chunkSize, withSegmentSuffix);
+                    return new HighCompressionCompressingCodec(codecProvider, chunkSize, withSegmentSuffix);
 
                 case 3:
-                    return new DummyCompressingCodec(chunkSize, withSegmentSuffix);
+                    return new DummyCompressingCodec(codecProvider, chunkSize, withSegmentSuffix);
 
                 default:
                     throw new InvalidOperationException();
@@ -77,8 +82,8 @@ namespace Lucene.Net.Codecs.Compressing
         /// <summary>
         /// Creates a compressing codec with a given <paramref name="segmentSuffix"/>.
         /// </summary>
-        public CompressingCodec(string segmentSuffix, CompressionMode compressionMode, int chunkSize)
-            : base(new Lucene46Codec())
+        public CompressingCodec(ICodecProvider codecProvider, string segmentSuffix, CompressionMode compressionMode, int chunkSize)
+            : base(new Lucene46Codec(codecProvider))
         {
             this.storedFieldsFormat = new CompressingStoredFieldsFormat(this.Name, segmentSuffix, compressionMode, chunkSize);
             this.termVectorsFormat = new CompressingTermVectorsFormat(this.Name, segmentSuffix, compressionMode, chunkSize);
@@ -87,8 +92,8 @@ namespace Lucene.Net.Codecs.Compressing
         /// <summary>
         /// Creates a compressing codec with an empty segment suffix.
         /// </summary>
-        public CompressingCodec(CompressionMode compressionMode, int chunkSize)
-            : this("", compressionMode, chunkSize)
+        public CompressingCodec(ICodecProvider codecProvider, CompressionMode compressionMode, int chunkSize)
+            : this(codecProvider, "", compressionMode, chunkSize)
         {
         }
 

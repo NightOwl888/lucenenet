@@ -101,8 +101,8 @@ namespace Lucene.Net.Codecs.RAMOnly
             }
         }
 
-        public RAMOnlyPostingsFormat()
-            : base()
+        public RAMOnlyPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
         }
 

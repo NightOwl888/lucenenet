@@ -49,10 +49,10 @@ namespace Lucene.Net.Codecs.Bloom
             }
         }
 
-        public TestBloomFilteredLucene41Postings()
-            : base()
+        public TestBloomFilteredLucene41Postings(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
-            @delegate = new BloomFilteringPostingsFormat(new Lucene41PostingsFormat(),
+            @delegate = new BloomFilteringPostingsFormat(codecProvider, new Lucene41PostingsFormat(codecProvider),
                 new LowMemoryBloomFactory());
         }
 

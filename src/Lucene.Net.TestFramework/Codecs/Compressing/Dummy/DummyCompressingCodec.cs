@@ -36,10 +36,6 @@ namespace Lucene.Net.Codecs.Compressing.Dummy
 
         private class CompressionModeAnonymousInnerClassHelper : CompressionMode
         {
-            public CompressionModeAnonymousInnerClassHelper()
-            {
-            }
-
             public override Compressor NewCompressor()
             {
                 return DUMMY_COMPRESSOR;
@@ -90,15 +86,15 @@ namespace Lucene.Net.Codecs.Compressing.Dummy
 
         /// <summary>
         /// Constructor that allows to configure the <paramref name="chunkSize"/>. </summary>
-        public DummyCompressingCodec(int chunkSize, bool withSegmentSuffix)
-            : base(withSegmentSuffix ? "DummyCompressingStoredFields" : "", DUMMY, chunkSize)
+        public DummyCompressingCodec(ICodecProvider codecProvider, int chunkSize, bool withSegmentSuffix)
+            : base(codecProvider, withSegmentSuffix ? "DummyCompressingStoredFields" : "", DUMMY, chunkSize)
         {
         }
 
         /// <summary>
         /// Default constructor. </summary>
-        public DummyCompressingCodec()
-            : this(1 << 14, false)
+        public DummyCompressingCodec(ICodecProvider codecProvider)
+            : this(codecProvider, 1 << 14, false)
         {
         }
     }

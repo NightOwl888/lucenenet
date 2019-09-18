@@ -1,3 +1,8 @@
+using System;
+using Lucene42FieldInfosFormat = Lucene.Net.Codecs.Lucene42.Lucene42FieldInfosFormat;
+using Lucene42FieldInfosWriter = Lucene.Net.Codecs.Lucene42.Lucene42FieldInfosWriter;
+using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
+
 namespace Lucene.Net.Codecs.Lucene45
 {
     /*
@@ -17,25 +22,49 @@ namespace Lucene.Net.Codecs.Lucene45
      * limitations under the License.
      */
 
-    using Lucene42FieldInfosFormat = Lucene.Net.Codecs.Lucene42.Lucene42FieldInfosFormat;
-    using Lucene42FieldInfosWriter = Lucene.Net.Codecs.Lucene42.Lucene42FieldInfosWriter;
-    using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
-
     /// <summary>
     /// Read-write version of <see cref="Lucene45Codec"/> for testing.
     /// </summary>
 #pragma warning disable 612, 618
     public class Lucene45RWCodec : Lucene45Codec
     {
-        private readonly FieldInfosFormat fieldInfosFormat = new Lucene42FieldInfosFormatAnonymousInnerClassHelper();
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public Lucene45RWCodec(LuceneTestCase luceneTestCase)
+            : base(luceneTestCase)
+        {
+            this.fieldInfosFormat = new Lucene42FieldInfosFormatAnonymousInnerClassHelper(luceneTestCase);
+        }
+#else
+        public Lucene45RWCodec(ICodecProvider codecProvider)
+            : base(codecProvider)
+        { }
+#endif
+
+        private readonly FieldInfosFormat fieldInfosFormat
+#if !FEATURE_INSTANCE_CODEC_IMPERSONATION
+            = new Lucene42FieldInfosFormatAnonymousInnerClassHelper()
+#endif
+            ;
 
         private class Lucene42FieldInfosFormatAnonymousInnerClassHelper : Lucene42FieldInfosFormat
         {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            private readonly LuceneTestCase luceneTestCase;
+            public Lucene42FieldInfosFormatAnonymousInnerClassHelper(LuceneTestCase luceneTestCase)
+            {
+                this.luceneTestCase = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
+            }
+#endif
+
             public override FieldInfosWriter FieldInfosWriter
             {
                 get
                 {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                    if (!luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
                     if (!LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
                     {
                         return base.FieldInfosWriter;
                     }

@@ -77,8 +77,8 @@ namespace Lucene.Net.Codecs.Memory
         private readonly bool doPackFST;
         private readonly float acceptableOverheadRatio;
 
-        public MemoryPostingsFormat() 
-            : this(false, PackedInt32s.DEFAULT)
+        public MemoryPostingsFormat(ICodecProvider codecProvider) 
+            : this(codecProvider, false, PackedInt32s.DEFAULT)
         {
         }
 
@@ -88,8 +88,8 @@ namespace Lucene.Net.Codecs.Memory
         ///        NOTE: packed FSTs are limited to ~2.1 GB of postings. </param>
         /// <param name="acceptableOverheadRatio"> Allowable overhead for packed <see cref="int"/>s
         ///        during FST construction. </param>
-        public MemoryPostingsFormat(bool doPackFST, float acceptableOverheadRatio) 
-            : base()
+        public MemoryPostingsFormat(ICodecProvider codecProvider, bool doPackFST, float acceptableOverheadRatio) 
+            : base(codecProvider)
         {
             this.doPackFST = doPackFST;
             this.acceptableOverheadRatio = acceptableOverheadRatio;

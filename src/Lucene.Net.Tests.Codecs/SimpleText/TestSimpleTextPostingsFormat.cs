@@ -26,7 +26,13 @@ namespace Lucene.Net.Codecs.SimpleText
     /// </summary>
     public class TestSimpleTextPostingsFormat : BasePostingsFormatTestCase // please figure out why I am so horrendously slow!
     {
-        private readonly Codec codec = new SimpleTextCodec();
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestSimpleTextPostingsFormat()
+        {
+            codec = new SimpleTextCodec(this);
+        }
 
         protected override Codec GetCodec()
         {

@@ -34,8 +34,8 @@
     [PostingsFormatName("SimpleText")] // LUCENENET specific - using PostingsFormatName attribute to ensure the default name passed from subclasses is the same as this class name
     public sealed class SimpleTextPostingsFormat : PostingsFormat
     {
-        public SimpleTextPostingsFormat() 
-            : base()
+        public SimpleTextPostingsFormat(ICodecProvider codecProvider) 
+            : base(codecProvider)
         {
         }
 

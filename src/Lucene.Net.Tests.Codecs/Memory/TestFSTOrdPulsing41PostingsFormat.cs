@@ -26,7 +26,13 @@ namespace Lucene.Net.Codecs.Memory
     /// </summary>
     public class TestFSTOrdPulsing41PostingsFormat : BasePostingsFormatTestCase
     {
-        private readonly Codec codec = TestUtil.AlwaysPostingsFormat(new FSTOrdPulsing41PostingsFormat());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestFSTOrdPulsing41PostingsFormat()
+        {
+            codec = TestUtil.AlwaysPostingsFormat(new FSTOrdPulsing41PostingsFormat(this));
+        }
 
         protected override Codec GetCodec()
         {

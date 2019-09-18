@@ -28,7 +28,13 @@ namespace Lucene.Net.Codecs.Sep
     public class TestSepPostingsFormat : BasePostingsFormatTestCase
     {
         // TODO: randomize cutoff
-        private readonly Codec codec = TestUtil.AlwaysPostingsFormat(new MockSepPostingsFormat());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestSepPostingsFormat()
+        {
+            codec = TestUtil.AlwaysPostingsFormat(new MockSepPostingsFormat(this));
+        }
 
         protected override Codec GetCodec()
         {

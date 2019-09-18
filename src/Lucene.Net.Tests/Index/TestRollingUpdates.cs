@@ -52,8 +52,9 @@ namespace Lucene.Net.Index
             //provider.register(new MemoryCodec());
             if ((!"Lucene3x".Equals(Codec.Default.Name, StringComparison.Ordinal)) && LuceneTestCase.Random.NextBoolean())
             {
+                // LUCENENET specific - pass test instance as ICodecProvider
                 Codec.Default =
-                    TestUtil.AlwaysPostingsFormat(new MemoryPostingsFormat(LuceneTestCase.Random.nextBoolean(), random.NextSingle()));
+                    TestUtil.AlwaysPostingsFormat(new MemoryPostingsFormat(this, LuceneTestCase.Random.nextBoolean(), random.NextSingle()));
             }
 
             MockAnalyzer analyzer = new MockAnalyzer(LuceneTestCase.Random);

@@ -73,7 +73,9 @@ namespace Lucene.Net.Index
         public virtual void TestTermOrd()
         {
             Directory d = NewDirectory();
-            IndexWriter w = new IndexWriter(d, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat())));
+            IndexWriter w = new IndexWriter(d, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random))
+                // LUCENENET specific - pass test instance as ICodecProvider
+                .SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat(this))));
             Documents.Document doc = new Documents.Document();
             doc.Add(NewTextField("f", "a b c", Field.Store.NO));
             w.AddDocument(doc);

@@ -1,11 +1,12 @@
+using System;
+using Lucene40FieldInfosFormat = Lucene.Net.Codecs.Lucene40.Lucene40FieldInfosFormat;
+using Lucene40FieldInfosWriter = Lucene.Net.Codecs.Lucene40.Lucene40FieldInfosWriter;
+using Lucene40RWDocValuesFormat = Lucene.Net.Codecs.Lucene40.Lucene40RWDocValuesFormat;
+using Lucene40RWNormsFormat = Lucene.Net.Codecs.Lucene40.Lucene40RWNormsFormat;
+using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
+
 namespace Lucene.Net.Codecs.Lucene41
 {
-    using Lucene40FieldInfosFormat = Lucene.Net.Codecs.Lucene40.Lucene40FieldInfosFormat;
-    using Lucene40FieldInfosWriter = Lucene.Net.Codecs.Lucene40.Lucene40FieldInfosWriter;
-    using Lucene40RWDocValuesFormat = Lucene.Net.Codecs.Lucene40.Lucene40RWDocValuesFormat;
-    using Lucene40RWNormsFormat = Lucene.Net.Codecs.Lucene40.Lucene40RWNormsFormat;
-    using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
-
     /*
      * Licensed to the Apache Software Foundation (ASF) under one or more
      * contributor license agreements.  See the NOTICE file distributed with
@@ -30,15 +31,46 @@ namespace Lucene.Net.Codecs.Lucene41
     public class Lucene41RWCodec : Lucene41Codec
     {
         private readonly StoredFieldsFormat fieldsFormat = new Lucene41StoredFieldsFormat();
-        private readonly FieldInfosFormat fieldInfos = new Lucene40FieldInfosFormatAnonymousInnerClassHelper();
+        private readonly FieldInfosFormat fieldInfos
+#if !FEATURE_INSTANCE_CODEC_IMPERSONATION
+            = new Lucene40FieldInfosFormatAnonymousInnerClassHelper()
+#endif
+            ;
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public Lucene41RWCodec(LuceneTestCase luceneTestCase)
+            : base(luceneTestCase)
+        {
+            this.fieldInfos = new Lucene40FieldInfosFormatAnonymousInnerClassHelper(luceneTestCase);
+            this.docValues = new Lucene40RWDocValuesFormat(luceneTestCase);
+            this.norms = new Lucene40RWNormsFormat(luceneTestCase);
+        }
+#else
+        public Lucene41RWCodec(ICodecProvider codecProvider)
+            : base(codecProvider)
+        {
+            this.docValues = new Lucene40RWDocValuesFormat(codecProvider);
+        }
+#endif
 
         private class Lucene40FieldInfosFormatAnonymousInnerClassHelper : Lucene40FieldInfosFormat
         {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            private readonly LuceneTestCase luceneTestCase;
+            public Lucene40FieldInfosFormatAnonymousInnerClassHelper(LuceneTestCase luceneTestCase)
+            {
+                this.luceneTestCase = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
+            }
+#endif
+
             public override FieldInfosWriter FieldInfosWriter
             {
                 get
                 {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+                    if (!luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
                     if (!LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
                     {
                         return base.FieldInfosWriter;
                     }
@@ -50,8 +82,12 @@ namespace Lucene.Net.Codecs.Lucene41
             }
         }
 
-        private readonly DocValuesFormat docValues = new Lucene40RWDocValuesFormat();
-        private readonly NormsFormat norms = new Lucene40RWNormsFormat();
+        private readonly DocValuesFormat docValues;
+        private readonly NormsFormat norms
+#if !FEATURE_INSTANCE_CODEC_IMPERSONATION
+            = new Lucene40RWNormsFormat()
+#endif
+            ;
 
 
         public override FieldInfosFormat FieldInfosFormat

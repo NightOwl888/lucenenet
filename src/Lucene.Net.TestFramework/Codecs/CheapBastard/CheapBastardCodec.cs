@@ -34,17 +34,19 @@ namespace Lucene.Net.Codecs.CheapBastard
     public class CheapBastardCodec : FilterCodec
     {
         // TODO: would be better to have no terms index at all and bsearch a terms dict
-        private readonly PostingsFormat postings = new Lucene41PostingsFormat(100, 200);
+        private readonly PostingsFormat postings;
         // uncompressing versions, waste lots of disk but no ram
         private readonly StoredFieldsFormat storedFields = new Lucene40StoredFieldsFormat();
         private readonly TermVectorsFormat termVectors = new Lucene40TermVectorsFormat();
         // these go to disk for all docvalues/norms datastructures
-        private readonly DocValuesFormat docValues = new DiskDocValuesFormat();
+        private readonly DocValuesFormat docValues;
         private readonly NormsFormat norms = new DiskNormsFormat();
 
-        public CheapBastardCodec()
-            : base(new Lucene46Codec())
+        public CheapBastardCodec(ICodecProvider codecProvider)
+            : base(new Lucene46Codec(codecProvider))
         {
+            postings = new Lucene41PostingsFormat(codecProvider, 100, 200);
+            docValues = new DiskDocValuesFormat(codecProvider);
         }
 
         public override PostingsFormat PostingsFormat

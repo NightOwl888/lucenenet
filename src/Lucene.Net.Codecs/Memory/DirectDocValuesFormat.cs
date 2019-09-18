@@ -64,8 +64,8 @@
 
         /// <summary>
         /// Sole constructor. </summary>
-        public DirectDocValuesFormat() 
-            : base()
+        public DirectDocValuesFormat(ICodecProvider codecProvider) 
+            : base(codecProvider)
         {
         }
 

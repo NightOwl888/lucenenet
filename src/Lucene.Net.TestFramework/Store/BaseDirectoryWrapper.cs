@@ -1,3 +1,9 @@
+using Lucene.Net.Codecs;
+using Lucene.Net.Util;
+using System;
+using DirectoryReader = Lucene.Net.Index.DirectoryReader;
+using TestUtil = Lucene.Net.Util.TestUtil;
+
 namespace Lucene.Net.Store
 {
     /*
@@ -17,9 +23,6 @@ namespace Lucene.Net.Store
      * limitations under the License.
      */
 
-    using DirectoryReader = Lucene.Net.Index.DirectoryReader;
-    using TestUtil = Lucene.Net.Util.TestUtil;
-
     /// <summary>
     /// Calls check index on dispose.
     /// </summary>
@@ -32,9 +35,17 @@ namespace Lucene.Net.Store
         private bool crossCheckTermVectorsOnClose = true;
         private volatile bool isOpen = true; // LUCENENET specific - private because volatile is not CLS compliant, but made protected setter
 
-        public BaseDirectoryWrapper(Directory @delegate)
+        public BaseDirectoryWrapper(
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            LuceneTestCase luceneTestCase,
+#endif
+            Directory @delegate)
             : base(@delegate)
         {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            this.CodecProvider = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
+            @delegate.CodecProvider = this.CodecProvider;
+#endif
         }
 
         protected override void Dispose(bool disposing)

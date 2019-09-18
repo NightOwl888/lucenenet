@@ -37,7 +37,8 @@ namespace Lucene.Net.Codecs.Pulsing
         public virtual void TestSophisticatedReuse()
         {
             // we always run this test with pulsing codec.
-            Codec cp = TestUtil.AlwaysPostingsFormat(new Pulsing41PostingsFormat(1));
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Codec cp = TestUtil.AlwaysPostingsFormat(new Pulsing41PostingsFormat(this, 1));
             Directory dir = NewDirectory();
             RandomIndexWriter iw = new RandomIndexWriter(Random, dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(cp));
             Document doc = new Document();
@@ -79,7 +80,8 @@ namespace Lucene.Net.Codecs.Pulsing
         public virtual void TestNestedPulsing()
         {
             // we always run this test with pulsing codec.
-            Codec cp = TestUtil.AlwaysPostingsFormat(new NestedPulsingPostingsFormat());
+            // LUCENENET specific - pass test instance as ICodecProvider
+            Codec cp = TestUtil.AlwaysPostingsFormat(new NestedPulsingPostingsFormat(this));
             BaseDirectoryWrapper dir = NewDirectory();
             RandomIndexWriter iw = new RandomIndexWriter(Random, dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(cp));
             Document doc = new Document();

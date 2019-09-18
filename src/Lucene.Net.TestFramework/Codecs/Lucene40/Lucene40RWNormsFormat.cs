@@ -1,3 +1,8 @@
+using System;
+using IndexFileNames = Lucene.Net.Index.IndexFileNames;
+using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
+using SegmentWriteState = Lucene.Net.Index.SegmentWriteState;
+
 namespace Lucene.Net.Codecs.Lucene40
 {
     /*
@@ -17,18 +22,26 @@ namespace Lucene.Net.Codecs.Lucene40
      * limitations under the License.
      */
 
-    using IndexFileNames = Lucene.Net.Index.IndexFileNames;
-    using LuceneTestCase = Lucene.Net.Util.LuceneTestCase;
-    using SegmentWriteState = Lucene.Net.Index.SegmentWriteState;
-
     /// <summary>
     /// Read-write version of <see cref="Lucene40NormsFormat"/> for testing. </summary>
 #pragma warning disable 612, 618
     public class Lucene40RWNormsFormat : Lucene40NormsFormat
     {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        private readonly LuceneTestCase luceneTestCase;
+        public Lucene40RWNormsFormat(LuceneTestCase luceneTestCase)
+        {
+            this.luceneTestCase = luceneTestCase ?? throw new ArgumentNullException(nameof(luceneTestCase));
+        }
+#endif
+
         public override DocValuesConsumer NormsConsumer(SegmentWriteState state)
         {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            if (!luceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#else
             if (!LuceneTestCase.OLD_FORMAT_IMPERSONATION_IS_ACTIVE)
+#endif
             {
                 return base.NormsConsumer(state);
             }

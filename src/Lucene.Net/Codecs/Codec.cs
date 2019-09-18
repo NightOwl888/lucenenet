@@ -71,9 +71,7 @@ namespace Lucene.Net.Codecs
         /// <exception cref="ArgumentNullException">The <paramref name="codecFactory"/> parameter is <c>null</c>.</exception>
         public static void SetCodecFactory(ICodecFactory codecFactory)
         {
-            if (codecFactory == null)
-                throw new ArgumentNullException("codecFactory");
-            Codec.codecFactory = codecFactory;
+            Codec.codecFactory = codecFactory ?? throw new ArgumentNullException(nameof(codecFactory));
         }
 
         /// <summary>
@@ -92,10 +90,19 @@ namespace Lucene.Net.Codecs
         /// the segment to be read this class should be registered by subclassing <see cref="DefaultCodecFactory"/> and
         /// calling <see cref="DefaultCodecFactory.ScanForCodecs(System.Reflection.Assembly)"/> in the class constructor. 
         /// The new <see cref="ICodecFactory"/> can be registered by calling <see cref="SetCodecFactory"/> at application startup.</summary>
-        protected Codec()
+        /// <param name="codecProvider">A <see cref="ICodecProvider"/> that is used to provide instances of codec types (subclasses of
+        /// the static members of <see cref="Codecs.Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>).</param>
+        protected Codec(ICodecProvider codecProvider)
         {
-            name = NamedServiceFactory<Codec>.GetServiceName(this.GetType());
+            this.CodecProvider = codecProvider ?? throw new ArgumentNullException(nameof(codecProvider));
+            this.name = NamedServiceFactory<Codec>.GetServiceName(this.GetType());
         }
+
+        /// <summary>
+        /// Provides instances of <see cref="Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>.
+        /// </summary>
+        // LUCENENET specific
+        protected internal ICodecProvider CodecProvider { get; private set; }
 
         /// <summary>
         /// Returns this codec's name. </summary>
@@ -141,6 +148,8 @@ namespace Lucene.Net.Codecs
 
         /// <summary>
         /// Looks up a codec by name. </summary>
+        [Obsolete("Use CodecProvider.Codec.ForName(string) instead. The CodecProvider property can be found on Codec-derived types as well as on Directory-derived types.")]
+        // LUCENENET specific - marked obsolete because we want to ensure there is a seam between the static method and the caller
         public static Codec ForName(string name)
         {
             return codecFactory.GetCodec(name);
@@ -148,6 +157,8 @@ namespace Lucene.Net.Codecs
 
         /// <summary>
         /// Returns a list of all available codec names. </summary>
+        [Obsolete("Use CodecProvider.Codec.AvailableCodecs instead. The CodecProvider property can be found on Codec-derived types as well as on Directory-derived types.")]
+        // LUCENENET specific - marked obsolete because we want to ensure there is a seam between the static method and the caller
         public static ICollection<string> AvailableCodecs
         {
             get
@@ -173,6 +184,8 @@ namespace Lucene.Net.Codecs
         /// <seealso cref="Index.IndexWriterConfig"/>s.
         /// </summary>
         // TODO: should we use this, or maybe a system property is better?
+        [Obsolete("Use CodecProvider.Codec.Default instead. The CodecProvider property can be found on Codec-derived types as well as on Directory-derived types.")]
+        // LUCENENET specific - marked obsolete because we want to ensure there is a seam between the static method and the caller
         public static Codec Default
         {
             get
@@ -187,7 +200,7 @@ namespace Lucene.Net.Codecs
             }
             set
             {
-                defaultCodec = value;
+                defaultCodec = value ?? throw new ArgumentNullException(nameof(value)); // LUCENENET specific - added guard clause
             }
         }
 

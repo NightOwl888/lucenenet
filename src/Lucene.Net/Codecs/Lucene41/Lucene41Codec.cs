@@ -74,6 +74,7 @@ namespace Lucene.Net.Codecs.Lucene41
             private readonly Lucene41Codec outerInstance;
 
             public PerFieldPostingsFormatAnonymousInnerClassHelper(Lucene41Codec outerInstance)
+                : base(outerInstance.CodecProvider)
             {
                 this.outerInstance = outerInstance;
             }
@@ -86,10 +87,11 @@ namespace Lucene.Net.Codecs.Lucene41
 
         /// <summary>
         /// Sole constructor. </summary>
-        public Lucene41Codec()
-            : base()
+        public Lucene41Codec(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
             postingsFormat = new PerFieldPostingsFormatAnonymousInnerClassHelper(this);
+            dvFormat = new Lucene40DocValuesFormat(codecProvider);
         }
 
         // TODO: slightly evil
@@ -134,7 +136,8 @@ namespace Lucene.Net.Codecs.Lucene41
             // LUCENENET specific - lazy initialize the codec to ensure we get the correct type if overridden.
             if (defaultFormat == null)
             {
-                defaultFormat = Codecs.PostingsFormat.ForName("Lucene41");
+                // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                defaultFormat = CodecProvider.PostingsFormat.ForName("Lucene41");
             }
             return defaultFormat;
         }
@@ -146,7 +149,7 @@ namespace Lucene.Net.Codecs.Lucene41
 
         // LUCENENET specific - lazy initialize the codec to ensure we get the correct type if overridden.
         private PostingsFormat defaultFormat;
-        private readonly DocValuesFormat dvFormat = new Lucene40DocValuesFormat();
+        private readonly DocValuesFormat dvFormat;
         private readonly NormsFormat normsFormat = new Lucene40NormsFormat();
 
         public override NormsFormat NormsFormat

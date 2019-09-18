@@ -83,7 +83,9 @@ namespace Lucene.Net.Index
         [Test]
         public virtual void TestPrevTermAtEnd()
         {
-            IndexWriter writer = new IndexWriter(Dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat())));
+            IndexWriter writer = new IndexWriter(Dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random))
+                // LUCENENET specific - pass test instance as ICodecProvider
+                .SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat(this))));
             AddDoc(writer, "aaa bbb");
             writer.Dispose();
             SegmentReader reader = GetOnlySegmentReader(DirectoryReader.Open(Dir));

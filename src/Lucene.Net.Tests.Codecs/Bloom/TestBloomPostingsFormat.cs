@@ -26,7 +26,13 @@ namespace Lucene.Net.Codecs.Bloom
     /// </summary>
     public class TestBloomPostingsFormat : BasePostingsFormatTestCase
     {
-        private readonly Codec codec = TestUtil.AlwaysPostingsFormat(new TestBloomFilteredLucene41Postings());
+        private readonly Codec codec;
+
+        // LUCENENET specific - pass test instance as ICodecProvider
+        public TestBloomPostingsFormat()
+        {
+            codec = TestUtil.AlwaysPostingsFormat(new TestBloomFilteredLucene41Postings(this));
+        }
 
         protected override Codec GetCodec()
         {

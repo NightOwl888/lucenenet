@@ -1,3 +1,4 @@
+using Lucene.Net.Codecs;
 using Lucene.Net.Util;
 using System;
 using System.Text;
@@ -160,11 +161,13 @@ namespace Lucene.Net.Index
 #endif
             writeLockTimeout = IndexWriterConfig.WRITE_LOCK_TIMEOUT;
             indexingChain = DocumentsWriterPerThread.DefaultIndexingChain;
-            codec = Codec.Default;
-            if (codec == null)
-            {
-                throw new System.NullReferenceException();
-            }
+            // LUCENENET specfic - lazy load the codec so we don't instantiate
+            // it before we have a chance to set it.
+            //codec = Codec.Default;
+            //if (codec == null)
+            //{
+            //    throw new System.NullReferenceException();
+            //}
             infoStream = Util.InfoStream.Default;
             mergePolicy = new TieredMergePolicy();
             flushPolicy = new FlushByRamOrCountsPolicy();
@@ -194,6 +197,7 @@ namespace Lucene.Net.Index
             mergeScheduler = config.MergeScheduler;
             writeLockTimeout = config.WriteLockTimeout;
             indexingChain = config.IndexingChain;
+            CodecProvider = config.CodecProvider; // LUCENENET specific - ensure we copy our ICodecProvider instance
             codec = config.Codec;
             infoStream = config.InfoStream;
             mergePolicy = config.MergePolicy;
@@ -550,8 +554,27 @@ namespace Lucene.Net.Index
         {
             get
             {
+                // LUCENENET specific - lazy load our codec so we have a chance to set it
+                // before it is cached.
+                if (codec == null)
+                {
+                    codec = CodecProvider.Codec.Default;
+                }
                 return codec;
             }
+        }
+
+        // LUCENENET specific
+        private ICodecProvider codecProvider = Codecs.CodecProvider.Default;
+        /// <summary>
+        /// A facade around the static members of <see cref="Codec"/>, <see cref="Codecs.DocValuesFormat"/> and <see cref="Codecs.PostingsFormat"/>
+        /// which should always be used instead of accessing the static members directly. This provides a seam that can be exploited during testing.
+        /// </summary>
+        // LUCENENET specific
+        protected ICodecProvider CodecProvider
+        {
+            get => codecProvider;
+            set => codecProvider = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         /// <summary>

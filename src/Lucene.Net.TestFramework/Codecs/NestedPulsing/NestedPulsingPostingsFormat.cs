@@ -33,8 +33,8 @@ namespace Lucene.Net.Codecs.NestedPulsing
     [PostingsFormatName("NestedPulsing")] // LUCENENET specific - using PostingsFormatName attribute to ensure the default name passed from subclasses is the same as this class name
     public sealed class NestedPulsingPostingsFormat : PostingsFormat
     {
-        public NestedPulsingPostingsFormat()
-            : base()
+        public NestedPulsingPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
         }
 

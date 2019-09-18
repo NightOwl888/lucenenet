@@ -68,8 +68,8 @@ namespace Lucene.Net.Codecs.PerField
 
         /// <summary>
         /// Sole constructor. </summary>
-        public PerFieldPostingsFormat()
-            : base()
+        public PerFieldPostingsFormat(ICodecProvider codecProvider)
+            : base(codecProvider)
         {
         }
 
@@ -218,7 +218,8 @@ namespace Lucene.Net.Codecs.PerField
                                 // null formatName means the field is in fieldInfos, but has no postings!
                                 string suffix = fi.GetAttribute(PER_FIELD_SUFFIX_KEY);
                                 Debug.Assert(suffix != null);
-                                PostingsFormat format = PostingsFormat.ForName(formatName);
+                                // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+                                PostingsFormat format = outerInstance.CodecProvider.PostingsFormat.ForName(formatName);
                                 string segmentSuffix = GetSuffix(formatName, suffix);
                                 if (!formats.ContainsKey(segmentSuffix))
                                 {

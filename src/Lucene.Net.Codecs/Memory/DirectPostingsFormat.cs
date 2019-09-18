@@ -83,8 +83,8 @@ namespace Lucene.Net.Codecs.Memory
 
         // TODO: allow passing/wrapping arbitrary postings format?
 
-        public DirectPostingsFormat() 
-            : this(DEFAULT_MIN_SKIP_COUNT, DEFAULT_LOW_FREQ_CUTOFF)
+        public DirectPostingsFormat(ICodecProvider codecProvider) 
+            : this(codecProvider, DEFAULT_MIN_SKIP_COUNT, DEFAULT_LOW_FREQ_CUTOFF)
         {
         }
 
@@ -95,8 +95,8 @@ namespace Lucene.Net.Codecs.Memory
         /// to hold all docs, freqs, position and offsets; terms
         /// with higher docFreq will use separate arrays. 
         /// </summary>
-        public DirectPostingsFormat(int minSkipCount, int lowFreqCutoff) 
-            : base()
+        public DirectPostingsFormat(ICodecProvider codecProvider, int minSkipCount, int lowFreqCutoff) 
+            : base(codecProvider)
         {
             _minSkipCount = minSkipCount;
             _lowFreqCutoff = lowFreqCutoff;
@@ -104,12 +104,14 @@ namespace Lucene.Net.Codecs.Memory
 
         public override FieldsConsumer FieldsConsumer(SegmentWriteState state)
         {
-            return ForName("Lucene41").FieldsConsumer(state);
+            // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+            return CodecProvider.PostingsFormat.ForName("Lucene41").FieldsConsumer(state);
         }
 
         public override FieldsProducer FieldsProducer(SegmentReadState state)
         {
-            var postings = ForName("Lucene41").FieldsProducer(state);
+            // LUCENENET specific - use the ICodecProvider instead of static members to provide a seam to use during testing
+            var postings = CodecProvider.PostingsFormat.ForName("Lucene41").FieldsProducer(state);
             if (state.Context.Context != IOContext.UsageContext.MERGE)
             {
                 FieldsProducer loadedPostings;

@@ -24,6 +24,7 @@ namespace Lucene.Net.Codecs.Asserting
     /// <summary>
     /// Test <see cref="AssertingStoredFieldsFormat"/> directly
     /// </summary>
+    [SuppressCodecs("Lucene3x")]
 #if TESTFRAMEWORK_MSTEST
     [Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute]
 #endif
@@ -52,9 +53,14 @@ namespace Lucene.Net.Codecs.Asserting
         }
 #endif
 
-        private readonly Codec codec = new AssertingCodec();
+        private Codec codec;
         protected override Codec GetCodec()
         {
+            // LUCENENET: Lazy initialize the codec type
+            if (codec == null)
+            {
+                codec = new AssertingCodec(this);
+            }
             return codec;
         }
     }

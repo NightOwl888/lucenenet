@@ -80,7 +80,8 @@ namespace Lucene.Net.Codecs.Lucene41
             Directory dir = NewDirectory();
             Analyzer analyzer = new AnalyzerAnonymousInnerClassHelper(this, Analyzer.PER_FIELD_REUSE_STRATEGY);
             IndexWriterConfig iwc = NewIndexWriterConfig(TEST_VERSION_CURRENT, analyzer);
-            iwc.SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat()));
+            // LUCENENET specific - pass test instance as ICodecProvider
+            iwc.SetCodec(TestUtil.AlwaysPostingsFormat(new Lucene41PostingsFormat(this)));
             // TODO we could actually add more fields implemented with different PFs
             // or, just put this test into the usual rotation?
             RandomIndexWriter iw = new RandomIndexWriter(Random, dir, (IndexWriterConfig)iwc.Clone());

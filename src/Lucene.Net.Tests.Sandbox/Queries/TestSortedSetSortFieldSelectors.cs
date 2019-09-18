@@ -44,11 +44,12 @@ namespace Lucene.Net.Sandbox.Queries
             savedCodec = Codec.Default;
             // currently only these codecs that support random access ordinals
             int victim = Random.nextInt(3);
+            // LUCENENET specific - pass test instance as ICodecProvider
             switch (victim)
             {
-                case 0: Codec.Default = (TestUtil.AlwaysDocValuesFormat(new DirectDocValuesFormat())); break;
-                case 1: Codec.Default = (TestUtil.AlwaysDocValuesFormat(new DiskDocValuesFormat())); break;
-                default: Codec.Default = (TestUtil.AlwaysDocValuesFormat(new Lucene45DocValuesFormat())); break;
+                case 0: Codec.Default = (TestUtil.AlwaysDocValuesFormat(new DirectDocValuesFormat(this))); break;
+                case 1: Codec.Default = (TestUtil.AlwaysDocValuesFormat(new DiskDocValuesFormat(this))); break;
+                default: Codec.Default = (TestUtil.AlwaysDocValuesFormat(new Lucene45DocValuesFormat(this))); break;
             }
         }
 

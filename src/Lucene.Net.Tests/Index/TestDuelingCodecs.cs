@@ -62,7 +62,7 @@ namespace Lucene.Net.Index
             // codecs we should probably pick 2 from Codec.availableCodecs()
 
             LeftCodec = Codec.ForName("SimpleText");
-            RightCodec = new RandomCodec(Random);
+            RightCodec = new RandomCodec(this, Random);// LUCENENET specific - pass test instance as ICodecProvider
 
             LeftDir = NewDirectory();
             RightDir = NewDirectory();
