@@ -9,7 +9,7 @@ using Assert = Lucene.Net.TestFramework.Assert;
 using Test = NUnit.Framework.TestAttribute;
 using Assert = NUnit.Framework.Assert;
 #elif TESTFRAMEWORK_XUNIT
-using Test = Xunit.FactAttribute;
+using Test = Lucene.Net.TestFramework.SkippableFactAttribute;
 using Assert = Lucene.Net.TestFramework.Assert;
 #endif
 
