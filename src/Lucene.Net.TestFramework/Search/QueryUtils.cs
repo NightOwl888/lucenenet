@@ -332,6 +332,7 @@ namespace Lucene.Net.Search
             IndexReader r = s.IndexReader;
 
 #if FEATURE_INSTANCE_CODEC_IMPERSONATION
+            // LUCENENET TODO: Optimize
             IndexReader[] emptyReaders = LoadEmptyReaders(luceneTestCase);
 #endif
 
@@ -406,9 +407,9 @@ namespace Lucene.Net.Search
         {
             Debug.Assert(numDocs > 0);
             Directory d = new MockDirectoryWrapper(
-#if FEATURE_INSTANCE_CODEC_IMPERSONATION
-                luceneTestCase,
-#endif
+//#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+//                luceneTestCase,
+//#endif
                 random, new RAMDirectory());
             IndexWriter w = new IndexWriter(d, new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, new MockAnalyzer(random))
 #if FEATURE_INSTANCE_CODEC_IMPERSONATION
