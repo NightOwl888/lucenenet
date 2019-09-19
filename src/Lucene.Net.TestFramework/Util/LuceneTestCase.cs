@@ -491,7 +491,11 @@ namespace Lucene.Net.Util
         /// <para/>
         /// @lucene.internal
         /// </summary>
+//#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+//        public bool OLD_FORMAT_IMPERSONATION_IS_ACTIVE = false; // LUCENENET TODO: API - make into a property and rename
+//#else
         public static bool OLD_FORMAT_IMPERSONATION_IS_ACTIVE = false;
+//#endif
 
         // -----------------------------------------------------------------
         // Class level (suite) rules.
@@ -531,6 +535,32 @@ namespace Lucene.Net.Util
         /// internal and this field is needed by other classes.
         /// </summary>
         public TimeZoneInfo TimeZone { get { return ClassEnvRule.timeZone; } }
+#endif
+
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        /// <summary>
+        /// When testing, use this property instead of the static <see cref="Codecs.Codec"/>
+        /// for accessing <see cref="FakeCodec.AvailableCodecs()"/>, <see cref="FakeCodec.Default"/>,
+        /// and <see cref="FakeCodec.ForName(string)"/> to ensure you get codec instances that support
+        /// <see cref="OLD_FORMAT_IMPERSONATION_IS_ACTIVE"/>.
+        /// </summary>
+        public FakeCodec Codec { get; private set; }
+
+        /// <summary>
+        /// When testing, use this property instead of the static <see cref="Codecs.DocValuesFormat"/>
+        /// for accessing <see cref="FakeDocValuesFormat.AvailableDocValuesFormats()"/>
+        /// and <see cref="FakeDocValuesFormat.ForName(string)"/> to ensure you get codec instances that support
+        /// <see cref="OLD_FORMAT_IMPERSONATION_IS_ACTIVE"/>.
+        /// </summary>
+        public FakeDocValuesFormat DocValuesFormat { get; private set; }
+
+        /// <summary>
+        /// When testing, use this property instead of the static <see cref="Codecs.PostingsFormat"/>
+        /// for accessing <see cref="FakePostingsFormat.AvailablePostingsFormats()"/>
+        /// and <see cref="FakePostingsFormat.ForName(string)"/> to ensure you get codec instances that support
+        /// <see cref="OLD_FORMAT_IMPERSONATION_IS_ACTIVE"/>.
+        /// </summary>
+        public FakePostingsFormat PostingsFormat { get; private set; }
 #endif
 
         // LUCENENET TODO
@@ -719,11 +749,16 @@ namespace Lucene.Net.Util
                 */
         }
 
-        // LUCENENET TODO: API - make these settable by end users so additional codecs can be injected into tests
         // LUCENENET specific constants to scan the test framework for codecs/docvaluesformats/postingsformats only once
-        private static readonly TestCodecFactory TEST_CODEC_FACTORY = new TestCodecFactory();
-        private static readonly TestDocValuesFormatFactory TEST_DOCVALUES_FORMAT_FACTORY = new TestDocValuesFormatFactory();
-        private static readonly TestPostingsFormatFactory TEST_POSTINGS_FORMAT_FACTORY = new TestPostingsFormatFactory();
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public TestCodecFactory CodecFactory { get; set; }
+        public TestDocValuesFormatFactory DocValuesFormatFactory { get; set; }
+        public TestPostingsFormatFactory PostingsFormatFactory { get; set; }
+#else
+        public static TestCodecFactory CodecFactory { get; set; } = new TestCodecFactory();
+        public static TestDocValuesFormatFactory DocValuesFormatFactory { get; set; } = new TestDocValuesFormatFactory();
+        public static TestPostingsFormatFactory PostingsFormatFactory { get; set; } = new TestPostingsFormatFactory();
+#endif
 
 #if FEATURE_STATIC_TESTDATA_INITIALIZATION
 #if TESTFRAMEWORK_MSTEST
@@ -765,9 +800,9 @@ namespace Lucene.Net.Util
             try
             {
                 // Setup the factories
-                Codec.SetCodecFactory(TEST_CODEC_FACTORY);
-                DocValuesFormat.SetDocValuesFormatFactory(TEST_DOCVALUES_FORMAT_FACTORY);
-                PostingsFormat.SetPostingsFormatFactory(TEST_POSTINGS_FORMAT_FACTORY);
+                Codec.SetCodecFactory(CodecFactory);
+                DocValuesFormat.SetDocValuesFormatFactory(DocValuesFormatFactory);
+                PostingsFormat.SetPostingsFormatFactory(PostingsFormatFactory);
 
                 ClassEnvRule.Before();
 
@@ -779,7 +814,8 @@ namespace Lucene.Net.Util
         /// and also picks random defaults for culture, time zone, similarity, and default codec.
         /// <para/>
         /// If you override this method, be sure to call <c>base.BeforeClass()</c> BEFORE setting
-        /// up your test fixture.
+        /// up your test fixture but AFTER setting <see cref="TestCodecFactory"/>, 
+        /// <see cref="TestDocValuesFormatFactory"/>, and/or <see cref="TestPostingsFormatFactory"/>.
         /// </summary>
         // LUCENENET specific method for setting up dependency injection of test classes.
         [OneTimeSetUp]
@@ -789,10 +825,22 @@ namespace Lucene.Net.Util
         {
             try
             {
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
                 // Setup the factories
-                Codec.SetCodecFactory(TEST_CODEC_FACTORY);
-                DocValuesFormat.SetDocValuesFormatFactory(TEST_DOCVALUES_FORMAT_FACTORY);
-                PostingsFormat.SetPostingsFormatFactory(TEST_POSTINGS_FORMAT_FACTORY);
+                CodecFactory = new TestCodecFactory(this);
+                DocValuesFormatFactory = new TestDocValuesFormatFactory(this);
+                PostingsFormatFactory = new TestPostingsFormatFactory(this);
+
+                // Setup the properties to fake the static methods
+                Codec = new FakeCodec(this);
+                DocValuesFormat = new FakeDocValuesFormat(this);
+                PostingsFormat = new FakePostingsFormat(this);
+#else
+                // Setup the factories
+                Codec.SetCodecFactory(CodecFactory);
+                DocValuesFormat.SetDocValuesFormatFactory(DocValuesFormatFactory);
+                PostingsFormat.SetPostingsFormatFactory(PostingsFormatFactory);
+#endif
 
                 ClassEnvRule.Before(this);
 #endif
@@ -1767,7 +1815,11 @@ namespace Lucene.Net.Util
             //}
         }
 
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public bool DefaultCodecSupportsDocValues
+#else
         public static bool DefaultCodecSupportsDocValues
+#endif
         {
             get{ return !Codec.Default.Name.Equals("Lucene3x", StringComparison.Ordinal); }
         }
@@ -2133,7 +2185,11 @@ namespace Lucene.Net.Util
 
         /// <summary>
         /// Returns true if the default codec supports single valued docvalues with missing values </summary>
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public bool DefaultCodecSupportsMissingDocValues
+#else
         public static bool DefaultCodecSupportsMissingDocValues
+#endif
         {
             get
             {
@@ -2152,7 +2208,11 @@ namespace Lucene.Net.Util
 
         /// <summary>
         /// Returns true if the default codec supports SORTED_SET docvalues </summary>
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public bool DefaultCodecSupportsSortedSet
+#else
         public static bool DefaultCodecSupportsSortedSet
+#endif
         {
             get
             {
@@ -2175,7 +2235,11 @@ namespace Lucene.Net.Util
         /// Returns true if the codec "supports" docsWithField
         /// (other codecs return MatchAllBits, because you couldnt write missing values before)
         /// </summary>
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public bool DefaultCodecSupportsDocsWithField
+#else
         public static bool DefaultCodecSupportsDocsWithField
+#endif
         {
             get
             {
@@ -2197,7 +2261,11 @@ namespace Lucene.Net.Util
 
         /// <summary>
         /// Returns true if the codec "supports" field updates. </summary>
+#if FEATURE_INSTANCE_CODEC_IMPERSONATION
+        public bool DefaultCodecSupportsFieldUpdates
+#else
         public static bool DefaultCodecSupportsFieldUpdates
+#endif
         {
             get
             {
