@@ -157,6 +157,9 @@ steps:
                     Invoke-Expression $testExpression
                 }
     
+                # Avoid dotnet vstest collisions by delaying for 250ms
+                Start-Sleep -Milliseconds 250
+    
                 # Execute the jobs in parallel
                 Start-Job $scriptBlock -ArgumentList $testExpression
             }
