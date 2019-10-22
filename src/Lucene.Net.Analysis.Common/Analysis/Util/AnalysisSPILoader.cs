@@ -2,6 +2,7 @@
 using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Lucene.Net.Analysis.Util
 {
@@ -129,6 +130,46 @@ namespace Lucene.Net.Analysis.Util
         public ICollection<string> AvailableServices
         {
             get { return services.Keys; }
+        }
+
+        /// <summary>Creates a new instance of the given <see cref="AbstractAnalysisFactory"/> by invoking the constructor, passing the given argument map.</summary>
+        public static T NewFactoryClassInstance<T>(IDictionary<string, string> args) where T : AbstractAnalysisFactory // LUCENENET: Removed unnecessary clazz parameter, as we are passing the type through 
+        {
+            //try
+            //{
+            return (T)typeof(T).GetConstructor(new Type[] { typeof(IDictionary<string, string>) }).Invoke(new object[] { args });
+            ////    } catch (TargetInvocationException ite) {
+            ////      var cause = ite.InnerException;
+            ////      if (cause is RuntimeException) {
+            ////        throw (RuntimeException) cause;
+            ////}
+            ////      if (cause instanceof Error) {
+            ////        throw (Error) cause;
+            ////      }
+            ////      throw new RuntimeException("Unexpected checked exception while calling constructor of "+clazz.getName(), cause);
+            //    } catch (ReflectiveOperationException e) {
+            //      throw new InvalidOperationException($"Factory {clazz.Name} cannot be instantiated. This is likely due to missing IDictionary<String, String> constructor.", e);
+            //    }
+        }
+
+        /// <summary>Creates a new instance of the given <see cref="AbstractAnalysisFactory"/> by invoking the constructor, passing the given argument map.</summary>
+        public static S NewFactoryClassInstance(Type factory, IDictionary<string, string> args) // LUCENENET: Overload to pass runtime type
+        {
+            //try
+            //{
+            return (S)factory.GetConstructor(new Type[] { typeof(IDictionary<string, string>) }).Invoke(new object[] { args });
+            ////    } catch (TargetInvocationException ite) {
+            ////      var cause = ite.InnerException;
+            ////      if (cause is RuntimeException) {
+            ////        throw (RuntimeException) cause;
+            ////}
+            ////      if (cause instanceof Error) {
+            ////        throw (Error) cause;
+            ////      }
+            ////      throw new RuntimeException("Unexpected checked exception while calling constructor of "+clazz.getName(), cause);
+            //    } catch (ReflectiveOperationException e) {
+            //      throw new InvalidOperationException($"Factory {clazz.Name} cannot be instantiated. This is likely due to missing IDictionary<String, String> constructor.", e);
+            //    }
         }
     }
 }
