@@ -244,6 +244,13 @@ stages:
     pool:
       vmImage: $(imageName)
     steps:
+    # Explicitly install .NET Core 1.x SDK
+    - task: PowerShell@2
+      displayName: 'Install .NET Core SDK 1.1.14'
+      inputs:
+        targetType: filePath
+        filePath: '$(Build.SourcesDirectory)/build/dotnet-install.ps1'
+        arguments: '-Version 1.1.14'
     - template: 'build/azure-templates/run-tests-on-os.yml'
       parameters:
         osName: $(osName)
