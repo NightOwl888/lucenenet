@@ -28,6 +28,7 @@ parameters:
   testBinaryFilesPattern: '\.*\.Tests\.?[^\\/]*?\.?[^\\/]*?.dll$' # The regex pattern (within $(System.DefaultWorkingDirectory)/**/<TargetFramework>/) where to look for test .dll files, so they can be distinguished from other .dll file types.
   testResultsFileName: 'TestResults.trx' # The name of the file (not path) of the test results. Default 'TestResults.trx'.
   publishedArtifactZipFileName: 'published.zip' # The name of the zip file (within the Azure DevOps build artifact binaryArtifactName) where the published test binaries can be extracted from. Default 'published.zip'.
+  netCoreSdkVersion: '2.2.300'
   maximumParallelJobs: 8
   maximumAllowedFailures: 0
 
@@ -47,9 +48,15 @@ steps:
     EnsureNotNullOrEmpty('${{ parameters.testBinaryFilesPattern }}', 'testBinaryFilesPattern')
     EnsureNotNullOrEmpty('${{ parameters.testResultsFileName }}', 'testResultsFileName')
     EnsureNotNullOrEmpty('${{ parameters.publishedArtifactZipFileName }}', 'publishedArtifactZipFileName')
+    EnsureNotNullOrEmpty('${{ parameters.netCoreSdkVersion }}', 'netCoreSdkVersion')
     EnsureNotNullOrEmpty('${{ parameters.maximumParallelJobs }}', 'maximumParallelJobs')
     EnsureNotNullOrEmpty('${{ parameters.maximumAllowedFailures }}', 'maximumAllowedFailures')
   displayName: 'Validate Template Parameters'
+
+- task: DotNetCoreInstaller@0
+  displayName: 'Use .NET Core sdk ${{ parameters.netCoreSdkVersion }}'
+  inputs:
+    version: '${{ parameters.netCoreSdkVersion }}'
 
 - task: DownloadBuildArtifacts@0
   displayName: 'Download Build Artifacts: ${{ parameters.binaryArtifactName }}'

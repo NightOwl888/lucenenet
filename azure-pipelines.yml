@@ -64,6 +64,8 @@ variables:
   value: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
 - name: PublishedArtifactZipFileName
   value: 'published.zip'
+- name: NetCoreSdkVersion
+  value: '2.2.300'
 
 stages:
 - stage: Build_Stage
@@ -84,9 +86,9 @@ stages:
       displayName: 'Setup Default Variable Values'
 
     - task: DotNetCoreInstaller@0
-      displayName: 'Use .NET Core sdk 2.2.300'
+      displayName: 'Use .NET Core sdk $(NetCoreSdkVersion)'
       inputs:
-        version: 2.2.300
+        version: '$(NetCoreSdkVersion)'
 
     - powershell: |
         Import-Module "$(BuildDirectory)/psake.psm1"
@@ -221,6 +223,7 @@ stages:
         testTargetFrameworks: 'netcoreapp2.1'
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
+        netCoreSdkVersion: '$(NetCoreSdkVersion)'
         maximumParallelJobs: 7
         maximumAllowedFailures: $(maximumAllowedFailures)
 
@@ -250,6 +253,7 @@ stages:
         testTargetFrameworks: 'netcoreapp1.0'
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
+        netCoreSdkVersion: '$(NetCoreSdkVersion)'
         maximumParallelJobs: 7
         maximumAllowedFailures: $(maximumAllowedFailures)
 
@@ -265,6 +269,7 @@ stages:
         testTargetFrameworks: 'net451'
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
+        netCoreSdkVersion: '$(NetCoreSdkVersion)'
         maximumParallelJobs: 7
         maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
 
