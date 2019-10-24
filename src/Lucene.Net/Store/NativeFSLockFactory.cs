@@ -56,6 +56,90 @@ namespace Lucene.Net.Store
     /// <seealso cref="LockFactory"/>
     public class NativeFSLockFactory : FSLockFactory
     {
+        // LUCNENENET NOTE: Lookup the HResult value we are interested in for the current OS
+        // by provoking the exception during initialization and caching its HResult value for later.
+        // We optimize for Windows because those HResult values are known and documented, but for
+        // other platforms, this is the only way we can reliably determine the HResult values
+        // we are interested in.
+        //
+        // Reference: https://stackoverflow.com/q/46380483
+#if FEATURE_FILESTREAM_LOCK
+        private const int WIN_HRESULT_FILE_LOCK_VIOLATION = unchecked((int)0x80070021);
+        internal static readonly int? HRESULT_FILE_LOCK_VIOLATION = LoadFileLockViolationHResult();
+
+        private static int? LoadFileLockViolationHResult()
+        {
+            if (Constants.WINDOWS)
+                return WIN_HRESULT_FILE_LOCK_VIOLATION;
+
+            try
+            {
+                ProvokeFileLockException();
+            }
+            catch (Exception ex)
+            {
+                return ex.HResult;
+            }
+            return null; // Should never happen
+        }
+
+        private static void ProvokeFileLockException()
+        {
+            var fileName = Path.GetTempFileName();
+            try
+            {
+                using (var lockStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
+                {
+                    lockStream.Lock(0, 1); // Create an exclusive lock
+                    using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
+                    {
+                        // try to find out if the file is locked by writing a byte. Note that we need to flush the stream to find out.
+                        stream.WriteByte(0);
+                        stream.Flush();   // this *may* throw an IOException if the file is locked, but...
+                                          // ... closing the stream is the real test
+                    }
+                }
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(fileName);
+                }
+                catch { }
+            }
+        }
+#else
+        private const int WIN_HRESULT_FILE_SHARE_VIOLATION = unchecked((int)0x80070020);
+        internal static readonly int? HRESULT_FILE_SHARE_VIOLATION = LoadFileShareViolationHResult();
+
+        private static int? LoadFileShareViolationHResult()
+        {
+            if (Constants.WINDOWS)
+                return WIN_HRESULT_FILE_SHARE_VIOLATION;
+
+            try
+            {
+                ProvokeFileShareException();
+            }
+            catch (Exception ex)
+            {
+                return ex.HResult;
+            }
+            return null; // Should never happen
+        }
+
+        private static void ProvokeFileShareException()
+        {
+            var fileName = Path.GetTempFileName();
+            using (var lockStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, 1, FileOptions.DeleteOnClose))
+            // Try to get an exclusive lock on the file - this should throw an IOException with the current platform's HResult value for FileShare violation
+            using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Write, FileShare.None, 1, FileOptions.None))
+            {
+            }
+        }
+#endif
+
         /// <summary>
         /// Create a <see cref="NativeFSLockFactory"/> instance, with <c>null</c> (unset)
         /// lock directory. When you pass this factory to a <see cref="FSDirectory"/>
@@ -119,21 +203,24 @@ namespace Lucene.Net.Store
         // Internal for testing
         internal virtual Lock NewLock(string path)
         {
-            if (Constants.WINDOWS)
-                return new WindowsNativeFSLock(this, m_lockDir, path);
+#if FEATURE_FILESTREAM_LOCK
+            if (HRESULT_FILE_LOCK_VIOLATION.HasValue)
+#else
+            if (HRESULT_FILE_SHARE_VIOLATION.HasValue)
+#endif
+                return new NativeFSLock(m_lockDir, path);
 
             // Fallback implementation for unknown platforms that don't rely on HResult
-            return new NativeFSLock(this, m_lockDir, path);
+            return new FallbackNativeFSLock(m_lockDir, path);
         }
 
         public override void ClearLock(string lockName)
         {
             var path = GetCanonicalPathOfLockFile(lockName);
-            Lock l;
             // this is the reason why we can't use ConcurrentDictionary: we need the removal and disposal of the lock to be atomic
             // otherwise it may clash with MakeLock making a lock and ClearLock disposing of it in another thread.
             lock (_locks)
-                if (_locks.TryGetValue(path, out l))
+                if (_locks.TryGetValue(path, out Lock l))
                 {
                     _locks.Remove(path);
                     l.Dispose();
@@ -145,29 +232,19 @@ namespace Lucene.Net.Store
     // LUCENENET NOTE: We use this implementation as a fallback for platforms that we don't
     // know the HResult numbers for lock and file sharing errors.
     //
-    // Note that using SharingAwareNativeFSLock would be ideal for all platforms. However,
-    // at the time of this writing there is no cross-platform way to identify sharing errors
-    // or lock errors because the values of HResult depend on the specific OS platform we
-    // are running on. Unfortunately, researching what these numbers may be even for Linux and
-    // OSx turned up nothing, and it is also unclear whether different flavors of Linux/Unix will have
-    // different HResult numbers. The best we can hope for is for people to contribute subclasses
-    // of SharingAwareNativeFSLock for the most popular platforms and fall back to this (substandard)
-    // implementation for all of the other platforms. See WindowsNativeFSLock for an example of what
-    // one of these subclasses should look like. The NativeFSLockFactory.NewLock() factory method
-    // is the only place where adding the platform-specific logic which class to instantiate is required.
+    // Note that using NativeFSLock would be ideal for all platforms. However, there is a
+    // small chance that provoking lock/share exceptions will fail. In that rare case, we
+    // fallback to this substandard implementation.
     // 
     // Reference: https://stackoverflow.com/q/46380483
-    internal class NativeFSLock : Lock
+    internal class FallbackNativeFSLock : Lock
     {
-        private readonly NativeFSLockFactory outerInstance;
-
         private FileStream channel;
         private readonly string path;
         private readonly DirectoryInfo lockDir;
 
-        public NativeFSLock(NativeFSLockFactory outerInstance, DirectoryInfo lockDir, string path)
+        public FallbackNativeFSLock(DirectoryInfo lockDir, string path)
         {
-            this.outerInstance = outerInstance;
             this.lockDir = lockDir;
             this.path = path;
         }
@@ -327,24 +404,37 @@ namespace Lucene.Net.Store
         }
     }
 
-    // Abstract class that can be used to create additional native locks that
-    // work with OS-specific HResult values.
-    internal abstract class SharingAwareNativeFSLock : Lock
+    // Class that uses HResult values of the current OS to determine
+    // whether a lock is held.
+    internal class NativeFSLock : Lock
     {
-        private readonly NativeFSLockFactory outerInstance;
-
         private FileStream channel;
         private readonly string path;
         private readonly DirectoryInfo lockDir;
 
-        public SharingAwareNativeFSLock(NativeFSLockFactory outerInstance, DirectoryInfo lockDir, string path)
+        public NativeFSLock(DirectoryInfo lockDir, string path)
         {
-            this.outerInstance = outerInstance;
             this.lockDir = lockDir;
             this.path = path;
         }
 
-        protected abstract bool IsLockOrShareViolation(IOException e);
+#if FEATURE_FILESTREAM_LOCK
+        /// <summary>
+        /// Return true if the <see cref="IOException"/> is the result of a lock violation
+        /// </summary>
+        private bool IsLockViolation(IOException e)
+        {
+            return e.HResult == NativeFSLockFactory.HRESULT_FILE_LOCK_VIOLATION;
+        }
+#else
+        /// <summary>
+        /// Return true if the <see cref="IOException"/> is the result of a share violation
+        /// </summary>
+        private bool IsShareViolation(IOException e)
+        {
+            return e.HResult == NativeFSLockFactory.HRESULT_FILE_SHARE_VIOLATION;
+        }
+#endif
 
         private FileStream GetLockFileStream(FileMode mode)
         {
@@ -430,7 +520,7 @@ namespace Lucene.Net.Store
                 {
                     channel = GetLockFileStream(FileMode.OpenOrCreate);
                 }
-                catch (IOException e) when (IsLockOrShareViolation(e))
+                catch (IOException e) when (IsShareViolation(e))
                 {
                     // no failure reason to be recorded, since this is the expected error if a lock exists
                 }
@@ -521,7 +611,11 @@ namespace Lucene.Net.Store
                     }
                     return false;
                 }
-                catch (IOException e) when (IsLockOrShareViolation(e))
+#if FEATURE_FILESTREAM_LOCK
+                catch (IOException e) when (IsLockViolation(e))
+#else
+                catch (IOException e) when (IsShareViolation(e))
+#endif
                 {
                     return true;
                 }
@@ -536,35 +630,6 @@ namespace Lucene.Net.Store
         public override string ToString()
         {
             return "NativeFSLock@" + path;
-        }
-    }
-
-
-    // LUCENENET: Lock that uses HResult native to Windows
-    internal class WindowsNativeFSLock : SharingAwareNativeFSLock
-    {
-#if FEATURE_FILESTREAM_LOCK
-        private const int ERROR_LOCK_VIOLATION = 0x21;
-#else
-        private const int ERROR_SHARE_VIOLATION = 0x20;
-#endif
-
-        public WindowsNativeFSLock(NativeFSLockFactory outerInstance, DirectoryInfo lockDir, string path)
-            : base(outerInstance, lockDir, path)
-        {
-        }
-
-        /// <summary>
-        /// Return true if the <see cref="IOException"/> is the result of a lock violation
-        /// </summary>
-        protected override bool IsLockOrShareViolation(IOException e)
-        {
-            var result = e.HResult & 0xFFFF;
-#if FEATURE_FILESTREAM_LOCK
-            return result == ERROR_LOCK_VIOLATION;
-#else
-            return result == ERROR_SHARE_VIOLATION;
-#endif
         }
     }
 }
