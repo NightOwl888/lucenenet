@@ -51,15 +51,6 @@ steps:
     EnsureNotNullOrEmpty('${{ parameters.maximumAllowedFailures }}', 'maximumAllowedFailures')
   displayName: 'Validate Template Parameters'
 
-  # Explicitly install .NET Core 1.x SDK
-- task: PowerShell@2
-  condition: and(succeeded(), eq('${{ parameters.osName }}', 'Windows'), contains('${{ parameters.testTargetFrameworks }}', 'netcorapp1.'))
-  displayName: 'Install .NET Core SDK 1.1.14'
-  inputs:
-    targetType: filePath
-    filePath: '$(Build.SourcesDirectory)/build/dotnet-install.ps1'
-    arguments: '-Version 1.1.14'
-
 - task: DownloadBuildArtifacts@0
   displayName: 'Download Build Artifacts: ${{ parameters.binaryArtifactName }}'
   inputs:
