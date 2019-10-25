@@ -224,36 +224,59 @@ stages:
         maximumParallelJobs: 7
         maximumAllowedFailures: $(maximumAllowedFailures)
 
-  - job: Test_netcoreapp1_1
+  - job: Test_netcoreapp1_1_Windows
     condition: and(succeeded(), ne(variables['RunTests'], 'false'))
-    strategy:
-      matrix:
-        Windows:
-          osName: 'Windows'
-          imageName: 'windows-2019'
-          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-        Linux:
-          osName: 'Linux'
-          imageName: 'ubuntu-16.04'
-          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-        macOS:
-          osName: 'macOS'
-          imageName: 'macOS-10.14'
-          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-    displayName: 'Test netcoreapp1.1 on'
+    displayName: 'Test netcoreapp1.1 on Windows'
     pool:
-      vmImage: $(imageName)
+      vmImage: 'windows-2019'
     steps:
+      # Explicitly install .NET Core 1.x SDK
+    - task: PowerShell@2
+      displayName: 'Install .NET Core SDK 1.1.14'
+      inputs:
+        targetType: filePath
+        filePath: '$(Build.SourcesDirectory)/build/dotnet-install.ps1'
+        arguments: '-Version 1.1.14'
     - template: 'build/azure-templates/run-tests-on-os.yml'
       parameters:
-        osName: $(osName)
+        osName: 'Windows'
         testTargetFrameworks: 'netcoreapp1.1'
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
         maximumParallelJobs: 7
-        maximumAllowedFailures: $(maximumAllowedFailures)
+        maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
 
-  - job: Test_net451
+  - job: Test_netcoreapp1_1_Linux
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    displayName: 'Test netcoreapp1.1 on Linux'
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+    - template: 'build/azure-templates/run-tests-on-os.yml'
+      parameters:
+        osName: 'Linux'
+        testTargetFrameworks: 'netcoreapp1.1'
+        testResultsArtifactName: '$(TestResultsArtifactName)'
+        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
+        maximumParallelJobs: 7
+        maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+
+  - job: Test_netcoreapp1_1_macOS
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    displayName: 'Test netcoreapp1.1 on macOS'
+    pool:
+      vmImage: 'macOS-10.14'
+    steps:
+    - template: 'build/azure-templates/run-tests-on-os.yml'
+      parameters:
+        osName: 'macOS'
+        testTargetFrameworks: 'netcoreapp1.1'
+        testResultsArtifactName: '$(TestResultsArtifactName)'
+        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
+        maximumParallelJobs: 7
+        maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+
+  - job: Test_net451_Windows
     condition: and(succeeded(), ne(variables['RunTests'], 'false'))
     displayName: 'Test net451 on Windows'
     pool:
