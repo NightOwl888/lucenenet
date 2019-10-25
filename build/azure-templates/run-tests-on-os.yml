@@ -53,7 +53,7 @@ steps:
 
   # Explicitly install .NET Core 1.x SDK
 - task: PowerShell@2
-  condition: and(succeeded(), eq(parameters['osName'], 'Windows'))
+  condition: and(succeeded(), eq('${{ parameters.osName }}', 'Windows'), contains('${{ parameters.testTargetFrameworks }}', 'netcorapp1.'))
   displayName: 'Install .NET Core SDK 1.1.14'
   inputs:
     targetType: filePath
