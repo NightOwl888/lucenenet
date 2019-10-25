@@ -236,7 +236,7 @@ stages:
     condition: and(succeeded(), ne(variables['RunTests'], 'false'))
     displayName: 'Test netcoreapp1.1 on Windows'
     pool:
-      vmImage: 'windows-2019'
+      vmImage: 'vs2017-win2016'
     steps:
       # Explicitly install .NET Core 1.x SDK
     - task: PowerShell@2
