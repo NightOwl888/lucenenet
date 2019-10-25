@@ -99,7 +99,7 @@ namespace Lucene.Net.Store
         private static bool LoadIsFileStreamLockingPlatform()
         {
 #if FEATURE_FILESTREAM_LOCK
-            return (Constants.WINDOWS || Constants.LINUX);
+            return Constants.WINDOWS; // LUCENENET: See: https://github.com/dotnet/corefx/issues/5964
 #else
             return false;
 #endif
@@ -113,43 +113,23 @@ namespace Lucene.Net.Store
             // Skip provoking the exception unless we know we will use the value
             if (IS_FILESTREAM_LOCKING_PLATFORM)
             {
-                try
+                return FileSupport.GetFileIOExceptionHResult(provokeException: (fileName) =>
                 {
-                    ProvokeFileLockException();
-                }
-                catch (Exception ex)
-                {
-                    return ex.HResult;
-                }
-            }
-            return null;
-        }
-
-        private static void ProvokeFileLockException()
-        {
-            var fileName = Path.GetTempFileName();
-            try
-            {
-                using (var lockStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
-                {
-                    lockStream.Lock(0, 1); // Create an exclusive lock
-                    using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
+                    using (var lockStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
                     {
-                        // try to find out if the file is locked by writing a byte. Note that we need to flush the stream to find out.
-                        stream.WriteByte(0);
-                        stream.Flush();   // this *may* throw an IOException if the file is locked, but...
-                                          // ... closing the stream is the real test
+                        lockStream.Lock(0, 1); // Create an exclusive lock
+                        using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
+                        {
+                            // try to find out if the file is locked by writing a byte. Note that we need to flush the stream to find out.
+                            stream.WriteByte(0);
+                            stream.Flush();   // this *may* throw an IOException if the file is locked, but...
+                                              // ... closing the stream is the real test
+                        }
                     }
-                }
+                });
             }
-            finally
-            {
-                try
-                {
-                    File.Delete(fileName);
-                }
-                catch { }
-            }
+
+            return null;
         }
 
         private static int? LoadFileShareViolationHResult()
@@ -157,25 +137,14 @@ namespace Lucene.Net.Store
             if (Constants.WINDOWS)
                 return WIN_HRESULT_FILE_SHARE_VIOLATION;
 
-            try
+            return FileSupport.GetFileIOExceptionHResult(provokeException: (fileName) =>
             {
-                ProvokeFileShareException();
-            }
-            catch (Exception ex)
-            {
-                return ex.HResult;
-            }
-            return null; // Should never happen
-        }
-
-        private static void ProvokeFileShareException()
-        {
-            var fileName = Path.GetTempFileName();
-            using (var lockStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, 1, FileOptions.DeleteOnClose))
-            // Try to get an exclusive lock on the file - this should throw an IOException with the current platform's HResult value for FileShare violation
-            using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Write, FileShare.None, 1, FileOptions.None))
-            {
-            }
+                using (var lockStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, 1, FileOptions.None))
+                // Try to get an exclusive lock on the file - this should throw an IOException with the current platform's HResult value for FileShare violation
+                using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Write, FileShare.None, 1, FileOptions.None))
+                {
+                }
+            });
         }
 
         /// <summary>
