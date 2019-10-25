@@ -180,7 +180,7 @@ steps:
                 [int]$number = 0
                 foreach ($runningJob in $running) {
                     $number++
-                    Write-Host "$number. $runningJob.Name"
+                    Write-Host "$number. ($runningJob | Select -ExpandProperty Name)"
                 }
                 $running | Wait-Job -Any
             }
