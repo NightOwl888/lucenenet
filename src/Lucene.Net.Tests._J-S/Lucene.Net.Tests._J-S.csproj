@@ -24,7 +24,7 @@
   <Import Project="$(SolutionDir)TestTargetFramework.props" />
   
   <PropertyGroup>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
 
     <AssemblyTitle>Lucene.Net.Tests._J-S</AssemblyTitle>
     <RootNamespace>Lucene.Net</RootNamespace>
@@ -70,7 +70,7 @@
     <DebugType>full</DebugType>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">
     <Compile Remove="..\Lucene.Net.Tests\Support\TestCase.cs" />
   </ItemGroup>
 
