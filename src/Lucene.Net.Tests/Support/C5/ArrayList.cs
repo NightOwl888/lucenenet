@@ -1344,7 +1344,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The value to check for.</param>
         /// <returns>True if the items is in this collection.</returns>
-        public virtual bool Contains(T item)
+        public override bool Contains(T item)
         { validitycheck(); return indexOf(item) >= 0; }
 
 
@@ -1469,7 +1469,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The value to remove.</param>
         /// <returns>True if the item was found (and removed).</returns>
-        public virtual bool Remove(T item)
+        public override bool Remove(T item)
         {
             updatecheck();
 
@@ -1956,7 +1956,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The item to add.</param>
         /// <returns>True</returns>
-        public virtual bool Add(T item)
+        new public virtual bool Add(T item)
         {
             updatecheck();
 
