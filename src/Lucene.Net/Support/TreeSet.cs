@@ -1235,7 +1235,7 @@ namespace Lucene.Net.Support
         /// </summary>
         /// <param name="item">The item to add.</param>
         /// <returns>True if item was added.</returns>
-        new public bool Add(T item)
+        public bool Add(T item)
         {
             if (!isValid)
                 throw new ViewDisposedException("Snapshot has been disposed");
@@ -1490,7 +1490,7 @@ namespace Lucene.Net.Support
         /// </summary>
         /// <param name="item">The value to check for.</param>
         /// <returns>True if the items is in this collection.</returns>
-        public override bool Contains(T item)
+        public bool Contains(T item)
         {
             if (!isValid)
                 throw new ViewDisposedException("Snapshot has been disposed");
@@ -1695,7 +1695,7 @@ namespace Lucene.Net.Support
         /// </summary>
         /// <param name="item">The value to remove.</param>
         /// <returns>True if the item was found (and removed).</returns>
-        public override bool Remove(T item)
+        public bool Remove(T item)
         {
             if (!isValid)
                 throw new ViewDisposedException("Snapshot has been disposed");
@@ -2069,7 +2069,7 @@ namespace Lucene.Net.Support
         /// <summary>
         /// Remove all items from this collection.
         /// </summary>
-        public override void Clear()
+        public void Clear()
         {
             if (!isValid)
                 throw new ViewDisposedException("Snapshot has been disposed");
@@ -2796,8 +2796,6 @@ namespace Lucene.Net.Support
                     return forwards ? EnumerationDirection.Forwards : EnumerationDirection.Backwards;
                 }
             }
-
-            public override bool IsReadOnly => true;
         }
         #endregion
 
@@ -3595,38 +3593,30 @@ namespace Lucene.Net.Support
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
+            if (!isValid)
+                return;
+            if (isSnapShot)
             {
-                if (!isValid)
-                    return;
-                if (isSnapShot)
-                {
-                    snapList.Dispose();
-                    snapDispose();
-                }
-                else
-                {
-                    if (snapList != null)
-                    {
-                        SnapRef someSnapRef = snapList.Prev;
-                        while (someSnapRef != null)
-                        {
-                            TreeSet<T> lastsnap;
-                            if ((lastsnap = someSnapRef.Tree.Target as TreeSet<T>) != null)
-                                lastsnap.snapDispose();
-                            someSnapRef = someSnapRef.Prev;
-                        }
-                    }
-                    snapList = null;
-                    Clear();
-                }
+                snapList.Dispose();
+                snapDispose();
             }
+            else
+            {
+                if (snapList != null)
+                {
+                    SnapRef someSnapRef = snapList.Prev;
+                    while (someSnapRef != null)
+                    {
+                        TreeSet<T> lastsnap;
+                        if ((lastsnap = someSnapRef.Tree.Target as TreeSet<T>) != null)
+                            lastsnap.snapDispose();
+                        someSnapRef = someSnapRef.Prev;
+                    }
+                }
+                snapList = null;
+                Clear();
+            }
+
         }
 
         private void snapDispose()
@@ -3991,7 +3981,6 @@ namespace Lucene.Net.Support
             //TODO: check that this is correct
             public override Speed CountSpeed { get { return Speed.Constant; } }
 
-            public override bool IsReadOnly => true;
         }
 
         #endregion

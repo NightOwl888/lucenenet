@@ -194,8 +194,6 @@ namespace Lucene.Net.Support
             throw exception;
         }
 
-        public override bool IsReadOnly => true;
-
         public override bool IsEmpty { get { return false; } }
 
         public override int Count { get { return contents.Length + 1; } }

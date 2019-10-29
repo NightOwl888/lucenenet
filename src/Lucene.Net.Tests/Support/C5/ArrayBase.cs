@@ -144,7 +144,7 @@ namespace Lucene.Net.Support.C5
         /// <summary>
         /// Remove all items and reset size of internal array container.
         /// </summary>
-        public override void Clear()
+        public virtual void Clear()
         {
             updatecheck();
             array = new T[8];
@@ -331,10 +331,6 @@ namespace Lucene.Net.Support.C5
             /// <value>True if this collection is empty.</value>
             public override bool IsEmpty { get { thebase.modifycheck(stamp); return count == 0; } }
 
-            /// <summary>
-            /// Gets a value indicating whether the <see cref="Range"/> is read-only. Always returns <c>true</c>.
-            /// </summary>
-            public override bool IsReadOnly => true;
 
             /// <summary>
             /// 

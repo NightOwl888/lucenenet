@@ -22,7 +22,6 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 #if FEATURE_SERIALIZABLE_EXCEPTIONS
 using System.Runtime.Serialization;
 #endif
@@ -424,8 +423,6 @@ namespace Lucene.Net.Support.C5
         /// <code>Count</code> property in this collection.</value>
         public abstract Speed CountSpeed { get; }
 
-        public abstract bool IsReadOnly { get; }
-
         /// <summary>
         /// Copy the items of this collection to part of an array.
         /// </summary>
@@ -585,18 +582,6 @@ namespace Lucene.Net.Support.C5
         {
             return ToString(null, null);
         }
-
-        #region SCG.ICollection<T> Members
-
-        public virtual void Add(T item) => throw new ReadOnlyCollectionException();
-
-        public virtual void Clear() => throw new ReadOnlyCollectionException();
-
-        public virtual bool Contains(T item) => this.Exists((thisItem) => EqualityComparer<T>.Default.Equals(thisItem, item));
-
-        public virtual bool Remove(T item) => throw new ReadOnlyCollectionException();
-
-        #endregion
     }
 
 
@@ -608,7 +593,7 @@ namespace Lucene.Net.Support.C5
 #if FEATURE_SERIALIZABLE
     [Serializable]
 #endif
-    public abstract class DictionaryBase<K, V> : CollectionValueBase<KeyValuePair<K, V>>, IDictionary<K, V>, SCG.IDictionary<K, V>
+    public abstract class DictionaryBase<K, V> : CollectionValueBase<KeyValuePair<K, V>>, IDictionary<K, V>
     {
         /// <summary>
         /// The set collection of entries underlying this dictionary implementation
@@ -781,7 +766,7 @@ namespace Lucene.Net.Support.C5
         /// <summary>
         /// Remove all entries from the dictionary
         /// </summary>
-        public override void Clear() { pairs.Clear(); }
+        public virtual void Clear() { pairs.Clear(); }
 
         /// <summary>
         /// 
@@ -1038,8 +1023,6 @@ namespace Lucene.Net.Support.C5
 
             public override Speed CountSpeed { get { return Speed.Constant; } }
 
-            public override bool IsReadOnly => true;
-
             public void Update(ICollection<KeyValuePair<K, V>> keyValuePairs)
             {
                 _pairs = keyValuePairs;
@@ -1144,8 +1127,6 @@ namespace Lucene.Net.Support.C5
             public override int Count { get { return _pairs.Count; } }
 
             public override Speed CountSpeed { get { return _pairs.CountSpeed; } }
-
-            public override bool IsReadOnly => true;
         }
 
         #endregion
@@ -1210,7 +1191,7 @@ namespace Lucene.Net.Support.C5
         /// 
         /// </summary>
         /// <value>True if dictionary is read  only</value>
-        public override bool IsReadOnly { get { return pairs.IsReadOnly; } }
+        public virtual bool IsReadOnly { get { return pairs.IsReadOnly; } }
 
 
         /// <summary>
@@ -1271,83 +1252,6 @@ namespace Lucene.Net.Support.C5
         {
             return Showing.ShowDictionary<K, V>(this, stringbuilder, ref rest, formatProvider);
         }
-
-        #region SCG.IDictionary<K, V> Members
-
-        SCG.ICollection<K> SCG.IDictionary<K, V>.Keys => this.Keys;
-
-        SCG.ICollection<V> SCG.IDictionary<K, V>.Values => this.Values;
-
-        int SCG.ICollection<SCG.KeyValuePair<K, V>>.Count => this.Count;
-
-        bool SCG.ICollection<SCG.KeyValuePair<K, V>>.IsReadOnly => this.IsReadOnly;
-
-        V SCG.IDictionary<K, V>.this[K key] { get => this[key]; set => this[key] = value; }
-
-        void SCG.IDictionary<K, V>.Add(K key, V value)
-        {
-            this.Add(key, value);
-        }
-
-        bool SCG.IDictionary<K, V>.ContainsKey(K key)
-        {
-            return this.Contains(key);
-        }
-
-        bool SCG.IDictionary<K, V>.Remove(K key)
-        {
-            return this.Remove(key);
-        }
-
-        bool SCG.IDictionary<K, V>.TryGetValue(K key, out V value)
-        {
-            KeyValuePair<K, V> p = new KeyValuePair<K, V>(key);
-
-            bool result = pairs.Find(ref p);
-            value = p.Value;
-            return result;
-        }
-
-        void SCG.ICollection<SCG.KeyValuePair<K, V>>.Add(SCG.KeyValuePair<K, V> item)
-        {
-            this.Add(item.Key, item.Value);
-        }
-
-        void SCG.ICollection<SCG.KeyValuePair<K, V>>.Clear()
-        {
-            this.Clear();
-        }
-
-        bool SCG.ICollection<SCG.KeyValuePair<K, V>>.Contains(SCG.KeyValuePair<K, V> item)
-        {
-            foreach (var thisItem in this)
-                if (thisItem.Equals(item))
-                    return true;
-
-            return false;
-        }
-
-        void SCG.ICollection<SCG.KeyValuePair<K, V>>.CopyTo(SCG.KeyValuePair<K, V>[] array, int arrayIndex)
-        {
-            if (arrayIndex < 0 || arrayIndex + Count > array.Length)
-                throw new ArgumentOutOfRangeException(nameof(arrayIndex));
-
-            foreach (var item in this)
-                array[arrayIndex++] = new SCG.KeyValuePair<K, V>(item.Key, item.Value);
-        }
-
-        bool SCG.ICollection<SCG.KeyValuePair<K, V>>.Remove(SCG.KeyValuePair<K, V> item)
-        {
-            return this.Remove(item.Key);
-        }
-
-        SCG.IEnumerator<SCG.KeyValuePair<K, V>> SCG.IEnumerable<SCG.KeyValuePair<K, V>>.GetEnumerator()
-        {
-            foreach (var item in this)
-                yield return new SCG.KeyValuePair<K, V>(item.Key, item.Value);
-        }
-
-        #endregion
     }
 
 
@@ -1878,7 +1782,7 @@ namespace Lucene.Net.Support.C5
             #region ICollection<K> Members
             public Speed ContainsSpeed { get { return sorteddict.ContainsSpeed; } }
 
-            public override bool Contains(K key) { return sorteddict.Contains(key); }
+            public bool Contains(K key) { return sorteddict.Contains(key); ; }
 
             public int ContainsCount(K item) { return sorteddict.Contains(item) ? 1 : 0; }
 
@@ -1928,7 +1832,7 @@ namespace Lucene.Net.Support.C5
 
             public bool UpdateOrAdd(K item, out K olditem) { throw new ReadOnlyCollectionException(); }
 
-            public override bool Remove(K item) { throw new ReadOnlyCollectionException(); }
+            public bool Remove(K item) { throw new ReadOnlyCollectionException(); }
 
             public bool Remove(K item, out K removeditem) { throw new ReadOnlyCollectionException(); }
 
@@ -1936,7 +1840,7 @@ namespace Lucene.Net.Support.C5
 
             public void RemoveAll(SCG.IEnumerable<K> items) { throw new ReadOnlyCollectionException(); }
 
-            public override void Clear() { throw new ReadOnlyCollectionException(); }
+            public void Clear() { throw new ReadOnlyCollectionException(); }
 
             public void RetainAll(SCG.IEnumerable<K> items) { throw new ReadOnlyCollectionException(); }
 
@@ -1952,8 +1856,6 @@ namespace Lucene.Net.Support.C5
             public bool Add(K item) { throw new ReadOnlyCollectionException(); }
 
             void SCG.ICollection<K>.Add(K item) { throw new ReadOnlyCollectionException(); }
-
-            bool ICollection<K>.Add(K item) => throw new ReadOnlyCollectionException();
 
             public void AddAll(System.Collections.Generic.IEnumerable<K> items) { throw new ReadOnlyCollectionException(); }
 
@@ -1973,7 +1875,6 @@ namespace Lucene.Net.Support.C5
             #region IDirectedEnumerable<K> Members
 
             IDirectedEnumerable<K> IDirectedEnumerable<K>.Backwards() { return Backwards(); }
-
             #endregion
         }
 
@@ -2404,7 +2305,7 @@ namespace Lucene.Net.Support.C5
         /// 
         /// </summary>
         /// <value>True if this collection is read only</value>
-        public override bool IsReadOnly { get { return isReadOnlyBase; } }
+        public virtual bool IsReadOnly { get { return isReadOnlyBase; } }
 
         #endregion
 
@@ -2900,7 +2801,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The item to look for</param>
         /// <returns>True if set contains item</returns>
-        public override bool Contains(T item) { return searchoradd(ref item, false, false, false); }
+        public virtual bool Contains(T item) { return searchoradd(ref item, false, false, false); }
 
 
         /// <summary>
@@ -2973,7 +2874,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The item to remove</param>
         /// <returns>True if item was (found and) removed </returns>
-        public override bool Remove(T item)
+        public virtual bool Remove(T item)
         {
             updatecheck();
             if (remove(ref item))
@@ -3025,7 +2926,7 @@ namespace Lucene.Net.Support.C5
         /// <summary>
         /// Remove all items from the set, resetting internal table to initial size.
         /// </summary>
-        public override void Clear()
+        public virtual void Clear()
         {
             updatecheck();
             int oldsize = size;
@@ -3290,7 +3191,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The item to add.</param>
         /// <returns>True if item was added (i.e. not found)</returns>
-        new public virtual bool Add(T item)
+        public virtual bool Add(T item)
         {
             updatecheck();
             return !searchoradd(ref item, true, false, true);
@@ -3878,17 +3779,10 @@ namespace Lucene.Net.Support.C5
         /// <returns>True if obj is an entry of the same type and has the same key and value</returns>
         public override bool Equals(object obj)
         {
-            if (obj is KeyValuePair<K, V>)
-            {
-                KeyValuePair<K, V> other = (KeyValuePair<K, V>)obj;
-                return Equals(other);
-            }
-            else if (obj is SCG.KeyValuePair<K, V>)
-            {
-                SCG.KeyValuePair<K, V> other = (SCG.KeyValuePair<K, V>)obj;
-                return Equals(other);
-            }
-            return false;
+            if (!(obj is KeyValuePair<K, V>))
+                return false;
+            KeyValuePair<K, V> other = (KeyValuePair<K, V>)obj;
+            return Equals(other);
         }
 
         /// <summary>
@@ -3903,16 +3797,6 @@ namespace Lucene.Net.Support.C5
         /// <param name="other"></param>
         /// <returns></returns>
         public bool Equals(KeyValuePair<K, V> other)
-        {
-            return EqualityComparer<K>.Default.Equals(Key, other.Key) && EqualityComparer<V>.Default.Equals(Value, other.Value);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="other"></param>
-        /// <returns></returns>
-        public bool Equals(SCG.KeyValuePair<K, V> other)
         {
             return EqualityComparer<K>.Default.Equals(Key, other.Key) && EqualityComparer<V>.Default.Equals(Value, other.Value);
         }
@@ -4440,8 +4324,6 @@ namespace Lucene.Net.Support.C5
 
         public override Speed CountSpeed { get { return directedcollectionvalue.CountSpeed; } }
 
-        public override bool IsReadOnly => directedcollectionvalue.IsReadOnly;
-
         public override IDirectedCollectionValue<V> Backwards()
         {
             MappedDirectedCollectionValue<T, V> retval = (MappedDirectedCollectionValue<T, V>)MemberwiseClone();
@@ -4847,8 +4729,6 @@ namespace Lucene.Net.Support.C5
 
         public override Speed CountSpeed { get { return collectionvalue.CountSpeed; } }
 
-        public override bool IsReadOnly => collectionvalue.IsReadOnly;
-
         public override SCG.IEnumerator<V> GetEnumerator()
         {
             foreach (T item in collectionvalue)
@@ -5144,7 +5024,7 @@ namespace Lucene.Net.Support.C5
         /// 
         /// </summary>
         /// <value>True if dictionary is read-only</value>
-        new bool IsReadOnly { get; }
+        bool IsReadOnly { get; }
 
 
         /// <summary>
@@ -5227,7 +5107,7 @@ namespace Lucene.Net.Support.C5
         /// <summary>
         /// Remove all entries from the dictionary
         /// </summary>
-        new void Clear();
+        void Clear();
 
 
         /// <summary>
@@ -5644,7 +5524,7 @@ namespace Lucene.Net.Support.C5
         /// <code>ReadOnlyCollectionException</code>
         /// </summary>
         /// <value>True if this collection is read-only.</value>
-        new bool IsReadOnly { get; }
+        bool IsReadOnly { get; }
 
         //TODO: wonder where the right position of this is
         /// <summary>
@@ -5679,7 +5559,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The item to add.</param>
         /// <returns>True if item was added.</returns>
-        new bool Add(T item);
+        bool Add(T item);
 
         /// <summary>
         /// Add the elements from another collection with a more specialized item type 
@@ -5982,7 +5862,7 @@ namespace Lucene.Net.Support.C5
     /// collection. The main usage for this interface is to be the return type of 
     /// query operations on generic collection.
     /// </summary>
-    public interface ICollectionValue<T> : SCG.IEnumerable<T>, IShowable, SCG.ICollection<T>
+    public interface ICollectionValue<T> : SCG.IEnumerable<T>, IShowable
     {
         /// <summary>
         /// A flag bitmap of the events subscribable to by this collection.
@@ -6035,7 +5915,7 @@ namespace Lucene.Net.Support.C5
         /// <summary>
         /// </summary>
         /// <value>The number of items in this collection</value>
-        new int Count { get; }
+        int Count { get; }
 
         /// <summary>
         /// The value is symbolic indicating the type of asymptotic complexity
@@ -6051,7 +5931,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="array">The array to copy to</param>
         /// <param name="index">The index at which to copy the first item</param>
-        new void CopyTo(T[] array, int index);
+        void CopyTo(T[] array, int index);
 
         /// <summary>
         /// Create an array with the items of this collection (in the same order as an

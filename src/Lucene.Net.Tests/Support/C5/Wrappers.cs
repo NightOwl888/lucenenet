@@ -379,20 +379,6 @@ namespace Lucene.Net.Support.C5
 
         #endregion
 
-        #region SCG.ICollection<T> Members
-
-        public virtual bool IsReadOnly => collectionvalue.IsReadOnly;
-
-        public virtual void Add(T item) => collectionvalue.Add(item);
-
-        public virtual void Clear() => collectionvalue.Clear();
-
-        public virtual bool Contains(T item) => collectionvalue.Contains(item);
-
-        public virtual bool Remove(T item) => collectionvalue.Remove(item);
-
-        #endregion
-
         #region IShowable Members
 
         /// <summary>
@@ -529,7 +515,7 @@ namespace Lucene.Net.Support.C5
         /// (This is a read-only wrapper)
         /// </summary>
         /// <value>True</value>
-        public override bool IsReadOnly { get { return true; } }
+        public virtual bool IsReadOnly { get { return true; } }
 
 
         /// <summary> </summary>
@@ -557,7 +543,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The item</param>
         /// <returns>True if found</returns>
-        public override bool Contains(T item) { return collection.Contains(item); }
+        public virtual bool Contains(T item) { return collection.Contains(item); }
 
 
         /// <summary>
@@ -645,7 +631,7 @@ namespace Lucene.Net.Support.C5
         /// <exception cref="ReadOnlyCollectionException"> since this is a read-only wrapper</exception>
         /// <param name="item"></param>
         /// <returns></returns>
-        public override bool Remove(T item)
+        public virtual bool Remove(T item)
         { throw new ReadOnlyCollectionException("Collection cannot be modified through this guard object"); }
 
 
@@ -677,7 +663,7 @@ namespace Lucene.Net.Support.C5
         /// <summary>
         /// </summary>
         /// <exception cref="ReadOnlyCollectionException"> since this is a read-only wrapper</exception>
-        public override void Clear()
+        public virtual void Clear()
         { throw new ReadOnlyCollectionException("Collection cannot be modified through this guard object"); }
 
 
@@ -727,7 +713,7 @@ namespace Lucene.Net.Support.C5
         /// <exception cref="ReadOnlyCollectionException"> since this is a read-only wrapper</exception>
         /// <param name="item"></param>
         /// <returns></returns>
-        new public virtual bool Add(T item)
+        public virtual bool Add(T item)
         { throw new ReadOnlyCollectionException(); }
 
         /// <summary>
@@ -1967,7 +1953,7 @@ namespace Lucene.Net.Support.C5
         /// (This is a read-only wrapper)
         /// </summary>
         /// <value>True</value>
-        public override bool IsReadOnly { get { return true; } }
+        public bool IsReadOnly { get { return true; } }
 
 
         //TODO: guard with a read-only wrapper? Probably so!
@@ -2026,7 +2012,7 @@ namespace Lucene.Net.Support.C5
         /// <summary>
         /// </summary>
         /// <exception cref="ReadOnlyCollectionException"> since this is a read-only wrapper</exception>
-        public override void Clear()
+        public void Clear()
         { throw new ReadOnlyCollectionException(); }
 
         /// <summary>

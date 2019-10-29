@@ -113,7 +113,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The item to look for</param>
         /// <returns>True if bag contains item</returns>
-        public override bool Contains(T item)
+        public virtual bool Contains(T item)
         {
             return dict.Contains(new KeyValuePair<T, int>(item, 0));
         }
@@ -238,7 +238,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The item to remove</param>
         /// <returns>True if item was (found and) removed </returns>
-        public override bool Remove(T item)
+        public virtual bool Remove(T item)
         {
             KeyValuePair<T, int> p = new KeyValuePair<T, int>(item, 0);
 
@@ -327,7 +327,7 @@ namespace Lucene.Net.Support.C5
         /// <summary>
         /// Remove all items from the bag, resetting internal table to initial size.
         /// </summary>
-        public override void Clear()
+        public virtual void Clear()
         {
             updatecheck();
             if (size == 0)
@@ -534,7 +534,7 @@ namespace Lucene.Net.Support.C5
         /// </summary>
         /// <param name="item">The item to add.</param>
         /// <returns>Always true</returns>
-        new public virtual bool Add(T item)
+        public virtual bool Add(T item)
         {
             updatecheck();
             add(ref item);
