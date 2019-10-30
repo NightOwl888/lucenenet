@@ -69,6 +69,7 @@ namespace Lucene.Net.Support
 
         private SCG.IComparer<TKey> comparer;
         private C5TreeDictionary<TKey, TValue> dictionary;
+        private object _syncRoot;
 
         #region Constructors
 
@@ -829,7 +830,42 @@ namespace Lucene.Net.Support
 
         void ICollection.CopyTo(Array array, int index)
         {
-            throw new NotImplementedException();
+            if (array == null)
+                throw new ArgumentNullException(nameof(array));
+
+            if (array.Rank != 1)
+                throw new ArgumentException("Multidimentional array not supported.");
+
+            if (array.GetLowerBound(0) != 0)
+                throw new ArgumentException("Non-zero array lower bound.");
+
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), $"Array index must be greater than or equal to 0. Value: '{index}'.");
+
+            // will array, starting at arrayIndex, be able to hold elements? Note: not
+            // checking arrayIndex >= array.Length (consistency with list of allowing
+            // count of 0; subsequent check takes care of the rest)
+            if (index > array.Length || Count > array.Length - index)
+                throw new ArgumentException("Array plus offset is too small");
+
+            SCG.KeyValuePair<TKey, TValue>[] pairs = array as SCG.KeyValuePair<TKey, TValue>[];
+            if (pairs != null)
+            {
+                CopyTo(pairs, index);
+            }
+            else
+            {
+                try
+                {
+                    object[] objects = (object[])array;
+                    foreach (var item in this)
+                        objects[index++] = item;
+                }
+                catch (ArrayTypeMismatchException)
+                {
+                    throw new ArgumentException($"Array type cannot be cast to {typeof(SCG.KeyValuePair<TKey, TValue>)}.", nameof(array));
+                }
+            }
         }
 
         #endregion
@@ -838,9 +874,25 @@ namespace Lucene.Net.Support
 
         int ICollection.Count => Count;
 
+        /// <summary>
+        /// Gets a value that indicates whether access to the <see cref="ICollection"/> is synchronized (thread safe).
+        /// </summary>
         bool ICollection.IsSynchronized => false;
 
-        object ICollection.SyncRoot => ((ICollection)dictionary).SyncRoot;
+        /// <summary>
+        /// Gets an object that can be used to synchronize access to the <see cref="ICollection"/>.
+        /// </summary>
+        object ICollection.SyncRoot
+        {
+            get
+            {
+                if (_syncRoot == null)
+                {
+                    System.Threading.Interlocked.CompareExchange(ref _syncRoot, new object(), null);
+                }
+                return _syncRoot;
+            }
+        }
 
         #endregion
 
