@@ -21,10 +21,914 @@
 
 using Lucene.Net.Support.C5;
 using System;
+using System.Collections;
 using System.Linq;
 using SCG = System.Collections.Generic;
 
 namespace Lucene.Net.Support
+{
+    /// <summary>
+    /// An implementation of Red-Black trees as an indexed, sorted collection with set semantics,
+    /// cf. <a href="litterature.htm#CLRS">CLRS</a>. <see cref="T:C5.TreeBag`1"/> for a version 
+    /// with bag semantics. <see cref="T:C5.TreeDictionary`2"/> for a sorted dictionary 
+    /// based on this tree implementation.
+    /// <i>
+    /// The comparer (sorting order) may be either natural, because the item type is comparable 
+    /// (generic: <see cref="T:C5.IComparable`1"/> or non-generic: System.IComparable) or it can
+    /// be external and supplied by the user in the constructor.</i>
+    /// </summary>
+#if FEATURE_SERIALIZABLE
+    [Serializable]
+#endif
+    public class TreeSet<T> : SCG.ISet<T>, SCG.ICollection<T>, System.Collections.ICollection, SCG.IReadOnlyCollection<T>
+    {
+        private SCG.IComparer<T> comparer;
+        private C5.TreeSet<T> set;
+        private object _syncRoot;
+
+        #region Constructors
+
+        /// <summary>
+        /// Create a red-black <see cref="TreeSet{T}"/> with default comparer and item equalityComparer.
+        /// We assume that if <c>T</c> is comparable, its default equalityComparer 
+        /// will be compatible with the comparer.
+        /// </summary>
+        public TreeSet()
+            : this((SCG.IComparer<T>)null)
+        { }
+
+        /// <summary>
+        /// Create a red-black <see cref="TreeSet{T}"/> with the specified <paramref name="comparer"/>. 
+        /// <para>The itemequalityComparer will be a compatible 
+        /// <see cref="T:C5.ComparerZeroHashCodeEqualityComparer`1"/> since the 
+        /// default equalityComparer for T (<see cref="P:C5.EqualityComparer`1.Default"/>)
+        /// is unlikely to be compatible with the external comparer. This makes the
+        /// tree inadequate for use as item in a collection of unsequenced or sequenced sets or bags
+        /// (<see cref="T:C5.ICollection`1"/> and <see cref="T:C5.ISequenced`1"/>)
+        /// </para>
+        /// </summary>
+        /// <param name="comparer">The default comparer to use for comparing objects.</param>
+        public TreeSet(SCG.IComparer<T> comparer)
+        {
+            this.comparer = comparer ?? SCG.Comparer<T>.Default;
+        }
+
+        /// <summary>
+        /// Create a red-black <see cref="TreeSet{T}"/> with default comparer and item equalityComparer that contains
+        /// elements copied from the specified <paramref name="collection"/>.
+        /// We assume that if <c>T</c> is comparable, its default equalityComparer 
+        /// will be compatible with the comparer.
+        /// </summary>
+        /// <remarks>
+        /// Duplicate elements in the enumerable collection are not copied into the new instance of the <see cref="TreeSet{T}"/> class,
+        /// and no exceptions are thrown.
+        /// <para/>
+        /// This constructor is an <c>O(n log n)</c> operation, where <c>n</c> is the number of elements in the <paramref name="collection"/> parameter.
+        /// </remarks>
+        /// <param name="collection">The enumerable collection to be copied.</param>
+        public TreeSet(SCG.IEnumerable<T> collection)
+            : this(collection, null)
+        { }
+
+        /// <summary>
+        /// Create a red-black <see cref="TreeSet{T}"/> with the specified <paramref name="comparer"/> that contains
+        /// elements copied from the specified <paramref name="collection"/>.
+        /// <para>The itemequalityComparer will be a compatible 
+        /// <see cref="T:C5.ComparerZeroHashCodeEqualityComparer`1"/> since the 
+        /// default equalityComparer for T (<see cref="P:C5.EqualityComparer`1.Default"/>)
+        /// is unlikely to be compatible with the external comparer. This makes the
+        /// tree inadequate for use as item in a collection of unsequenced or sequenced sets or bags
+        /// (<see cref="T:C5.ICollection`1"/> and <see cref="T:C5.ISequenced`1"/>)
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// Duplicate elements in the enumerable collection are not copied into the new instance of the <see cref="TreeSet{T}"/> class,
+        /// and no exceptions are thrown.
+        /// <para/>
+        /// This constructor is an <c>O(n log n)</c> operation, where <c>n</c> is the number of elements in the <paramref name="collection"/> parameter.
+        /// </remarks>
+        /// <param name="collection">The enumerable collection to be copied.</param>
+        /// <param name="comparer">The default comparer to use for comparing objects.</param>
+        public TreeSet(SCG.IEnumerable<T> collection, SCG.IComparer<T> comparer)
+            : this(comparer)
+        {
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
+        }
+
+        #endregion
+
+        #region SCG.SortedSet<T> Members
+
+        /// <summary>
+        /// Gets the <see cref="SCG.IComparer{T}"/> object that is used to order the values in the <see cref="TreeSet{T}"/>.
+        /// </summary>
+        public SCG.IComparer<T> Comparer => comparer;
+
+        /// <summary>
+        /// Gets the number of elements in the <see cref="TreeSet{T}"/>.
+        /// </summary>
+        public int Count => set.Count;
+
+        /// <summary>
+        /// Gets the maximum value in the <see cref="TreeSet{T}"/>, as defined by the comparer.
+        /// </summary>
+        public T Max => set.FindMax();
+
+        /// <summary>
+        /// Gets the minimum value in the <see cref="TreeSet{T}"/>, as defined by the comparer.
+        /// </summary>
+        public T Min => set.FindMin();
+
+        /// <summary>
+        /// Adds an element to the set and returns a value that indicates if it was successfully added.
+        /// </summary>
+        /// <param name="item">The element to add to the set.</param>
+        /// <returns><c>true</c> if <paramref name="item"/> is added to the set; otherwise, <c>false</c>.</returns>
+        public bool Add(T item) => set.Add(item);
+
+        /// <summary>
+        /// Removes all elements from the set.
+        /// </summary>
+        /// <remarks>
+        /// This method is an <c>O(n)</c> operation, where <c>n</c> is Count.
+        /// </remarks>
+        public virtual void Clear() => set.Clear();
+
+        /// <summary>
+        /// Determines whether the set contains a specific element.
+        /// </summary>
+        /// <param name="item">The element to locate in the set.</param>
+        /// <returns><c>true</c> if the set contains <paramref name="item"/>; otherwise, <c>false</c>.</returns>
+        public virtual bool Contains(T item) => set.Contains(item);
+
+        /// <summary>
+        /// Copies a specified number of elements from <see cref="TreeSet{T}"/> to a compatible one-dimensional <paramref name="array"/>, 
+        /// starting at the specified array <paramref name="index"/>.
+        /// </summary>
+        /// <param name="array">
+        /// A one-dimensional array that is the destination of the elements copied from the <see cref="TreeSet{T}"/>.
+        /// The array must have zero-based indexing.
+        /// </param>
+        /// <remarks>
+        /// This method is an <c>O(n)</c> operation, where <c>n</c> is <paramref name="count"/>.
+        /// </remarks>
+        /// <param name="index">The zero-based index in <paramref name="array"/> at which copying begins.</param>
+        /// <param name="count">The number of elements to copy.</param>
+        /// <exception cref="ArgumentException">
+        /// The number of elements in the source array is greater than the available space from <paramref name="index"/>
+        /// to the end of the destination array.
+        /// </exception>
+        /// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="index"/> is less than zero.
+        /// <para/>
+        /// -or-
+        /// <para/>
+        /// <paramref name="count"/> is less than zero.
+        /// </exception>
+        public void CopyTo(T[] array, int index, int count)
+        {
+            if (array == null)
+                throw new ArgumentNullException(nameof(array));
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            // will array, starting at arrayIndex, be able to hold elements? Note: not
+            // checking arrayIndex >= array.Length (consistency with list of allowing
+            // count of 0; subsequent check takes care of the rest)
+            if (index > array.Length || count > array.Length - index)
+                throw new ArgumentException("Array plus offset is too small");
+
+            //upper bound
+            count += index;
+
+            foreach (var item in this)
+            {
+                if (index < count)
+                    array[index++] = item;
+                else
+                    return;
+            }
+        }
+
+        /// <summary>
+        /// Copies a specified number of elements from <see cref="TreeSet{T}"/> to a compatible one-dimensional <paramref name="array"/>, 
+        /// starting at the specified array <paramref name="index"/>.
+        /// </summary>
+        /// <param name="array">
+        /// A one-dimensional array that is the destination of the elements copied from the <see cref="TreeSet{T}"/>.
+        /// The array must have zero-based indexing.
+        /// </param>
+        /// <remarks>
+        /// This method is an <c>O(n)</c> operation, where <c>n</c> is <see cref="Count"/>.
+        /// </remarks>
+        /// <param name="index">The zero-based index in <paramref name="array"/> at which copying begins.</param>
+        /// <exception cref="ArgumentException">
+        /// The number of elements in the source array is greater than the available space from <paramref name="index"/>
+        /// to the end of the destination array.
+        /// </exception>
+        /// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is less than zero.</exception>
+        public void CopyTo(T[] array, int index) => CopyTo(array, index, Count);
+
+        /// <summary>
+        /// Copies the complete <see cref="TreeSet{T}"/> to a compatible one-dimensional array, starting at the
+        /// beginning of the target <paramref name="array"/>.
+        /// </summary>
+        /// <param name="array">
+        /// A one-dimensional array that is the destination of the elements copied from the <see cref="TreeSet{T}"/>.
+        /// </param>
+        /// <remarks>
+        /// The indexing of <paramref name="array"/> must be zero-based..
+        /// </remarks>
+        /// <exception cref="ArgumentException">
+        /// The number of elements in the source <see cref="TreeSet{T}"/> exceeds the number of elements that the destination array can contain.
+        /// </exception>
+        /// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+        public void CopyTo(T[] array) => CopyTo(array, 0, Count);
+
+        /// <summary>
+        /// Returns an enumerator that iterates through the <see cref="TreeSet{T}"/>.
+        /// </summary>
+        /// <returns>An enumerator that iterates through the <see cref="TreeSet{T}"/> in sorted order.</returns>
+        public SCG.IEnumerator<T> GetEnumerator() => set.GetEnumerator();
+
+        ///// <summary>
+        ///// Returns a view of a subset in a <see cref="TreeSet{T}"/>.
+        ///// </summary>
+        ///// <remarks>
+        ///// This method returns a view of the range of elements that fall between <paramref name="lowerValue"/> and <paramref name="upperValue"/>,
+        ///// as defined by the comparer. This method does not copy elements from the <see cref="TreeSet{T}"/>, but provides a window into the 
+        ///// underlying <see cref="TreeSet{T}"/> itself. You can make changes in both the view and in the underlying <see cref="TreeSet{T}"/>.
+        ///// </remarks>
+        ///// <param name="lowerValue">The lowest desired value in the view.</param>
+        ///// <param name="upperValue">The highest desired value in the view.</param>
+        ///// <returns>A subset view that contains only the values in the specified range.</returns>
+        ///// <exception cref="ArgumentException"><paramref name="lowerValue"/> is more than <paramref name="upperValue"/> according to the comparer.</exception>
+        ///// <exception cref="ArgumentOutOfRangeException">A tried operation on the view was outside the range specified by <paramref name="lowerValue"/> and <paramref name="upperValue"/>.</exception>
+        //public virtual TreeSet<T> GetViewBetween(T lowerValue, T upperValue)
+        //{
+        //    // LUCENENET TODO: upperValue is exclusive, so we need to account for this
+        //    return new TreeSubSet(set.RangeFromTo(lowerValue, upperValue)); // LUCENENET TODO: Implement TreeSubSet
+        //}
+
+        /// <summary>
+        /// Removes a specified item from the <see cref="TreeSet{T}"/>.
+        /// </summary>
+        /// <param name="item">The element to remove.</param>
+        /// <returns><c>true</c> if the element is found and successfully removed; otherwise, <c>false</c>.</returns>
+        public bool Remove(T item) => set.Remove(item);
+
+        /// <summary>
+        /// Removes all elements that match the conditions defined by the specified predicate from a <see cref="TreeSet{T}"/>.
+        /// </summary>
+        /// <param name="match">The delegate that defines the conditions of the elements to remove.</param>
+        /// <returns>The number of elements that were removed from the <see cref="TreeSet{T}"/> collection.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="match"/> is <c>null</c>.</exception>
+        public int RemoveWhere(Predicate<T> match)
+        {
+            if (match == null)
+                throw new ArgumentNullException(nameof(match));
+
+            var matches = new SCG.List<T>(this.Count);
+            foreach (var item in set)
+            {
+                if (match(item))
+                    matches.Add(item);
+            }
+
+            // reverse breadth first to (try to) incur low cost
+            int actuallyRemoved = 0;
+            for (int i = matches.Count - 1; i >= 0; i--)
+            {
+                if (this.Remove(matches[i]))
+                {
+                    actuallyRemoved++;
+                }
+            }
+
+            return actuallyRemoved;
+        }
+
+        /// <summary>
+        /// Returns an <see cref="SCG.IEnumerable{T}"/> that iterates over the <see cref="TreeSet{T}"/> in reverse order.
+        /// </summary>
+        /// <returns>An enumerator that iterates over the <see cref="TreeSet{T}"/> in reverse order.</returns>
+        public SCG.IEnumerable<T> Reverse()
+        {
+            return set.Reverse();
+        }
+
+        /// <summary>
+        /// Searches the set for a given value and returns the equal value it finds, if any.
+        /// </summary>
+        /// <remarks>
+        /// This can be useful when you want to reuse a previously stored reference instead of
+        /// a newly constructed one (so that more sharing of references can occur) or to look
+        /// up a value that has more complete data than the value you currently have, although
+        /// their comparer functions indicate they are equal.
+        /// </remarks>
+        /// <param name="equalValue">The value to search for.</param>
+        /// <param name="actualValue">The value from the set that the search found, or the default value of <typeparamref name="T"/>
+        /// when the search yielded no match.</param>
+        /// <returns>A value indicating whether the search was successful.</returns>
+        public bool TryGetValue(T equalValue, out T actualValue)
+        {
+            if (set.Find(ref equalValue))
+            {
+                actualValue = equalValue;
+                return true;
+            }
+            else
+            {
+                actualValue = default;
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region SCG.ICollection<T> Members
+
+        int SCG.ICollection<T>.Count => Count;
+
+        /// <summary>
+        /// Gets a value that indicates whether a <see cref="ICollection"/> is read-only.
+        /// </summary>
+        bool SCG.ICollection<T>.IsReadOnly => set.IsReadOnly;
+
+        void SCG.ICollection<T>.Add(T item) => Add(item);
+
+        void SCG.ICollection<T>.Clear() => Clear();
+
+        bool SCG.ICollection<T>.Contains(T item) => Contains(item);
+
+        void SCG.ICollection<T>.CopyTo(T[] array, int index) => CopyTo(array, index);
+
+        bool SCG.ICollection<T>.Remove(T item) => Remove(item);
+
+        #endregion
+
+        #region ICollection Members
+
+        int ICollection.Count => Count;
+
+        /// <summary>
+        /// Gets a value that indicates whether access to the <see cref="ICollection"/> is synchronized (thread safe).
+        /// </summary>
+        bool ICollection.IsSynchronized => false;
+
+        /// <summary>
+        /// Gets an object that can be used to synchronize access to the <see cref="ICollection"/>.
+        /// </summary>
+        object ICollection.SyncRoot
+        {
+            get
+            {
+                if (_syncRoot == null)
+                {
+                    System.Threading.Interlocked.CompareExchange(ref _syncRoot, new object(), null);
+                }
+                return _syncRoot;
+            }
+        }
+
+        /// <summary>
+        /// Copies a specified number of elements from <see cref="TreeSet{T}"/> to a compatible one-dimensional <paramref name="array"/>, 
+        /// starting at the specified array <paramref name="index"/>.
+        /// </summary>
+        /// <param name="array">
+        /// A one-dimensional array that is the destination of the elements copied from the <see cref="TreeSet{T}"/>.
+        /// The array must have zero-based indexing.
+        /// </param>
+        /// <remarks>
+        /// This method is an <c>O(n)</c> operation, where <c>n</c> is <see cref="Count"/>.
+        /// </remarks>
+        /// <param name="index">The zero-based index in <paramref name="array"/> at which copying begins.</param>
+        /// <exception cref="ArgumentException">
+        /// The number of elements in the source array is greater than the available space from <paramref name="index"/>
+        /// to the end of the destination array.
+        /// </exception>
+        /// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is less than zero.</exception>
+        void ICollection.CopyTo(Array array, int index)
+        {
+            if (array == null)
+                throw new ArgumentNullException(nameof(array));
+
+            if (array.Rank != 1)
+                throw new ArgumentException("Multidimentional array not supported.");
+
+            if (array.GetLowerBound(0) != 0)
+                throw new ArgumentException("Non-zero array lower bound.");
+
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), $"Array index must be greater than or equal to 0. Value: '{index}'.");
+
+            // will array, starting at arrayIndex, be able to hold elements? Note: not
+            // checking arrayIndex >= array.Length (consistency with list of allowing
+            // count of 0; subsequent check takes care of the rest)
+            if (index > array.Length || Count > array.Length - index)
+                throw new ArgumentException("Array plus offset is too small");
+
+            T[] tarray = array as T[];
+            if (tarray != null)
+            {
+                CopyTo(tarray, index);
+            }
+            else
+            {
+                try
+                {
+                    object[] objects = (object[])array;
+                    foreach (var item in this)
+                        objects[index++] = item;
+                }
+                catch (ArrayTypeMismatchException)
+                {
+                    throw new ArgumentException($"Array type cannot be cast to {typeof(T)}.", nameof(array));
+                }
+            }
+        }
+
+        #endregion
+
+        #region SCG.IReadOnlyCollection<T> Members
+
+        int SCG.IReadOnlyCollection<T>.Count => Count;
+
+        #endregion
+
+        #region SCG.IEnumerable<T> Members
+
+        SCG.IEnumerator<T> SCG.IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+        #endregion
+
+        #region IEnumerable Members
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+        
+
+        
+
+        
+
+
+        #region ISet<T> Members
+
+        bool SCG.ISet<T>.Add(T item) => Add(item);
+
+        /// <summary>
+        /// Modifies the current <see cref="TreeSet{T}"/> object to contain all elements that are present in itself, the specified collection, or both.
+        /// </summary>
+        /// <param name="other">The collection to compare to the current set.</param>
+        public void UnionWith(SCG.IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            set.AddAll(other);
+        }
+
+        /// <summary>
+        /// Modifies the current <see cref="TreeSet{T}"/> object so that it contains only elements that are also in a specified collection.
+        /// </summary>
+        /// <param name="other">The collection to compare to the current set.</param>
+        public virtual void IntersectWith(SCG.IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            // intersection of anything with empty set is empty set, so return if count is 0
+            if (set.Count == 0)
+            {
+                return;
+            }
+
+            // if other is empty, intersection is empty set; remove all elements and we're done
+            // can only figure this out if implements ICollection<T>. (IEnumerable<T> has no count)
+            var otherAsCollection = other as SCG.ICollection<T>;
+            if (otherAsCollection != null && otherAsCollection.Count == 0)
+            {
+                Clear();
+                return;
+            }
+
+            set.RetainAll(other);
+        }
+
+        /// <summary>
+        /// Removes all elements in the specified collection from the current <see cref="TreeSet{T}"/> object.
+        /// </summary>
+        /// <param name="other">The collection of items to remove from the set.</param>
+        public void ExceptWith(SCG.IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            // this is already the empty set; return
+            if (set.Count == 0)
+                return;
+
+            // special case if other is this; a set minus itself is the empty set
+            if (other == this)
+            {
+                Clear();
+                return;
+            }
+
+            set.RemoveAll(other);
+        }
+
+        /// <summary>
+        /// Modifies the current set so that it contains only elements that are present either in the current 
+        /// <see cref="TreeSet{T}"/> object or in the specified collection, but not both.
+        /// </summary>
+        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
+        public void SymmetricExceptWith(SCG.IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            // if set is empty, then symmetric difference is other
+            if (set.Count == 0)
+            {
+                UnionWith(other);
+                return;
+            }
+
+            // special case this; the symmetric difference of a set with itself is the empty set
+            if (other == this)
+            {
+                Clear();
+                return;
+            }
+
+            var otherAsSet = other as TreeSet<T>;
+            // If other is a HashSet, it has unique elements according to its equality comparer,
+            // but if they're using different equality comparers, then assumption of uniqueness
+            // will fail. So first check if other is a hashset using the same equality comparer;
+            // symmetric except is a lot faster and avoids bit array allocations if we can assume
+            // uniqueness
+            if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
+            {
+                SymmetricExceptWithUniqueTreeSet(otherAsSet);
+            }
+            else
+            {
+                var temp = new SCG.SortedSet<T>(other, comparer);
+                temp.ExceptWith(this);
+                this.ExceptWith(other);
+                this.UnionWith(temp);
+            }
+        }
+
+        /// <summary>
+        /// Determines whether a <see cref="TreeSet{T}"/> object is a subset of the specified collection.
+        /// </summary>
+        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
+        /// <returns><c>true</c> if the <see cref="TreeSet{T}"/> object is a subset of other; otherwise, <c>false</c>.</returns>
+        public bool IsSubsetOf(SCG.IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            if (set.Count == 0)
+            {
+                return true;
+            }
+
+            var otherAsSet = other as TreeSet<T>;
+            // faster if other has unique elements according to this equality comparer; so check 
+            // that other is a hashset using the same equality comparer.
+            if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
+            {
+                // if this has more elements then it can't be a subset
+                if (set.Count > otherAsSet.Count)
+                {
+                    return false;
+                }
+
+                // already checked that we're using same equality comparer. simply check that 
+                // each element in this is contained in other.
+                return IsSubsetOfTreeSetWithSameEC(otherAsSet);
+            }
+            else
+            {
+                // we just need to return true if the other set
+                // contains all of the elements of the this set,
+                // but we need to use the comparison rules of the current set.
+                this.CheckUniqueAndUnfoundElements(other, false, out int uniqueCount, out int unfoundCount);
+                return uniqueCount == set.Count;
+            }
+        }
+
+        /// <summary>
+        /// Determines whether a <see cref="TreeSet{T}"/> object is a superset of the specified collection.
+        /// </summary>
+        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
+        /// <returns><c>true</c> if the <see cref="TreeSet{T}"/> object is a superset of other; otherwise, <c>false</c>.</returns>
+        public bool IsSupersetOf(SCG.IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            // try to fall out early based on counts
+            var is2 = other as SCG.ICollection<T>;
+            if (is2 != null)
+            {
+                // if other is the empty set then this is a superset
+                if (is2.Count == 0)
+                    return true;
+
+                var otherAsSet = other as TreeSet<T>;
+                // try to compare based on counts alone if other is a hashset with
+                // same equality comparer
+                if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
+                {
+                    if (otherAsSet.Count > set.Count)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return set.ContainsAll(other);
+        }
+
+        /// <summary>
+        /// Determines whether a <see cref="TreeSet{T}"/> object is a proper superset of the specified collection.
+        /// </summary>
+        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
+        /// <returns><c>true</c> if the <see cref="TreeSet{T}"/> object is a proper superset of other; otherwise, <c>false</c>.</returns>
+        public bool IsProperSupersetOf(SCG.IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            // the empty set isn't a proper superset of any set.
+            if (set.Count == 0)
+            {
+                return false;
+            }
+
+            var otherAsCollection = other as SCG.ICollection<T>;
+            if (otherAsCollection != null)
+            {
+                // if other is the empty set then this is a superset
+                if (otherAsCollection.Count == 0)
+                    return true; // note that this has at least one element, based on above check
+
+                var otherAsSet = other as TreeSet<T>;
+                // faster if other is a hashset with the same equality comparer
+                if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
+                {
+                    if (otherAsSet.Count >= set.Count)
+                    {
+                        return false;
+                    }
+                    // now perform element check
+                    return set.ContainsAll(otherAsSet);
+                }
+            }
+
+            // couldn't fall out in the above cases; do it the long way
+            this.CheckUniqueAndUnfoundElements(other, true, out int uniqueCount, out int unfoundCount);
+            return uniqueCount < set.Count && unfoundCount == 0;
+        }
+
+        /// <summary>
+        /// Determines whether a <see cref="TreeSet{T}"/> object is a proper subset of the specified collection.
+        /// </summary>
+        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
+        /// <returns><c>true</c> if the <see cref="TreeSet{T}"/> object is a proper subset of other; otherwise, <c>false</c>.</returns>
+        public bool IsProperSubsetOf(SCG.IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+
+            var otherAsCollection = other as SCG.ICollection<T>;
+            if (otherAsCollection != null)
+            {
+                // the empty set is a proper subset of anything but the empty set
+                if (set.Count == 0)
+                    return otherAsCollection.Count > 0;
+
+                var otherAsSet = other as TreeSet<T>;
+                // faster if other is a hashset (and we're using same equality comparer)
+                if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
+                {
+                    if (set.Count >= otherAsSet.Count)
+                    {
+                        return false;
+                    }
+                    // this has strictly less than number of items in other, so the following
+                    // check suffices for proper subset.
+                    return IsSubsetOfTreeSetWithSameEC(otherAsSet);
+                }
+            }
+
+            this.CheckUniqueAndUnfoundElements(other, false, out int uniqueCount, out int unfoundCount);
+            return uniqueCount == set.Count && unfoundCount > 0;
+        }
+
+        /// <summary>
+        /// Determines whether the current <see cref="TreeSet{T}"/> object and a specified collection share common elements.
+        /// </summary>
+        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
+        /// <returns><c>true</c> if the <see cref="TreeSet{T}"/> object and other share at least one common element; otherwise, <c>false</c>.</returns>
+        public bool Overlaps(SCG.IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            if (set.Count != 0)
+            {
+                foreach (var local in other)
+                {
+                    if (this.Contains(local))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether the current <see cref="TreeSet{T}"/> and the specified collection contain the same elements.
+        /// </summary>
+        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/>.</param>
+        /// <returns><c>true</c> if the current <see cref="TreeSet{T}"/> is equal to other; otherwise, <c>false</c>.</returns>
+        public bool SetEquals(SCG.IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            var otherAsSet = other as TreeSet<T>;
+            // faster if other is a hashset and we're using same equality comparer
+            if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
+            {
+                // attempt to return early: since both contain unique elements, if they have 
+                // different counts, then they can't be equal
+                if (set.Count != otherAsSet.Count)
+                    return false;
+
+                // already confirmed that the sets have the same number of distinct elements, so if
+                // one is a superset of the other then they must be equal
+                return set.ContainsAll(otherAsSet);
+            }
+            else
+            {
+                var otherAsCollection = other as SCG.ICollection<T>;
+                if (otherAsCollection != null)
+                {
+                    // if this count is 0 but other contains at least one element, they can't be equal
+                    if (set.Count == 0 && otherAsCollection.Count > 0)
+                        return false;
+                }
+
+                this.CheckUniqueAndUnfoundElements(other, true, out int uniqueCount, out int unfoundCount);
+                return uniqueCount == set.Count && unfoundCount == 0;
+            }
+        }
+
+        private void CheckUniqueAndUnfoundElements(SCG.IEnumerable<T> other, bool returnIfUnfound, out int uniqueCount, out int unfoundCount)
+        {
+            // need special case in case this has no elements.
+            if (set.Count == 0)
+            {
+                int numElementsInOther = 0;
+                foreach (T item in other)
+                {
+                    numElementsInOther++;
+                    // break right away, all we want to know is whether other has 0 or 1 elements
+                    break;
+                }
+                uniqueCount = 0;
+                unfoundCount = numElementsInOther;
+                return;
+            }
+
+            int originalLastIndex = set.Count;
+            var bitArray = new System.Collections.BitArray(originalLastIndex, false);
+
+            // count of unique items in other found in this
+            uniqueCount = 0;
+            // count of items in other not found in this
+            unfoundCount = 0;
+
+            foreach (var item in other)
+            {
+                var index = set.IndexOf(item);
+                if (index >= 0)
+                {
+                    if (!bitArray.Get(index))
+                    {
+                        // item hasn't been seen yet
+                        bitArray.Set(index, true);
+                        uniqueCount++;
+                    }
+                }
+                else
+                {
+                    unfoundCount++;
+                    if (returnIfUnfound)
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks if equality comparers are equal. This is used for algorithms that can
+        /// speed up if it knows the other item has unique elements. I.e. if they're using 
+        /// different equality comparers, then uniqueness assumption between sets break.
+        /// </summary>
+        /// <param name="set1"></param>
+        /// <param name="set2"></param>
+        /// <returns></returns>
+        private static bool AreEqualityComparersEqual(TreeSet<T> set1, TreeSet<T> set2)
+        {
+            return set1.Comparer.Equals(set2.Comparer);
+        }
+
+        /// <summary>
+        /// if other is a set, we can assume it doesn't have duplicate elements, so use this
+        /// technique: if can't remove, then it wasn't present in this set, so add.
+        /// 
+        /// As with other methods, callers take care of ensuring that other is a hashset using the
+        /// same equality comparer.
+        /// </summary>
+        /// <param name="other"></param>
+        private void SymmetricExceptWithUniqueTreeSet(TreeSet<T> other)
+        {
+            foreach (T item in other)
+            {
+                if (!Remove(item))
+                {
+                    Add(item);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Implementation Notes:
+        /// If other is a hashset and is using same equality comparer, then checking subset is 
+        /// faster. Simply check that each element in this is in other.
+        /// 
+        /// Note: if other doesn't use same equality comparer, then Contains check is invalid,
+        /// which is why callers must take are of this.
+        /// 
+        /// If callers are concerned about whether this is a proper subset, they take care of that.
+        ///
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        private bool IsSubsetOfTreeSetWithSameEC(TreeSet<T> other)
+        {
+
+            foreach (T item in this)
+            {
+                if (!other.Contains(item))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+
+        #endregion
+    }
+}
+
+namespace Lucene.Net.Support.C5
 {
     /// <summary>
     /// An implementation of Red-Black trees as an indexed, sorted collection with set semantics,
@@ -43,7 +947,7 @@ namespace Lucene.Net.Support
 #if FEATURE_SERIALIZABLE
     [Serializable]
 #endif
-    public class TreeSet<T> : SequencedBase<T>, IIndexedSorted<T>, IPersistentSorted<T>, SCG.ISet<T>
+    public class TreeSet<T> : SequencedBase<T>, IIndexedSorted<T>, IPersistentSorted<T>
     {
         #region Fields
 
@@ -545,431 +1449,6 @@ namespace Lucene.Net.Support
 
             #endregion
         }
-
-        #endregion
-
-        #region ISet<T> Members
-
-        /// <summary>
-        /// Modifies the current <see cref="TreeSet{T}"/> object to contain all elements that are present in itself, the specified collection, or both.
-        /// </summary>
-        /// <param name="other">The collection to compare to the current set.</param>
-        public virtual void UnionWith(SCG.IEnumerable<T> other)
-        {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
-            AddAll(other);
-        }
-
-        /// <summary>
-        /// Modifies the current <see cref="TreeSet{T}"/> object so that it contains only elements that are also in a specified collection.
-        /// </summary>
-        /// <param name="other">The collection to compare to the current set.</param>
-        public virtual void IntersectWith(SCG.IEnumerable<T> other)
-        {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
-            // intersection of anything with empty set is empty set, so return if count is 0
-            if (this.size == 0)
-            {
-                return;
-            }
-
-            // if other is empty, intersection is empty set; remove all elements and we're done
-            // can only figure this out if implements ICollection<T>. (IEnumerable<T> has no count)
-            var otherAsCollection = other as SCG.ICollection<T>;
-            if (otherAsCollection != null && otherAsCollection.Count == 0)
-            {
-                Clear();
-                return;
-            }
-
-            RetainAll(other);
-        }
-
-        /// <summary>
-        /// Removes all elements in the specified collection from the current <see cref="TreeSet{T}"/> object.
-        /// </summary>
-        /// <param name="other">The collection of items to remove from the set.</param>
-        public virtual void ExceptWith(SCG.IEnumerable<T> other)
-        {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
-            // this is already the empty set; return
-            if (this.size == 0)
-                return;
-
-            // special case if other is this; a set minus itself is the empty set
-            if (other == this)
-            {
-                Clear();
-                return;
-            }
-
-            RemoveAll(other);
-        }
-
-        /// <summary>
-        /// Modifies the current set so that it contains only elements that are present either in the current 
-        /// <see cref="TreeSet{T}"/> object or in the specified collection, but not both.
-        /// </summary>
-        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
-        public virtual void SymmetricExceptWith(SCG.IEnumerable<T> other)
-        {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
-            // if set is empty, then symmetric difference is other
-            if (this.size == 0)
-            {
-                UnionWith(other);
-                return;
-            }
-
-            // special case this; the symmetric difference of a set with itself is the empty set
-            if (other == this)
-            {
-                Clear();
-                return;
-            }
-
-            var otherAsSet = other as TreeSet<T>;
-            // If other is a HashSet, it has unique elements according to its equality comparer,
-            // but if they're using different equality comparers, then assumption of uniqueness
-            // will fail. So first check if other is a hashset using the same equality comparer;
-            // symmetric except is a lot faster and avoids bit array allocations if we can assume
-            // uniqueness
-            if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
-            {
-                SymmetricExceptWithUniqueTreeSet(otherAsSet);
-            }
-            else
-            {
-                var temp = new SCG.SortedSet<T>(other, comparer);
-                temp.ExceptWith(this);
-                this.ExceptWith(other);
-                this.UnionWith(temp);
-            }
-        }
-
-        /// <summary>
-        /// Determines whether a <see cref="TreeSet{T}"/> object is a subset of the specified collection.
-        /// </summary>
-        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
-        /// <returns><c>true</c> if the <see cref="TreeSet{T}"/> object is a subset of other; otherwise, <c>false</c>.</returns>
-        public virtual bool IsSubsetOf(SCG.IEnumerable<T> other)
-        {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
-            if (this.size == 0)
-            {
-                return true;
-            }
-
-            var otherAsSet = other as TreeSet<T>;
-            // faster if other has unique elements according to this equality comparer; so check 
-            // that other is a hashset using the same equality comparer.
-            if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
-            {
-                // if this has more elements then it can't be a subset
-                if (this.size > otherAsSet.Count)
-                {
-                    return false;
-                }
-
-                // already checked that we're using same equality comparer. simply check that 
-                // each element in this is contained in other.
-                return IsSubsetOfTreeSetWithSameEC(otherAsSet);
-            }
-            else
-            {
-                // we just need to return true if the other set
-                // contains all of the elements of the this set,
-                // but we need to use the comparison rules of the current set.
-                this.CheckUniqueAndUnfoundElements(other, false, out int uniqueCount, out int unfoundCount);
-                return uniqueCount == this.size;
-            }
-        }
-
-        /// <summary>
-        /// Determines whether a <see cref="TreeSet{T}"/> object is a superset of the specified collection.
-        /// </summary>
-        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
-        /// <returns><c>true</c> if the <see cref="TreeSet{T}"/> object is a superset of other; otherwise, <c>false</c>.</returns>
-        public virtual bool IsSupersetOf(SCG.IEnumerable<T> other)
-        {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
-            // try to fall out early based on counts
-            var is2 = other as SCG.ICollection<T>;
-            if (is2 != null)
-            {
-                // if other is the empty set then this is a superset
-                if (is2.Count == 0)
-                    return true;
-
-                var otherAsSet = other as TreeSet<T>;
-                // try to compare based on counts alone if other is a hashset with
-                // same equality comparer
-                if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
-                {
-                    if (otherAsSet.Count > this.size)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return this.ContainsAll(other);
-        }
-
-        /// <summary>
-        /// Determines whether a <see cref="TreeSet{T}"/> object is a proper superset of the specified collection.
-        /// </summary>
-        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
-        /// <returns><c>true</c> if the <see cref="TreeSet{T}"/> object is a proper superset of other; otherwise, <c>false</c>.</returns>
-        public virtual bool IsProperSupersetOf(SCG.IEnumerable<T> other)
-        {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
-            // the empty set isn't a proper superset of any set.
-            if (this.size == 0)
-            {
-                return false;
-            }
-
-            var otherAsCollection = other as SCG.ICollection<T>;
-            if (otherAsCollection != null)
-            {
-                // if other is the empty set then this is a superset
-                if (otherAsCollection.Count == 0)
-                    return true; // note that this has at least one element, based on above check
-
-                var otherAsSet = other as TreeSet<T>;
-                // faster if other is a hashset with the same equality comparer
-                if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
-                {
-                    if (otherAsSet.Count >= this.size)
-                    {
-                        return false;
-                    }
-                    // now perform element check
-                    return ContainsAll(otherAsSet);
-                }
-            }
-
-            // couldn't fall out in the above cases; do it the long way
-            this.CheckUniqueAndUnfoundElements(other, true, out int uniqueCount, out int unfoundCount);
-            return uniqueCount < this.size && unfoundCount == 0;
-        }
-
-        /// <summary>
-        /// Determines whether a <see cref="TreeSet{T}"/> object is a proper subset of the specified collection.
-        /// </summary>
-        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
-        /// <returns><c>true</c> if the <see cref="TreeSet{T}"/> object is a proper subset of other; otherwise, <c>false</c>.</returns>
-        public virtual bool IsProperSubsetOf(SCG.IEnumerable<T> other)
-        {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
-
-            var otherAsCollection = other as SCG.ICollection<T>;
-            if (otherAsCollection != null)
-            {
-                // the empty set is a proper subset of anything but the empty set
-                if (this.size == 0)
-                    return otherAsCollection.Count > 0;
-
-                var otherAsSet = other as TreeSet<T>;
-                // faster if other is a hashset (and we're using same equality comparer)
-                if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
-                {
-                    if (this.size >= otherAsSet.Count)
-                    {
-                        return false;
-                    }
-                    // this has strictly less than number of items in other, so the following
-                    // check suffices for proper subset.
-                    return IsSubsetOfTreeSetWithSameEC(otherAsSet);
-                }
-            }
-
-            this.CheckUniqueAndUnfoundElements(other, false, out int uniqueCount, out int unfoundCount);
-            return uniqueCount == this.size && unfoundCount > 0;
-        }
-
-        /// <summary>
-        /// Determines whether the current <see cref="TreeSet{T}"/> object and a specified collection share common elements.
-        /// </summary>
-        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/> object.</param>
-        /// <returns><c>true</c> if the <see cref="TreeSet{T}"/> object and other share at least one common element; otherwise, <c>false</c>.</returns>
-        public virtual bool Overlaps(SCG.IEnumerable<T> other)
-        {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
-            if (this.size != 0)
-            {
-                foreach (var local in other)
-                {
-                    if (this.Contains(local))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Determines whether the current <see cref="TreeSet{T}"/> and the specified collection contain the same elements.
-        /// </summary>
-        /// <param name="other">The collection to compare to the current <see cref="TreeSet{T}"/>.</param>
-        /// <returns><c>true</c> if the current <see cref="TreeSet{T}"/> is equal to other; otherwise, <c>false</c>.</returns>
-        public virtual bool SetEquals(SCG.IEnumerable<T> other)
-        {
-            if (other == null)
-                throw new ArgumentNullException(nameof(other));
-
-            var otherAsSet = other as TreeSet<T>;
-            // faster if other is a hashset and we're using same equality comparer
-            if (otherAsSet != null && AreEqualityComparersEqual(this, otherAsSet))
-            {
-                // attempt to return early: since both contain unique elements, if they have 
-                // different counts, then they can't be equal
-                if (this.size != otherAsSet.Count)
-                    return false;
-
-                // already confirmed that the sets have the same number of distinct elements, so if
-                // one is a superset of the other then they must be equal
-                return ContainsAll(otherAsSet);
-            }
-            else
-            {
-                var otherAsCollection = other as SCG.ICollection<T>;
-                if (otherAsCollection != null)
-                {
-                    // if this count is 0 but other contains at least one element, they can't be equal
-                    if (this.size == 0 && otherAsCollection.Count > 0)
-                        return false;
-                }
-
-                this.CheckUniqueAndUnfoundElements(other, true, out int uniqueCount, out int unfoundCount);
-                return uniqueCount == this.size && unfoundCount == 0;
-            }
-        }
-
-        private void CheckUniqueAndUnfoundElements(SCG.IEnumerable<T> other, bool returnIfUnfound, out int uniqueCount, out int unfoundCount)
-        {
-            // need special case in case this has no elements.
-            if (this.size == 0)
-            {
-                int numElementsInOther = 0;
-                foreach (T item in other)
-                {
-                    numElementsInOther++;
-                    // break right away, all we want to know is whether other has 0 or 1 elements
-                    break;
-                }
-                uniqueCount = 0;
-                unfoundCount = numElementsInOther;
-                return;
-            }
-
-            int originalLastIndex = this.size;
-            var bitArray = new System.Collections.BitArray(originalLastIndex, false);
-
-            // count of unique items in other found in this
-            uniqueCount = 0;
-            // count of items in other not found in this
-            unfoundCount = 0;
-
-            foreach (var item in other)
-            {
-                var index = IndexOf(item);
-                if (index >= 0)
-                {
-                    if (!bitArray.Get(index))
-                    {
-                        // item hasn't been seen yet
-                        bitArray.Set(index, true);
-                        uniqueCount++;
-                    }
-                }
-                else
-                {
-                    unfoundCount++;
-                    if (returnIfUnfound)
-                        break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Checks if equality comparers are equal. This is used for algorithms that can
-        /// speed up if it knows the other item has unique elements. I.e. if they're using 
-        /// different equality comparers, then uniqueness assumption between sets break.
-        /// </summary>
-        /// <param name="set1"></param>
-        /// <param name="set2"></param>
-        /// <returns></returns>
-        private static bool AreEqualityComparersEqual(TreeSet<T> set1, TreeSet<T> set2)
-        {
-            return set1.Comparer.Equals(set2.Comparer);
-        }
-
-        /// <summary>
-        /// if other is a set, we can assume it doesn't have duplicate elements, so use this
-        /// technique: if can't remove, then it wasn't present in this set, so add.
-        /// 
-        /// As with other methods, callers take care of ensuring that other is a hashset using the
-        /// same equality comparer.
-        /// </summary>
-        /// <param name="other"></param>
-        private void SymmetricExceptWithUniqueTreeSet(TreeSet<T> other)
-        {
-            foreach (T item in other)
-            {
-                if (!Remove(item))
-                {
-                    Add(item);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Implementation Notes:
-        /// If other is a hashset and is using same equality comparer, then checking subset is 
-        /// faster. Simply check that each element in this is in other.
-        /// 
-        /// Note: if other doesn't use same equality comparer, then Contains check is invalid,
-        /// which is why callers must take are of this.
-        /// 
-        /// If callers are concerned about whether this is a proper subset, they take care of that.
-        ///
-        /// </summary>
-        /// <param name="other"></param>
-        /// <returns></returns>
-        private bool IsSubsetOfTreeSetWithSameEC(TreeSet<T> other)
-        {
-
-            foreach (T item in this)
-            {
-                if (!other.Contains(item))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
 
         #endregion
 

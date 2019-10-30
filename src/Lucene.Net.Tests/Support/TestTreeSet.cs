@@ -26,7 +26,7 @@ using Lucene.Net.Support.C5;
 using NUnit.Framework;
 using SCG = System.Collections.Generic;
 
-namespace Lucene.Net.Support.RBTreeSet
+namespace Lucene.Net.Support.C5.RBTreeSet
 {
     using CollectionOfInt = TreeSet<int>;
 

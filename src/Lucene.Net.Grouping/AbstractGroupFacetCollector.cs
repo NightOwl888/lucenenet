@@ -193,7 +193,7 @@ namespace Lucene.Net.Search.Grouping
 
                 if (facetEntries.Count == maxSize)
                 {
-                    currentMin = facetEntries.FindMax().Count;
+                    currentMin = facetEntries.Max.Count;
                 }
             }
 
