@@ -191,6 +191,24 @@ namespace Lucene.Net.Support
             return dictionary.Values.Contains(value);
         }
 
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is IDictionary<TKey, TValue>))
+                return false;
+
+            return Collections.Equals(this, obj as IDictionary<TKey, TValue>);
+        }
+        public override int GetHashCode()
+        {
+            return Collections.GetHashCode(this);
+        }
+
+        public override string ToString()
+        {
+            return Collections.ToString(this);
+        }
+
         private class KeyCollection : ICollection<TKey>
         {
             private readonly ICollection<NullObject<TKey>> collection;
