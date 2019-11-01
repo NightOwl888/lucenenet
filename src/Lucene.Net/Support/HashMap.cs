@@ -77,7 +77,7 @@ namespace Lucene.Net.Support
         //    }
         //}
 
-        private class EqualityComparer : IEqualityComparer<NullObject<TKey>>
+        public class EqualityComparer : IEqualityComparer<NullObject<TKey>>
         {
             private readonly IEqualityComparer<TKey> comparer;
             public EqualityComparer(IEqualityComparer<TKey> comparer)
