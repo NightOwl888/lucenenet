@@ -277,23 +277,23 @@ namespace Lucene.Net.Support
             get { return false; }
         }
 
-        public override void Add(KeyValuePair<TKey, TValue> item)
+        public virtual void Add(KeyValuePair<TKey, TValue> item)
         {
             Add(item.Key, item.Value);
         }
 
-        public override bool Contains(KeyValuePair<TKey, TValue> item)
+        public virtual bool Contains(KeyValuePair<TKey, TValue> item)
         {
             LinkedListNode<KeyValuePair<TKey, TValue>> pair;
             return TryGetNode(item.Key, item.Value, out pair);
         }
 
-        public override void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+        public virtual void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
             list.CopyTo(array, arrayIndex);
         }
 
-        public override bool Remove(KeyValuePair<TKey, TValue> item)
+        public virtual bool Remove(KeyValuePair<TKey, TValue> item)
         {
             LinkedListNode<KeyValuePair<TKey, TValue>> node;
             if (!TryGetNode(item.Key, item.Value, out node))

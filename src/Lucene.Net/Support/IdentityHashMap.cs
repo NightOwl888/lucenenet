@@ -31,8 +31,8 @@ namespace Lucene.Net.Support
         {
         }
 
-        public IdentityHashMap(IDictionary<TKey, TValue> wrappedDictionary)
-            : base(wrappedDictionary, IdentityComparer<TKey>.Default)
+        public IdentityHashMap(IDictionary<TKey, TValue> dictionary)
+            : base(dictionary, IdentityComparer<TKey>.Default)
         {
         }
     }
