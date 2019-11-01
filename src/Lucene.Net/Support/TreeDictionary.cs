@@ -609,7 +609,10 @@ namespace Lucene.Net.Support
         /// <returns><c>true</c> if the specified object's values are equal to this dictionary.</returns>
         public override bool Equals(object obj)
         {
-            return Collections.Equals(this, obj);
+            if (!(obj is IDictionary<TKey, TValue>))
+                return false;
+
+            return Collections.Equals(this, obj as IDictionary<TKey, TValue>);
         }
 
         /// <summary>
