@@ -595,6 +595,9 @@ namespace Lucene.Net.Support
         /// </summary>
         public static string ToString(object obj)
         {
+            if (obj == null)
+                return "NULL";
+
             Type t = obj.GetType();
             if (t.GetTypeInfo().IsGenericType
                 && (t.ImplementsGenericInterface(typeof(ICollection<>)))
