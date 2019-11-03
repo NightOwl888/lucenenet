@@ -52,24 +52,10 @@ namespace Lucene.Net.Support
     public class NullableKeyDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
     {
         private KeyCollection keys;
+        private ValueCollection values;
         private readonly IDictionary<NullableKey, TValue> dictionary;
         private readonly IEqualityComparer<TKey> comparer;
-
-        bool IDictionary.IsFixedSize => throw new NotImplementedException();
-
-        bool IDictionary.IsReadOnly => throw new NotImplementedException();
-
-        ICollection IDictionary.Keys => throw new NotImplementedException();
-
-        ICollection IDictionary.Values => throw new NotImplementedException();
-
-        int ICollection.Count => throw new NotImplementedException();
-
-        bool ICollection.IsSynchronized => throw new NotImplementedException();
-
-        object ICollection.SyncRoot => throw new NotImplementedException();
-
-        object IDictionary.this[object key] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        private object syncRoot;
 
         /// <summary>
         /// Initializes an instance of <see cref="NullableKeyDictionary{TKey, TValue}"/> using the provided
@@ -429,12 +415,69 @@ namespace Lucene.Net.Support
 
         #region IDictionary Members
 
+        object IDictionary.this[object key]
+        {
+            get => Dictionary_This_Get(key);
+            set => Dictionary_This_Set(key, value);
+        }
+
+        protected virtual object Dictionary_This_Get(object key)
+        {
+            if (key is TKey)
+                return this[(TKey)key];
+            return null;
+        }
+
+        protected virtual void Dictionary_This_Set(object key, object value)
+        {
+            try
+            {
+                TKey tempKey = (TKey)key;
+
+                try
+                {
+                    this[tempKey] = (TValue)value;
+                }
+                catch (InvalidCastException)
+                {
+                    throw new ArgumentException($"The value '{value}' is not of type '{typeof(TValue)}' and cannot be used in this generic collection. Parameter name: {nameof(value)}");
+                }
+            }
+            catch (InvalidCastException)
+            {
+                throw new ArgumentException($"The value '{key}' is not of type '{typeof(TKey)}' and cannot be used in this generic collection. Parameter name: {nameof(key)}");
+            }
+        }
+
+        bool IDictionary.IsFixedSize => Dictionary_IsFixedSize;
+
+        protected virtual bool Dictionary_IsFixedSize => false;
+
+        bool IDictionary.IsReadOnly => Dictionary_IsReadOnly;
+
+        protected virtual bool Dictionary_IsReadOnly => IsReadOnly;
+
+        ICollection IDictionary.Keys => Dictionary_Keys;
+
+        protected virtual ICollection Dictionary_Keys => (ICollection)Keys;
+
+        ICollection IDictionary.Values => Dictionary_Values;
+
+        protected virtual ICollection Dictionary_Values
+        {
+            get
+            {
+                if (this.Values is ICollection)
+                    return (ICollection)this.Values;
+                if (values == null) values = new ValueCollection(this);
+                return values;
+            }
+        }
+
         void IDictionary.Add(object key, object value) => Dictionary_Add(key, value);
 
         protected virtual void Dictionary_Add(object key, object value)
         {
-
-
             try
             {
                 TKey tempKey = (TKey)key;
@@ -489,6 +532,39 @@ namespace Lucene.Net.Support
 
         #region ICollection Members
 
+        int ICollection.Count => Collection_Count;
+
+        protected virtual int Collection_Count => dictionary.Count;
+
+        bool ICollection.IsSynchronized => Collection_IsSynchronized;
+
+        protected virtual bool Collection_IsSynchronized
+        {
+            get
+            {
+                if (dictionary is ICollection)
+                    return ((ICollection)dictionary).IsSynchronized;
+                return false;
+            }
+        }
+
+        object ICollection.SyncRoot => Collection_SyncRoot;
+
+        protected virtual object Collection_SyncRoot
+        {
+            get
+            {
+                if (dictionary is ICollection)
+                    return ((ICollection)dictionary).SyncRoot;
+
+                if (syncRoot == null)
+                {
+                    System.Threading.Interlocked.CompareExchange<object>(ref syncRoot, new object(), null);
+                }
+                return syncRoot;
+            }
+        }
+
         void ICollection.CopyTo(Array array, int index) => Collection_CopyTo(array, index);
 
         protected virtual void Collection_CopyTo(Array array, int index)
@@ -522,7 +598,6 @@ namespace Lucene.Net.Support
 
                 try
                 {
-                    int count = this.Count;
                     foreach (var entry in this)
                         objects[index++] = ConvertExternalItem(entry);
                 }
@@ -639,7 +714,7 @@ namespace Lucene.Net.Support
         /// <summary>
         /// Represents the collection of keys in a <see cref="NullableKeyDictionary{TKey, TValue}"/>. This class cannot be inherited.
         /// </summary>
-        private sealed class KeyCollection : ICollection<TKey>
+        private sealed class KeyCollection : ICollection<TKey>, ICollection
         {
             private readonly NullableKeyDictionary<TKey, TValue> nullableKeyDictionary;
             private readonly ICollection<NullableKey> collection;
@@ -656,6 +731,10 @@ namespace Lucene.Net.Support
 
             public bool IsReadOnly => collection.IsReadOnly;
 
+            public bool IsSynchronized => nullableKeyDictionary.Collection_IsSynchronized;
+
+            public object SyncRoot => nullableKeyDictionary.Collection_SyncRoot;
+
             public void Add(TKey item) => collection.Add(nullableKeyDictionary.ConvertExternalKey(item));
 
             public void Clear() => collection.Clear();
@@ -664,6 +743,13 @@ namespace Lucene.Net.Support
 
             public void CopyTo(TKey[] array, int index)
             {
+                if (array == null)
+                    throw new ArgumentNullException(nameof(array));
+                if (index < 0 || index > array.Length)
+                    throw new ArgumentOutOfRangeException($"Non-negative number required. Parameter name: {nameof(index)}");
+                if (array.Length - index < Count)
+                    throw new ArgumentException("Destination array is not long enough to copy all the items in the collection. Check array index and length.");
+
                 foreach (var item in collection)
                     array[index++] = item.Value;
             }
@@ -677,6 +763,102 @@ namespace Lucene.Net.Support
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
             public bool Remove(TKey item) => collection.Remove(nullableKeyDictionary.ConvertExternalKey(item));
+
+            public void CopyTo(Array array, int index) 
+            {
+                if (array == null)
+                    throw new ArgumentNullException(nameof(array));
+                if (array.Rank != 1)
+                    throw new ArgumentException("Only single dimensional arrays are supported for the requested action.");
+                if (array.GetLowerBound(0) != 0)
+                    throw new ArgumentException("The lower bound of target array must be zero.");
+                if (index < 0 || index > array.Length)
+                    throw new ArgumentOutOfRangeException($"Non-negative number required. Parameter name: {nameof(index)}");
+                if (array.Length - index < Count)
+                    throw new ArgumentException("Destination array is not long enough to copy all the items in the collection. Check array index and length.");
+
+                if (array is TKey[] keys)
+                {
+                    CopyTo(keys, index);
+                }
+                else
+                {
+                    if (!(array is object[] objects))
+                    {
+                        throw new ArgumentException("Invalid array type.");
+                    }
+                    try
+                    {
+                        foreach (var item in collection)
+                            objects[index++] = item.Value;
+                    }
+                    catch (ArrayTypeMismatchException)
+                    {
+                        throw new ArgumentException("Invalid array type.");
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Nested Class: ValueCollection
+
+        /// <summary>
+        /// Represents the collection of values in a <see cref="NullableKeyDictionary{TKey, TValue}"/>. This class cannot be inherited.
+        /// </summary>
+        private sealed class ValueCollection : ICollection
+        {
+            private readonly NullableKeyDictionary<TKey, TValue> nullableKeyDictionary;
+
+            public ValueCollection(NullableKeyDictionary<TKey, TValue> nullableKeyDictionary)
+            {
+                this.nullableKeyDictionary = nullableKeyDictionary ?? throw new ArgumentNullException(nameof(nullableKeyDictionary));
+            }
+
+            public int Count => nullableKeyDictionary.dictionary.Values.Count;
+
+            public bool IsSynchronized => nullableKeyDictionary.Collection_IsSynchronized;
+
+            public object SyncRoot => nullableKeyDictionary.Collection_SyncRoot;
+
+            public void CopyTo(Array array, int index)
+            {
+                if (array == null)
+                    throw new ArgumentNullException(nameof(array));
+                if (array.Rank != 1)
+                    throw new ArgumentException("Only single dimensional arrays are supported for the requested action.");
+                if (array.GetLowerBound(0) != 0)
+                    throw new ArgumentException("The lower bound of target array must be zero.");
+                if (index < 0 || index > array.Length)
+                    throw new ArgumentOutOfRangeException($"Non-negative number required. Parameter name: {nameof(index)}");
+                if (array.Length - index < Count)
+                    throw new ArgumentException("Destination array is not long enough to copy all the items in the collection. Check array index and length.");
+
+                if (array is TValue[] values)
+                {
+                    CopyTo(values, index);
+                }
+                else
+                {
+                    if (!(array is object[] objects))
+                    {
+                        throw new ArgumentException("Invalid array type.");
+                    }
+
+                    try
+                    {
+                        foreach (var entry in this)
+                            objects[index++] = entry;
+                    }
+                    catch (ArrayTypeMismatchException)
+                    {
+                        throw new ArgumentException("Invalid array type.");
+                    }
+                }
+            }
+
+            public IEnumerator GetEnumerator() => nullableKeyDictionary.dictionary.Values.GetEnumerator();
         }
 
         #endregion
