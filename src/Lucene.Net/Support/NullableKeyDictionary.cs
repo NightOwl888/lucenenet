@@ -23,7 +23,7 @@ namespace Lucene.Net.Support
 
     /// <summary>
     /// A dictionary that wraps a backing dictionary, enabling support for nullable keys.
-    /// A <see cref="NullableKey{T}"/> struct is used as a key for the backing dictionary.
+    /// A <see cref="NullableKey"/> struct is used as a key for the backing dictionary.
     /// <see cref="NullableKeyDictionary{TKey, TValue}"/> provides the conversions necessary
     /// to make that struct invisible to the consumer.
     /// <para/>
@@ -48,30 +48,46 @@ namespace Lucene.Net.Support
     /// <typeparam name="TKey">The type of keys in the dictionary. This can be either a value type or a reference type.
     /// For the nullable feature to function, a value type should be specified as nullable.</typeparam>
     /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
-    public class NullableKeyDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+    public class NullableKeyDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
     {
         private KeyCollection keys;
-        private readonly IDictionary<NullableKey<TKey>, TValue> dictionary;
+        private readonly IDictionary<NullableKey, TValue> dictionary;
         private readonly IEqualityComparer<TKey> comparer;
 
+        bool IDictionary.IsFixedSize => throw new NotImplementedException();
+
+        bool IDictionary.IsReadOnly => throw new NotImplementedException();
+
+        ICollection IDictionary.Keys => throw new NotImplementedException();
+
+        ICollection IDictionary.Values => throw new NotImplementedException();
+
+        int ICollection.Count => throw new NotImplementedException();
+
+        bool ICollection.IsSynchronized => throw new NotImplementedException();
+
+        object ICollection.SyncRoot => throw new NotImplementedException();
+
+        object IDictionary.this[object key] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         /// <summary>
-        /// Creates an instance of <see cref="NullableKeyDictionary{TKey, TValue}"/> using the provided
+        /// Initializes an instance of <see cref="NullableKeyDictionary{TKey, TValue}"/> using the provided
         /// <paramref name="backingDictionary"/> instance and the default equality comparer for the key type.
         /// The <paramref name="backingDictionary"/> will be wrapped to enable nullable key support.
         /// <para/>
         /// IMPORTANT: Do not pass a custom comparer to the constructor of <paramref name="backingDictionary"/>.
         /// Instead, pass the custom comparer to the
-        /// <see cref="NullableKeyDictionary{TKey, TValue}.NullableKeyDictionary(IDictionary{NullableKey{TKey}, TValue}, IEqualityComparer{TKey})"/>
+        /// <see cref="NullableKeyDictionary{TKey, TValue}.NullableKeyDictionary(IDictionary{NullableKeyDictionary{TKey, TValue}.NullableKey, TValue}, IEqualityComparer{TKey})"/>
         /// constructor.
         /// </summary>
         /// <param name="backingDictionary">A dictionary implementation that provides the desired behavior which 
         /// will be wrapped to make it support null keys.</param>
-        public NullableKeyDictionary(IDictionary<NullableKey<TKey>, TValue> backingDictionary)
+        public NullableKeyDictionary(IDictionary<NullableKey, TValue> backingDictionary)
             : this(backingDictionary, EqualityComparer<TKey>.Default)
         { }
 
         /// <summary>
-        /// Creates an instance of <see cref="NullableKeyDictionary{TKey, TValue}"/> using the provided
+        /// Initializes an instance of <see cref="NullableKeyDictionary{TKey, TValue}"/> using the provided
         /// <paramref name="backingDictionary"/> instance and the specified <see cref="IEqualityComparer{TKey}"/>.
         /// The <paramref name="backingDictionary"/> will be wrapped to enable nullable key support.
         /// <para/>
@@ -82,10 +98,34 @@ namespace Lucene.Net.Support
         /// will be wrapped to make it support null keys.</param>
         /// <param name="comparer">The <see cref="IEqualityComparer"/> implementation to use when comparing keys,
         /// or <c>null</c> to use the default <see cref="EqualityComparer{T}"/> for the type of the key.</param>
-        public NullableKeyDictionary(IDictionary<NullableKey<TKey>, TValue> backingDictionary, IEqualityComparer<TKey> comparer)
+        public NullableKeyDictionary(IDictionary<NullableKey, TValue> backingDictionary, IEqualityComparer<TKey> comparer)
+            : this(null, backingDictionary, comparer)
+        { }
+
+        /// <summary>
+        /// Initializes an instance of <see cref="NullableKeyDictionary{TKey, TValue}"/> using the provided
+        /// <paramref name="backingDictionary"/> instance and the specified <see cref="IEqualityComparer{TKey}"/>.
+        /// The <paramref name="backingDictionary"/> will be wrapped to enable nullable key support.
+        /// <para/>
+        /// IMPORTANT: Do not pass a custom comparer to the constructor of <paramref name="backingDictionary"/>.
+        /// Instead, pass the custom comparer as the <paramref name="comparer"/> argument here.
+        /// </summary>
+        /// <param name="toCopy">A dictionary containing the entries to copy into the new <see cref="NullableKeyDictionary{TKey, TValue}"/> instance.</param>
+        /// <param name="backingDictionary">A dictionary implementation that provides the desired behavior which 
+        /// will be wrapped to make it support null keys.</param>
+        /// <param name="comparer">The <see cref="IEqualityComparer"/> implementation to use when comparing keys,
+        /// or <c>null</c> to use the default <see cref="EqualityComparer{T}"/> for the type of the key.</param>
+        protected NullableKeyDictionary(IEnumerable<KeyValuePair<TKey, TValue>> toCopy, IDictionary<NullableKey, TValue> backingDictionary, IEqualityComparer<TKey> comparer)
         {
             this.dictionary = backingDictionary ?? throw new ArgumentNullException(nameof(backingDictionary));
             this.comparer = comparer ?? EqualityComparer<TKey>.Default;
+            if (toCopy != null)
+            {
+                foreach (var pair in toCopy)
+                {
+                    dictionary.Add(ConvertExternalKey(pair.Key), pair.Value);
+                }
+            }
         }
 
         /// <summary>
@@ -177,7 +217,7 @@ namespace Lucene.Net.Support
         /// <returns>An enumerator for the dictionary.</returns>
         public virtual IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            return new Enumerator(dictionary.GetEnumerator());
+            return new Enumerator(dictionary, Enumerator.KeyValuePair);
         }
 
         /// <summary>
@@ -386,6 +426,114 @@ namespace Lucene.Net.Support
 
         #endregion
 
+        #region IDictionary Members
+
+        void IDictionary.Add(object key, object value) => Dictionary_Add(key, value);
+
+        protected virtual void Dictionary_Add(object key, object value)
+        {
+
+
+            try
+            {
+                TKey tempKey = (TKey)key;
+
+                try
+                {
+                    Add(tempKey, (TValue)value);
+                }
+                catch (InvalidCastException)
+                {
+                    throw new ArgumentException($"The value '{value}' is not of type '{typeof(TValue)}' and cannot be used in this generic collection. Parameter name: {nameof(value)}");
+                }
+            }
+            catch (InvalidCastException)
+            {
+                throw new ArgumentException($"The value '{key}' is not of type '{typeof(TKey)}' and cannot be used in this generic collection. Parameter name: {nameof(key)}");
+            }
+        }
+
+        void IDictionary.Clear() => Dictionary_Clear();
+
+        protected virtual void Dictionary_Clear()
+        {
+            Clear();
+        }
+
+        bool IDictionary.Contains(object key) => Dictionary_Contains(key);
+
+        protected virtual bool Dictionary_Contains(object key)
+        {
+            if (key is TKey)
+                return ContainsKey((TKey)key);
+            return false;
+        }
+
+        IDictionaryEnumerator IDictionary.GetEnumerator() => Dictionary_GetEnumerator();
+
+        protected virtual IDictionaryEnumerator Dictionary_GetEnumerator()
+        {
+            return new Enumerator(dictionary, Enumerator.DictEntry);
+        }
+
+        void IDictionary.Remove(object key) => Dictionary_Remove(key);
+
+        protected virtual void Dictionary_Remove(object key)
+        {
+            if (key is TKey)
+                Remove((TKey)key);
+        }
+
+        #endregion
+
+        #region ICollection Members
+
+        void ICollection.CopyTo(Array array, int index) => Collection_CopyTo(array, index);
+
+        protected virtual void Collection_CopyTo(Array array, int index)
+        {
+            if (array == null)
+                throw new ArgumentNullException(nameof(array));
+            if (array.Rank != 1)
+                throw new ArgumentException("Only single dimensional arrays are supported for the requested action.");
+            if (array.GetLowerBound(0) != 0)
+                throw new ArgumentException("The lower bound of target array must be zero.");
+            if (index < 0 || index > array.Length)
+                throw new ArgumentOutOfRangeException($"Non-negative number required. Parameter name: {nameof(index)}");
+            if (array.Length - index < Count)
+                throw new ArgumentException("Destination array is not long enough to copy all the items in the collection. Check array index and length.");
+
+            if (array is KeyValuePair<TKey, TValue>[] pairs)
+            {
+                Collection_KeyValuePair_CopyTo(pairs, index);
+            }
+            else if (array is DictionaryEntry[] dictEntryArray)
+            {
+                foreach (var entry in this)
+                    dictEntryArray[index++] = new DictionaryEntry(entry.Key, entry.Value);
+            }
+            else
+            {
+                if (!(array is object[] objects))
+                {
+                    throw new ArgumentException("Invalid array type.");
+                }
+
+                try
+                {
+                    int count = this.Count;
+                    foreach (var entry in this)
+                        objects[index++] = ConvertExternalItem(entry);
+                }
+                catch (ArrayTypeMismatchException)
+                {
+                    throw new ArgumentException("Invalid array type.");
+                }
+            }
+        }
+
+        #endregion
+
         #region IEnumerator Members
 
         /// <summary>
@@ -402,7 +550,7 @@ namespace Lucene.Net.Support
         /// <returns>An <see cref="IEnumerator"/> that can be used to iterate through the collection.</returns>
         protected virtual IEnumerator Enumerable_GetEnumerator()
         {
-            return this.GetEnumerator();
+            return new Enumerator(dictionary, Enumerator.KeyValuePair);
         }
 
         #endregion
@@ -410,24 +558,24 @@ namespace Lucene.Net.Support
         #region KeyValuePair Conversion
 
         /// <summary>
-        /// Converts a <typeparamref name="TKey"/> to a <see cref="NullableKey{TKey}"/>
+        /// Converts a <typeparamref name="TKey"/> to a <see cref="NullableKey"/>
         /// with the current key <see cref="Comparer"/>.
         /// </summary>
         /// <param name="key">A <typeparamref name="TKey"/>.</param>
-        /// <returns>The converted <see cref="NullableKey{TKey}"/> with the current key <see cref="Comparer"/>.</returns>
-        protected NullableKey<TKey> ConvertExternalKey(TKey key)
+        /// <returns>The converted <see cref="NullableKey"/> with the current key <see cref="Comparer"/>.</returns>
+        protected NullableKey ConvertExternalKey(TKey key)
         {
-            return new NullableKey<TKey>(key, this.comparer);
+            return new NullableKey(key, this.comparer);
         }
 
         /// <summary>
-        /// Converts a <see cref="KeyValuePair{TKey, TValue}"/> to a <c>KeyValuePair&lt;NullableKey&lt;TKey&gt;, TValue&gt;</c>.
+        /// Converts a <see cref="KeyValuePair{TKey, TValue}"/> to a <c>KeyValuePair&lt;NullableKey, TValue&gt;</c>.
         /// </summary>
         /// <param name="item">A <see cref="KeyValuePair{TKey, TValue}"/>.</param>
-        /// <returns>The converted <c>KeyValuePair&lt;NullableKey&lt;TKey&gt;, TValue&gt;</c>.</returns>
-        protected KeyValuePair<NullableKey<TKey>, TValue> ConvertExternalItem(KeyValuePair<TKey, TValue> item)
+        /// <returns>The converted <c>KeyValuePair&lt;NullableKey, TValue&gt;</c>.</returns>
+        protected KeyValuePair<NullableKey, TValue> ConvertExternalItem(KeyValuePair<TKey, TValue> item)
         {
-            return new KeyValuePair<NullableKey<TKey>, TValue>(ConvertExternalKey(item.Key), item.Value);
+            return new KeyValuePair<NullableKey, TValue>(ConvertExternalKey(item.Key), item.Value);
         }
 
         /// <summary>
@@ -435,7 +583,7 @@ namespace Lucene.Net.Support
         /// </summary>
         /// <param name="item">A <c>KeyValuePair&lt;NullableKey&lt;TKey&gt;, TValue&gt;</c>.</param>
         /// <returns>The converted <see cref="KeyValuePair{TKey, TValue}"/>.</returns>
-        protected static KeyValuePair<TKey, TValue> ConvertInternalItem(KeyValuePair<NullableKey<TKey>, TValue> item)
+        protected static KeyValuePair<TKey, TValue> ConvertInternalItem(KeyValuePair<NullableKey, TValue> item)
         {
             return new KeyValuePair<TKey, TValue>(item.Key.Value, item.Value);
         }
@@ -493,8 +641,8 @@ namespace Lucene.Net.Support
         private sealed class KeyCollection : ICollection<TKey>
         {
             private readonly NullableKeyDictionary<TKey, TValue> nullableKeyDictionary;
-            private readonly ICollection<NullableKey<TKey>> collection;
-            public KeyCollection(NullableKeyDictionary<TKey, TValue> nullableKeyDictionary, ICollection<NullableKey<TKey>> collection)
+            private readonly ICollection<NullableKey> collection;
+            public KeyCollection(NullableKeyDictionary<TKey, TValue> nullableKeyDictionary, ICollection<NullableKey> collection)
             {
                 this.nullableKeyDictionary = nullableKeyDictionary ?? throw new ArgumentNullException(nameof(nullableKeyDictionary));
                 this.collection = collection ?? throw new ArgumentNullException(nameof(collection));
@@ -537,24 +685,243 @@ namespace Lucene.Net.Support
         /// <summary>
         /// Enumerates the elemensts of a <see cref="NullableKeyDictionary{TKey, TValue}"/>.
         /// </summary>
-        private class Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
+        private class Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>, IDictionaryEnumerator
         {
-            private readonly IEnumerator<KeyValuePair<NullableKey<TKey>, TValue>> enumerator;
+            private readonly IDictionary<NullableKey, TValue> dictionary;
+            private readonly IEnumerator<KeyValuePair<NullableKey, TValue>> enumerator;
+            private int index;
+            private KeyValuePair<TKey, TValue> current;
+            private readonly int getEnumeratorRetType;  // What should Enumerator.Current return?
 
-            public Enumerator(IEnumerator<KeyValuePair<NullableKey<TKey>, TValue>> enumerator)
+            internal const int DictEntry = 1;
+            internal const int KeyValuePair = 2;
+
+            public Enumerator(IDictionary<NullableKey, TValue> dictionary, int getEnumeratorRetType)
             {
-                this.enumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
+                this.dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
+                this.enumerator = dictionary.GetEnumerator();
+                this.getEnumeratorRetType = getEnumeratorRetType;
+                index = 0;
             }
 
-            public KeyValuePair<TKey, TValue> Current => ConvertInternalItem(enumerator.Current);
+            public KeyValuePair<TKey, TValue> Current => current;
 
-            object IEnumerator.Current => Current;
+            object IEnumerator.Current
+            {
+                get
+                {
+                    if (index == 0 || (index == dictionary.Count + 1))
+                        throw new InvalidOperationException("Enumeration has either not started or has already finished.");
+
+                    if (getEnumeratorRetType == DictEntry)
+                        return new DictionaryEntry(current.Key, current.Value);
+                    else
+                        return new KeyValuePair<TKey, TValue>(current.Key, current.Value);
+                }
+            }
 
             public void Dispose() => enumerator.Dispose();
 
-            public bool MoveNext() => enumerator.MoveNext();
+            public bool MoveNext()
+            {
+                if (enumerator.MoveNext())
+                {
+                    index++;
+                    current = ConvertInternalItem(enumerator.Current);
+                    return true;
+                }
+                index = dictionary.Count + 1;
+                current = new KeyValuePair<TKey, TValue>();
+                return false;
+            }
 
-            public void Reset() => enumerator.Reset();
+            public void Reset()
+            {
+                index = 0;
+                enumerator.Reset();
+            }
+
+            #region IDictionaryEnumerator Members
+
+            DictionaryEntry IDictionaryEnumerator.Entry
+            {
+                get
+                {
+                    if (index == 0 || (index == dictionary.Count + 1))
+                        throw new InvalidOperationException("Enumeration has either not started or has already finished.");
+
+                    return new DictionaryEntry(current.Key, current.Value);
+                }
+            }
+
+            object IDictionaryEnumerator.Key
+            {
+                get
+                {
+                    if (index == 0 || (index == dictionary.Count + 1))
+                        throw new InvalidOperationException("Enumeration has either not started or has already finished.");
+
+                    return current.Key;
+                }
+            }
+
+            object IDictionaryEnumerator.Value
+            {
+                get
+                {
+                    if (index == 0 || (index == dictionary.Count + 1))
+                        throw new InvalidOperationException("Enumeration has either not started or has already finished.");
+
+                    return current.Value;
+                }
+            }
+
+            #endregion
+        }
+
+        #endregion
+
+        #region Nested Struct: NullableKey
+
+        /// <summary>
+        /// A struct that can be used as a key for a dictionary implementation to provide
+        /// support for nullable keys.
+        /// </summary>
+        // Inspired by: https://stackoverflow.com/a/22261282
+        public struct NullableKey : IEquatable<NullableKey>, IEquatable<TKey>
+        {
+            private const int NullHashCode = int.MinValue + 1; // Less likely to collide than 0, faster than a runtime computation
+
+            private readonly bool isNull;
+            private readonly TKey value;
+            private readonly IEqualityComparer<TKey> comparer;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="NullableKey"/> structure with the specified <paramref name="value"/>.
+            /// </summary>
+            /// <param name="value">The value of this key.</param>
+            /// <param name="comparer">The equality comparer for the key.</param>
+            /// <exception cref="ArgumentNullException">Thrown when <paramref name="comparer"/> is <c>null</c>.</exception>
+            public NullableKey(TKey value, IEqualityComparer<TKey> comparer)
+            {
+                this.comparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
+                this.isNull = value == null;
+                this.value = value;
+            }
+
+            /// <summary>
+            /// Gets the value of the current <see cref="NullableKey"/> structure if it has been assigned a valid underlying value.
+            /// </summary>
+            public TKey Value => value;
+
+            /// <summary>
+            /// Gets a value indicating whether the current <see cref="NullableKey"/> structure has a valid value of its underlying type.
+            /// A value of <c>false</c> indicates it is <c>null</c>.
+            /// </summary>
+            public bool HasValue => !this.isNull;
+
+            public static bool operator ==(NullableKey left, NullableKey right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(NullableKey left, NullableKey right)
+            {
+                return !(left == right);
+            }
+
+            public static bool operator ==(NullableKey left, TKey right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(NullableKey left, TKey right)
+            {
+                return !(left == right);
+            }
+
+            public static bool operator ==(TKey left, NullableKey right)
+            {
+                return right.Equals(left); // Use right's equality comparer
+            }
+
+            public static bool operator !=(TKey left, NullableKey right)
+            {
+                return !(left == right);
+            }
+
+            /// <summary>
+            /// Returns the value of <c>Value.ToString()</c> unless it is <c>null</c>,
+            /// in which case the return value will be "null".
+            /// </summary>
+            public override string ToString()
+            {
+                return (value != null) ? value.ToString() : "null";
+            }
+
+            /// <summary>
+            /// Returns <c>true</c> if this struct is equal to <paramref name="other"/>,
+            /// including when <see cref="Value"/> and <paramref name="other"/> are <c>null</c>.
+            /// </summary>
+            /// <param name="other">The value to compare.</param>
+            /// <returns><c>true</c> if this struct is equal to <paramref name="other"/>; otherwise <c>false</c>.</returns>
+            public bool Equals(NullableKey other)
+            {
+                if (other.isNull)
+                    return this.isNull;
+
+                if (this.isNull)
+                    return false; // Already checked other
+
+                return this.comparer.Equals(this.value, other.value);
+            }
+
+            /// <summary>
+            /// Returns <c>true</c> if <see cref="Value"/> is equal to <paramref name="other"/>,
+            /// including when <see cref="Value"/> and <paramref name="other"/> are <c>null</c>.
+            /// </summary>
+            /// <param name="other">The value to compare.</param>
+            /// <returns><c>true</c> if <see cref="Value"/> is equal to <paramref name="other"/>; otherwise <c>false</c>.</returns>
+            public bool Equals(TKey other)
+            {
+                if (other == null)
+                    return this.isNull;
+
+                if (this.isNull)
+                    return false; // Already checked other
+
+                return this.comparer.Equals(this.value, other);
+            }
+
+            /// <summary>
+            /// Returns <c>true</c> if <see cref="Value"/> is equal to <paramref name="other"/>,
+            /// including when <see cref="Value"/> and <paramref name="other"/> are <c>null</c>.
+            /// </summary>
+            /// <param name="other">The value to compare.</param>
+            /// <returns><c>true</c> if <see cref="Value"/> is equal to <paramref name="other"/>; otherwise <c>false</c>.</returns>
+            public override bool Equals(object other)
+            {
+                if (other == null)
+                    return this.isNull;
+
+                if (!(other is NullableKey))
+                    return false;
+
+                return Equals((NullableKey)other);
+            }
+
+            /// <summary>
+            /// Returns a hash code for the current <see cref="Value"/>. If the value is
+            /// <c>null</c>, returns <see cref="int.MaxValue"/>.
+            /// </summary>
+            /// <returns></returns>
+            public override int GetHashCode()
+            {
+                if (this.isNull)
+                    return NullHashCode;
+
+                return value.GetHashCode();
+            }
         }
 
         #endregion
