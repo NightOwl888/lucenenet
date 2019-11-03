@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Lucene.Net.Support
 {
@@ -788,10 +789,9 @@ namespace Lucene.Net.Support
         /// support for nullable keys.
         /// </summary>
         // Inspired by: https://stackoverflow.com/a/22261282
+        [SuppressMessage("Microsoft.Design", "CA1034", Justification = "NullableKey is designed specifically for the NullableKeyDictionary class.")]
         public struct NullableKey : IEquatable<NullableKey>, IEquatable<TKey>
         {
-            private const int NullHashCode = int.MinValue + 1; // Less likely to collide than 0, faster than a runtime computation
-
             private readonly bool isNull;
             private readonly TKey value;
             private readonly IEqualityComparer<TKey> comparer;
@@ -918,7 +918,7 @@ namespace Lucene.Net.Support
             public override int GetHashCode()
             {
                 if (this.isNull)
-                    return NullHashCode;
+                    return int.MaxValue; // Less likely to collide than 0, faster than a computation
 
                 return value.GetHashCode();
             }
