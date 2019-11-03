@@ -52,18 +52,46 @@ namespace Lucene.Net.Support
     {
         private KeyCollection keys;
         private readonly IDictionary<NullableKey<TKey>, TValue> dictionary;
+        private readonly IEqualityComparer<TKey> comparer;
 
         /// <summary>
         /// Creates an instance of <see cref="NullableKeyDictionary{TKey, TValue}"/> using the provided
-        /// <paramref name="backingDictionary"/> type. The <paramref name="backingDictionary"/> will be wrapped
-        /// to enable nullable key support.
+        /// <paramref name="backingDictionary"/> instance and the default equality comparer for the key type.
+        /// The <paramref name="backingDictionary"/> will be wrapped to enable nullable key support.
+        /// <para/>
+        /// IMPORTANT: Do not pass a custom comparer to the constructor of <paramref name="backingDictionary"/>.
+        /// Instead, pass the custom comparer to the
+        /// <see cref="NullableKeyDictionary{TKey, TValue}.NullableKeyDictionary(IDictionary{NullableKey{TKey}, TValue}, IEqualityComparer{TKey})"/>
+        /// constructor.
         /// </summary>
         /// <param name="backingDictionary">A dictionary implementation that provides the desired behavior which 
         /// will be wrapped to make it support null keys.</param>
         public NullableKeyDictionary(IDictionary<NullableKey<TKey>, TValue> backingDictionary)
+            : this(backingDictionary, EqualityComparer<TKey>.Default)
+        { }
+
+        /// <summary>
+        /// Creates an instance of <see cref="NullableKeyDictionary{TKey, TValue}"/> using the provided
+        /// <paramref name="backingDictionary"/> instance and the specified <see cref="IEqualityComparer{TKey}"/>.
+        /// The <paramref name="backingDictionary"/> will be wrapped to enable nullable key support.
+        /// <para/>
+        /// IMPORTANT: Do not pass a custom comparer to the constructor of <paramref name="backingDictionary"/>.
+        /// Instead, pass the custom comparer as the <paramref name="comparer"/> argument here.
+        /// </summary>
+        /// <param name="backingDictionary">A dictionary implementation that provides the desired behavior which 
+        /// will be wrapped to make it support null keys.</param>
+        /// <param name="comparer">The <see cref="IEqualityComparer"/> implementation to use when comparing keys,
+        /// or <c>null</c> to use the default <see cref="EqualityComparer{T}"/> for the type of the key.</param>
+        public NullableKeyDictionary(IDictionary<NullableKey<TKey>, TValue> backingDictionary, IEqualityComparer<TKey> comparer)
         {
             this.dictionary = backingDictionary ?? throw new ArgumentNullException(nameof(backingDictionary));
+            this.comparer = comparer ?? EqualityComparer<TKey>.Default;
         }
+
+        /// <summary>
+        /// Gets the <see cref="IEqualityComparer{T}"/> that is used to determine equality of keys for the dictionary.
+        /// </summary>
+        public IEqualityComparer<TKey> Comparer => comparer;
 
         #region IDictionary<TKey, TValue> Members
 
@@ -84,8 +112,8 @@ namespace Lucene.Net.Support
         /// does not exist in the collection.</exception>
         public virtual TValue this[TKey key]
         {
-            get => dictionary[key];
-            set => dictionary[key] = value;
+            get => dictionary[ConvertExternalKey(key)];
+            set => dictionary[ConvertExternalKey(key)] = value;
         }
 
         /// <summary>
@@ -95,7 +123,7 @@ namespace Lucene.Net.Support
         {
             get
             {
-                if (keys == null) keys = new KeyCollection(dictionary.Keys);
+                if (keys == null) keys = new KeyCollection(this, dictionary.Keys);
                 return keys;
             }
         }
@@ -110,7 +138,7 @@ namespace Lucene.Net.Support
         /// </summary>
         /// <param name="key">The key of the element to add. The key can be <c>null</c> for either reference types or nullable value types.</param>
         /// <param name="value">The value of the element to add. The value can be <c>null</c> for either reference types or nullable value types.</param>
-        public virtual void Add(TKey key, TValue value) => dictionary.Add(key, value);
+        public virtual void Add(TKey key, TValue value) => dictionary.Add(ConvertExternalKey(key), value);
 
         /// <summary>
         /// Removes all keys and values from the dictionary.
@@ -124,7 +152,7 @@ namespace Lucene.Net.Support
         /// <returns><c>true</c> if the dictionary 
         /// contains an element with the specified key; otherwise, <c>false</c>.
         /// The key can be <c>null</c> for reference types or nullable value types.</returns>
-        public virtual bool ContainsKey(TKey key) => dictionary.ContainsKey(key);
+        public virtual bool ContainsKey(TKey key) => dictionary.ContainsKey(ConvertExternalKey(key));
 
         /// <summary>
         /// Determines whether the dictionary contains a specific <paramref name="value"/>.
@@ -158,7 +186,7 @@ namespace Lucene.Net.Support
         /// <param name="key">The key of the element to remove.</param>
         /// <returns><c>true</c> if the element is successfully found and removed; otherwise, <c>false</c>.
         /// This method returns <c>false</c> if key is not found in the dictionary.</returns>
-        public virtual bool Remove(TKey key) => dictionary.Remove(key);
+        public virtual bool Remove(TKey key) => dictionary.Remove(ConvertExternalKey(key));
 
         /// <summary>
         /// Gets the value associated with the specified <paramref name="key"/>.
@@ -184,7 +212,7 @@ namespace Lucene.Net.Support
         /// <returns><c>true</c> if the dictionary contains an element with the specified key; otherwise, <c>false</c>.</returns>
         public virtual bool TryGetValue(TKey key, out TValue value)
         {
-            return dictionary.TryGetValue(key, out value);
+            return dictionary.TryGetValue(ConvertExternalKey(key), out value);
         }
 
         #endregion
@@ -318,7 +346,7 @@ namespace Lucene.Net.Support
         /// <returns><c>true</c> if the read-only dictionary contains an element that has the specified key; otherwise, <c>false</c>.</returns>
         protected virtual bool ReadOnlyDictionary_ContainsKey(TKey key)
         {
-            return dictionary.ContainsKey(key);
+            return dictionary.ContainsKey(ConvertExternalKey(key));
         }
 
         /// <summary>
@@ -344,7 +372,7 @@ namespace Lucene.Net.Support
         /// <returns><c>true</c> if this dictionary contains an element that has the specified key; otherwise, <c>false</c>.</returns>
         protected virtual bool ReadOnlyDictionary_TryGetValue(TKey key, out TValue value)
         {
-            return dictionary.TryGetValue(key, out value);
+            return dictionary.TryGetValue(ConvertExternalKey(key), out value);
         }
 
         #endregion
@@ -382,13 +410,24 @@ namespace Lucene.Net.Support
         #region KeyValuePair Conversion
 
         /// <summary>
+        /// Converts a <typeparamref name="TKey"/> to a <see cref="NullableKey{TKey}"/>
+        /// with the current key <see cref="Comparer"/>.
+        /// </summary>
+        /// <param name="key">A <typeparamref name="TKey"/>.</param>
+        /// <returns>The converted <see cref="NullableKey{TKey}"/> with the current key <see cref="Comparer"/>.</returns>
+        protected NullableKey<TKey> ConvertExternalKey(TKey key)
+        {
+            return new NullableKey<TKey>(key, this.comparer);
+        }
+
+        /// <summary>
         /// Converts a <see cref="KeyValuePair{TKey, TValue}"/> to a <c>KeyValuePair&lt;NullableKey&lt;TKey&gt;, TValue&gt;</c>.
         /// </summary>
         /// <param name="item">A <see cref="KeyValuePair{TKey, TValue}"/>.</param>
         /// <returns>The converted <c>KeyValuePair&lt;NullableKey&lt;TKey&gt;, TValue&gt;</c>.</returns>
-        protected static KeyValuePair<NullableKey<TKey>, TValue> ConvertExternalItem(KeyValuePair<TKey, TValue> item)
+        protected KeyValuePair<NullableKey<TKey>, TValue> ConvertExternalItem(KeyValuePair<TKey, TValue> item)
         {
-            return new KeyValuePair<NullableKey<TKey>, TValue>(new NullableKey<TKey>(item.Key), item.Value);
+            return new KeyValuePair<NullableKey<TKey>, TValue>(ConvertExternalKey(item.Key), item.Value);
         }
 
         /// <summary>
@@ -453,9 +492,11 @@ namespace Lucene.Net.Support
         /// </summary>
         private sealed class KeyCollection : ICollection<TKey>
         {
+            private readonly NullableKeyDictionary<TKey, TValue> nullableKeyDictionary;
             private readonly ICollection<NullableKey<TKey>> collection;
-            public KeyCollection(ICollection<NullableKey<TKey>> collection)
+            public KeyCollection(NullableKeyDictionary<TKey, TValue> nullableKeyDictionary, ICollection<NullableKey<TKey>> collection)
             {
+                this.nullableKeyDictionary = nullableKeyDictionary ?? throw new ArgumentNullException(nameof(nullableKeyDictionary));
                 this.collection = collection ?? throw new ArgumentNullException(nameof(collection));
             }
 
@@ -466,11 +507,11 @@ namespace Lucene.Net.Support
 
             public bool IsReadOnly => collection.IsReadOnly;
 
-            public void Add(TKey item) => collection.Add(item);
+            public void Add(TKey item) => collection.Add(nullableKeyDictionary.ConvertExternalKey(item));
 
             public void Clear() => collection.Clear();
 
-            public bool Contains(TKey item) => collection.Contains(item);
+            public bool Contains(TKey item) => collection.Contains(nullableKeyDictionary.ConvertExternalKey(item));
 
             public void CopyTo(TKey[] array, int index)
             {
@@ -486,7 +527,7 @@ namespace Lucene.Net.Support
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-            public bool Remove(TKey item) => collection.Remove(item);
+            public bool Remove(TKey item) => collection.Remove(nullableKeyDictionary.ConvertExternalKey(item));
         }
 
         #endregion

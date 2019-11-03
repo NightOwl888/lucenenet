@@ -42,30 +42,24 @@ namespace Lucene.Net.Support
         { }
 
         public HashMap(int initialCapacity, IEqualityComparer<TKey> comparer)
-            : this(null, new Dictionary<NullableKey<TKey>, TValue>(initialCapacity, new NullableKeyComparer<TKey>(comparer)))
-        {
-            this.Comparer = comparer;
-        }
+            : this(null, new Dictionary<NullableKey<TKey>, TValue>(initialCapacity), comparer)
+        { }
 
         public HashMap(IEnumerable<KeyValuePair<TKey, TValue>> dictionary, IEqualityComparer<TKey> comparer)
-            : this(dictionary, new Dictionary<NullableKey<TKey>, TValue>(new NullableKeyComparer<TKey>(comparer)))
-        {
-            this.Comparer = comparer;
-        }
+            : this(dictionary, new Dictionary<NullableKey<TKey>, TValue>(), comparer)
+        { }
 
-        internal HashMap(IEnumerable<KeyValuePair<TKey, TValue>> toCopy, IDictionary<NullableKey<TKey>, TValue> dictionary)
-            : base(dictionary)
+        internal HashMap(IEnumerable<KeyValuePair<TKey, TValue>> toCopy, IDictionary<NullableKey<TKey>, TValue> dictionary, IEqualityComparer<TKey> comparer)
+            : base(dictionary, comparer)
         {
             if (toCopy != null)
             {
                 foreach (var pair in toCopy)
                 {
-                    dictionary.Add(pair.Key, pair.Value);
+                    dictionary.Add(base.ConvertExternalKey(pair.Key), pair.Value);
                 }
             }
         }
-
-        public IEqualityComparer<TKey> Comparer { get; private set; }
     }
 
         //public class HashMap<TKey, TValue> : IDictionary<TKey, TValue>
