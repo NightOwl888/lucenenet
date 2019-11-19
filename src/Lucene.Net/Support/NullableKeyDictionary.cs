@@ -49,7 +49,7 @@ namespace Lucene.Net.Support
     /// <typeparam name="TKey">The type of keys in the dictionary. This can be either a value type or a reference type.
     /// For the nullable feature to function, a value type should be specified as nullable.</typeparam>
     /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
-    public class NullableKeyDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
+    public class NullableKeyDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>, IEquatable<IDictionary<TKey, TValue>>
     {
         private KeyCollection keys;
         private ValueCollection values;
@@ -671,17 +671,33 @@ namespace Lucene.Net.Support
         /// <summary>
         /// Compares the specified object with this dictionary for equality. Returns <c>true</c> if the
         /// given object is also a map and the two maps represent the same mappings. More formally,
-        /// two dictionaries <c>m1</c> and <c>m2</c> represent the same mappings if the values of <paramref name="obj"/>
+        /// two dictionaries <c>m1</c> and <c>m2</c> represent the same mappings if the values of <paramref name="other"/>
         /// match the values of this dictionary (without regard to order, but with regard to any nested collections).
         /// </summary>
-        /// <param name="obj">Object to be compared for equality with this dictionary.</param>
+        /// <param name="other">Object to be compared for equality with this dictionary.</param>
         /// <returns><c>true</c> if the specified object's values are equal to this dictionary.</returns>
-        public override bool Equals(object obj)
+        public bool Equals(IDictionary<TKey, TValue> other)
         {
-            if (!(obj is IDictionary<TKey, TValue>))
+            if (other == null)
                 return false;
 
-            return Collections.Equals(this, obj as IDictionary<TKey, TValue>);
+            return Collections.Equals(this, other);
+        }
+
+        /// <summary>
+        /// Compares the specified object with this dictionary for equality. Returns <c>true</c> if the
+        /// given object is also a map and the two maps represent the same mappings. More formally,
+        /// two dictionaries <c>m1</c> and <c>m2</c> represent the same mappings if the values of <paramref name="other"/>
+        /// match the values of this dictionary (without regard to order, but with regard to any nested collections).
+        /// </summary>
+        /// <param name="other">Object to be compared for equality with this dictionary.</param>
+        /// <returns><c>true</c> if the specified object's values are equal to this dictionary.</returns>
+        public override bool Equals(object other)
+        {
+            if (!(other is IDictionary<TKey, TValue>))
+                return false;
+
+            return Collections.Equals(this, other as IDictionary<TKey, TValue>);
         }
 
         /// <summary>
