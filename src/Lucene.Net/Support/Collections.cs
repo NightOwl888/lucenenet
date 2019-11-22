@@ -29,7 +29,7 @@ namespace Lucene.Net.Support
 
     public static class Collections
     {
-        public static bool AddAll<T>(ISet<T> set, IEnumerable<T> elements)
+        public static bool AddAll<T>(ISet<T> set, IEnumerable<T> elements) // LUCENENET TODO: Eliminate this and use ISet<T>.UnionWith() instead
         {
             bool result = false;
             foreach (T element in elements)
