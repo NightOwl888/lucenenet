@@ -49,7 +49,7 @@ namespace Lucene.Net.Support
     /// <typeparam name="TKey">The type of keys in the dictionary. This can be either a value type or a reference type.
     /// For the nullable feature to function, a value type should be specified as nullable.</typeparam>
     /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
-    public class NullableKeyDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>, IEquatable<IDictionary<TKey, TValue>>
+    public class NullableKeyDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>//, IEquatable<IDictionary<TKey, TValue>>
     {
         private KeyCollection keys;
         private ValueCollection values;
