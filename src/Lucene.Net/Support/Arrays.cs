@@ -24,24 +24,309 @@ namespace Lucene.Net.Support
 
     public static class Arrays
     {
-        public static int GetHashCode<T>(T[] a)
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <typeparamref name="T"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <typeparam name="T">The array element type.</typeparam>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        public static int GetHashCode<T>(T[] array)
         {
-            if (a == null)
+            if (array == null)
                 return 0;
-
-            int result = 1;
-            bool isValueType = typeof(T).GetTypeInfo().IsValueType;
-
-            foreach (var item in a)
+            int hashCode = 1, elementHashCode;
+            foreach (var element in array)
             {
-                result = 31 * result + (item == null ? 0 : 
-                    // LUCENENET specific: if this is a reference type, pass to
-                    // Collections.GetHashCode() in case we have an array of collections
-                    (isValueType ? item.GetHashCode() : Collections.GetHashCode(item)));
+                elementHashCode = element == null ? 0 : element.GetHashCode();
+                hashCode = 31 * hashCode + elementHashCode;
             }
-
-            return result;
+            return hashCode;
         }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="string"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        public static int GetHashCode(string[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1, elementHashCode;
+            foreach (var element in array)
+            {
+                elementHashCode = element == null ? 0 : StringComparer.Ordinal.GetHashCode(element);
+                hashCode = 31 * hashCode + elementHashCode;
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="bool"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        public static int GetHashCode(bool[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // 1231, 1237 are hash code values for boolean value
+                hashCode = 31 * hashCode + (element ? 1231 : 1237);
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="byte"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        public static int GetHashCode(byte[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // the hash code value for integer value is integer value itself
+                hashCode = 31 * hashCode + element;
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="sbyte"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        [CLSCompliant(false)]
+        public static int GetHashCode(sbyte[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // the hash code value for integer value is integer value itself
+                hashCode = 31 * hashCode + element;
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="byte"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        public static int GetHashCode(char[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // the hash code value for integer value is integer value itself
+                hashCode = 31 * hashCode + element;
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="short"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        public static int GetHashCode(short[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // the hash code value for integer value is integer value itself
+                hashCode = 31 * hashCode + element;
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="int"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        public static int GetHashCode(int[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // the hash code value for integer value is integer value itself
+                hashCode = 31 * hashCode + element;
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="long"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        public static int GetHashCode(long[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // the hash code value for integer value is integer value itself
+                hashCode = 31 * hashCode + (int)(element ^ (long)((ulong)element >> 32));
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="ushort"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        [CLSCompliant(false)]
+        public static int GetHashCode(ushort[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // the hash code value for integer value is integer value itself
+                hashCode = 31 * hashCode + element;
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="uint"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        [CLSCompliant(false)]
+        public static int GetHashCode(uint[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // the hash code value for integer value is integer value itself
+                hashCode = 31 * hashCode + (int)element;
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="ulong"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        [CLSCompliant(false)]
+        public static int GetHashCode(ulong[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // the hash code value for integer value is integer value itself
+                hashCode = 31 * hashCode + (int)(element ^ (element >> 32));
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="float"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        public static int GetHashCode(float[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            foreach (var element in array)
+            {
+                // the hash code value for float value is
+                // Number.SingleToInt32Bits(value)
+                hashCode = 31 * hashCode + Number.SingleToInt32Bits(element);
+            }
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Returns a hash code based on the contents of the given array. For any two
+        /// <see cref="double"/> arrays <c>a</c> and <c>b</c>, if
+        /// <c>Arrays.Equals(b)</c> returns <c>true</c>, it means
+        /// that the return value of <c>Arrays.GetHashCode(a)</c> equals <c>Arrays.GetHashCode(b)</c>.
+        /// </summary>
+        /// <param name="array">The array whose hash code to compute.</param>
+        /// <returns>The hash code for <paramref name="array"/>.</returns>
+        public static int GetHashCode(double[] array)
+        {
+            if (array == null)
+                return 0;
+            int hashCode = 1;
+            long v;
+            foreach (var element in array)
+            {
+                v = Number.DoubleToInt64Bits(element);
+                // the hash code value for double value is (int) (v ^ (v >>> 32))
+                // where v = Number.DoubleToInt64Bits(value)
+                hashCode = 31 * hashCode + (int)(v ^ (long)((ulong)v >> 32));
+            }
+            return hashCode;
+        }
+
 
         /// <summary>
         /// Assigns the specified value to each element of the specified array.
@@ -142,6 +427,375 @@ namespace Lucene.Net.Support
 
             return true;
         }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="string"/> array.</param>
+        /// <param name="array2">The second <see cref="string"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        public static bool Equals(string[] array1, string[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (!StringComparer.Ordinal.Equals(array1[i], array2[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="bool"/> array.</param>
+        /// <param name="array2">The second <see cref="bool"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        public static bool Equals(bool[] array1, bool[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="byte"/> array.</param>
+        /// <param name="array2">The second <see cref="byte"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        public static bool Equals(byte[] array1, byte[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="sbyte"/> array.</param>
+        /// <param name="array2">The second <see cref="sbyte"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        [CLSCompliant(false)]
+        public static bool Equals(sbyte[] array1, sbyte[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="char"/> array.</param>
+        /// <param name="array2">The second <see cref="char"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        public static bool Equals(char[] array1, char[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="short"/> array.</param>
+        /// <param name="array2">The second <see cref="short"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        public static bool Equals(short[] array1, short[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="int"/> array.</param>
+        /// <param name="array2">The second <see cref="int"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        public static bool Equals(int[] array1, int[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="long"/> array.</param>
+        /// <param name="array2">The second <see cref="long"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        public static bool Equals(long[] array1, long[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="ushort"/> array.</param>
+        /// <param name="array2">The second <see cref="ushort"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        [CLSCompliant(false)]
+        public static bool Equals(ushort[] array1, ushort[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="uint"/> array.</param>
+        /// <param name="array2">The second <see cref="uint"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        [CLSCompliant(false)]
+        public static bool Equals(uint[] array1, uint[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="ulong"/> array.</param>
+        /// <param name="array2">The second <see cref="ulong"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        [CLSCompliant(false)]
+        public static bool Equals(ulong[] array1, ulong[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="float"/> array.</param>
+        /// <param name="array2">The second <see cref="float"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        public static bool Equals(float[] array1, float[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="double"/> array.</param>
+        /// <param name="array2">The second <see cref="double"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        public static bool Equals(double[] array1, double[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compares the two arrays.
+        /// </summary>
+        /// <param name="array1">The first <see cref="decimal"/> array.</param>
+        /// <param name="array2">The second <see cref="decimal"/> array.</param>
+        /// <returns><c>true</c> if both arrays are <c>null</c> or if the arrays have the
+        /// same length and the elements at each index in the two arrays are
+        /// equal; otherwise, <c>false</c>.</returns>
+        public static bool Equals(decimal[] array1, decimal[] array2)
+        {
+            if (ReferenceEquals(array1, array2))
+                return true;
+            int arrayLength = array1.Length;
+            if (array1 == null || array2 == null || arrayLength != array2.Length)
+                return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
 
         public static T[] CopyOf<T>(T[] original, int newLength)
         {
