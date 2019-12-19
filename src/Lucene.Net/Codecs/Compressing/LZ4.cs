@@ -47,7 +47,7 @@ namespace Lucene.Net.Codecs.Compressing
 
         private static int Hash(int i, int hashBits)
         {
-            return Number.URShift((i * -1640531535), (32 - hashBits));
+            return (i * -1640531535).TripleShift(32 - hashBits);
         }
 
         private static int HashHC(int i)
