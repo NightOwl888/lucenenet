@@ -1,6 +1,5 @@
 using J2N.Numerics;
 using Lucene.Net.Attributes;
-using Lucene.Net.Support;
 using NUnit.Framework;
 
 namespace Lucene.Net.Util
