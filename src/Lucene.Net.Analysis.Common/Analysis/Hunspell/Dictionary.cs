@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Store;
+﻿using JCG = J2N.Collections.Generic;
+using Lucene.Net.Store;
 using Lucene.Net.Support;
 using Lucene.Net.Support.IO;
 using Lucene.Net.Util;
@@ -271,8 +272,10 @@ namespace Lucene.Net.Analysis.Hunspell
             patterns.Add(null);
 
             // zero strip -> 0 ord
-            IDictionary<string, int?> seenStrips = new LinkedHashMap<string, int?>();
-            seenStrips[""] = 0;
+            IDictionary<string, int?> seenStrips = new JCG.LinkedDictionary<string, int?>
+            {
+                [""] = 0
+            };
 
             var reader = new StreamReader(affixStream, decoder);
             string line = null;

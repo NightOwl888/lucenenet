@@ -1,6 +1,6 @@
-﻿using Lucene.Net.Index;
+﻿using JCG = J2N.Collections.Generic;
+using Lucene.Net.Index;
 using Lucene.Net.Queries.Function;
-using Lucene.Net.Support;
 using Lucene.Net.Util.Mutable;
 using System.Collections;
 using System.Collections.Generic;
@@ -46,7 +46,7 @@ namespace Lucene.Net.Search.Grouping.Function
             this.vsContext = vsContext;
             this.groupSource = groupSource;
             this.countSource = countSource;
-            groupMap = new LinkedHashMap<MutableValue, GroupCount>();
+            groupMap = new JCG.LinkedDictionary<MutableValue, GroupCount>();
             foreach (SearchGroup<MutableValue> group in groups)
             {
                 groupMap[group.GroupValue] = new GroupCount(group.GroupValue);

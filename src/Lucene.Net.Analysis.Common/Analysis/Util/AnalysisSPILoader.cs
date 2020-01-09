@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Support;
+﻿using JCG = J2N.Collections.Generic;
+using Lucene.Net.Support;
 using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;
@@ -59,7 +60,7 @@ namespace Lucene.Net.Analysis.Util
         {
             lock (this)
             {
-                IDictionary<string, Type> services = new LinkedHashMap<string, Type>(this.services);
+                IDictionary<string, Type> services = new JCG.LinkedDictionary<string, Type>(this.services);
                 SPIClassIterator<S> loader = SPIClassIterator<S>.Get();
 
                 foreach (var service in loader)
