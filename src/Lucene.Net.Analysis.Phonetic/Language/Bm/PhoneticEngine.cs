@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Analysis.Phonetic.Language.Bm
 {
@@ -387,7 +388,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
                 return phonemeBuilder;
             }
 
-            ISet<Phoneme> phonemes = new SortedSet<Phoneme>(Phoneme.COMPARER);
+            ISet<Phoneme> phonemes = new JCG.SortedSet<Phoneme>(Phoneme.COMPARER);
 
             foreach (Phoneme phoneme in phonemeBuilder.Phonemes)
             {

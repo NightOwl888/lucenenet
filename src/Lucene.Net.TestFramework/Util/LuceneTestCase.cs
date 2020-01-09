@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
 using Assert = Lucene.Net.TestFramework.Assert;
@@ -2940,8 +2941,8 @@ namespace Lucene.Net.Util
             FieldInfos rightInfos = MultiFields.GetMergedFieldInfos(rightReader);
 
             // TODO: would be great to verify more than just the names of the fields!
-            SortedSet<string> left = new SortedSet<string>(StringComparer.Ordinal);
-            SortedSet<string> right = new SortedSet<string>(StringComparer.Ordinal);
+            JCG.SortedSet<string> left = new JCG.SortedSet<string>(StringComparer.Ordinal);
+            JCG.SortedSet<string> right = new JCG.SortedSet<string>(StringComparer.Ordinal);
 
             foreach (FieldInfo fi in leftInfos)
             {

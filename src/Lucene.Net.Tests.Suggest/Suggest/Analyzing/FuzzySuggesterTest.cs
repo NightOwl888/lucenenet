@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Search.Suggest.Analyzing
@@ -720,7 +721,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
             int numQueries = AtLeast(100);
 
             List<TermFreqPayload2> slowCompletor = new List<TermFreqPayload2>();
-            SortedSet<string> allPrefixes = new SortedSet<string>(StringComparer.Ordinal);
+            JCG.SortedSet<string> allPrefixes = new JCG.SortedSet<string>(StringComparer.Ordinal);
             ISet<string> seen = new HashSet<string>();
 
             Input[] keys = new Input[numQueries];

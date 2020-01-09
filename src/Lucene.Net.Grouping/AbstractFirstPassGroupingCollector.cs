@@ -48,7 +48,7 @@ namespace Lucene.Net.Search.Grouping
 
         // Set once we reach topNGroups unique groups:
         // @lucene.internal
-        protected SortedSet<CollectedSearchGroup<TGroupValue>> m_orderedGroups;
+        protected JCG.SortedSet<CollectedSearchGroup<TGroupValue>> m_orderedGroups;
         private int docBase;
         private int spareSlot;
 
@@ -372,7 +372,7 @@ namespace Lucene.Net.Search.Grouping
         private void BuildSortedSet()
         {
             var comparer = new BuildSortedSetComparer(this);
-            m_orderedGroups = new SortedSet<CollectedSearchGroup<TGroupValue>>(comparer);
+            m_orderedGroups = new JCG.SortedSet<CollectedSearchGroup<TGroupValue>>(comparer);
             m_orderedGroups.UnionWith(groupMap.Values);
             Debug.Assert(m_orderedGroups.Count > 0);
 

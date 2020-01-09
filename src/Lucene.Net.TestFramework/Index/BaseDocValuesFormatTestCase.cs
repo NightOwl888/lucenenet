@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
 using Assert = Lucene.Net.TestFramework.Assert;
 using static Lucene.Net.Index.TermsEnum;
@@ -2592,7 +2593,7 @@ namespace Lucene.Net.Index
 
                         // create a random set of strings
                         // LUCENENET specific: Use StringComparer.Ordinal to get the same ordering as Java
-                        SortedSet<string> values = new SortedSet<string>(StringComparer.Ordinal);
+                        JCG.SortedSet<string> values = new JCG.SortedSet<string>(StringComparer.Ordinal);
                         for (int v = 0; v < numValues; v++)
                         {
                             values.Add(TestUtil.RandomSimpleString(Random, length));
@@ -3655,7 +3656,7 @@ namespace Lucene.Net.Index
                         int numSortedSetFields = Random.Next(3);
 
                         // LUCENENET specific: Use StringComparer.Ordinal to get the same ordering as Java
-                        SortedSet<string> values = new SortedSet<string>(StringComparer.Ordinal);
+                        JCG.SortedSet<string> values = new JCG.SortedSet<string>(StringComparer.Ordinal);
                         for (int j = 0; j < numSortedSetFields; j++)
                         {
                             values.Add(TestUtil.RandomSimpleString(Random));

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Util.Fst
 {
@@ -361,7 +362,7 @@ namespace Lucene.Net.Util.Fst
 
             internal readonly IComparer<T> comparer;
 
-            internal SortedSet<FSTPath<T>> queue = null;
+            internal JCG.SortedSet<FSTPath<T>> queue = null;
 
             private object syncLock = new object();
 
@@ -379,7 +380,7 @@ namespace Lucene.Net.Util.Fst
                 this.maxQueueDepth = maxQueueDepth;
                 this.comparer = comparer;
 
-                queue = new SortedSet<FSTPath<T>>(new TieBreakByInputComparer<T>(comparer));
+                queue = new JCG.SortedSet<FSTPath<T>>(new TieBreakByInputComparer<T>(comparer));
             }
 
             /// <summary>

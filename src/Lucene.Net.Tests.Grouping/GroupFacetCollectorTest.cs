@@ -605,11 +605,9 @@ namespace Lucene.Net.Search.Grouping
             docNoFacet.Add(content);
             docNoGroupNoFacet.Add(content);
 
-            // LUCENENET NOTE: TreeSet (the class used in Java) allows duplicate keys. However, SortedSet seems to work,
-            // and based on the name of the variable, presuming the entries are meant to be unique.
-            ISet<string> uniqueFacetValues = new SortedSet<string>(new ComparerAnonymousHelper1());
+            ISet<string> uniqueFacetValues = new JCG.SortedSet<string>(new ComparerAnonymousHelper1());
 
-            // LUCENENET NOTE: Need HashMap here because of null keys
+            // LUCENENET NOTE: Need JCG.Dictionary here because of null keys
             IDictionary<string, JCG.Dictionary<string, ISet<string>>> searchTermToFacetToGroups = new Dictionary<string, JCG.Dictionary<string, ISet<string>>>();
             int facetWithMostGroups = 0;
             for (int i = 0; i < numDocs; i++)

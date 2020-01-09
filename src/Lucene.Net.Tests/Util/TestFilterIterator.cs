@@ -19,13 +19,14 @@ using Lucene.Net.Support;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Util
 {
     [TestFixture]
     public class TestFilterIterator : LuceneTestCase
     {
-        private static readonly SortedSet<string> Set = new SortedSet<string>(Arrays.AsList("a", "b", "c"));
+        private static readonly JCG.SortedSet<string> Set = new JCG.SortedSet<string>(Arrays.AsList("a", "b", "c"));
 
         private static void AssertNoMore<T1>(IEnumerator<T1> it)
         {
