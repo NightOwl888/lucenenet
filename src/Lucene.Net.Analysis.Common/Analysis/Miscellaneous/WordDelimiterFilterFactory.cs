@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Lucene.Net.Analysis.Util;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Analysis.Miscellaneous
 {
@@ -143,7 +144,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
         // parses a list of MappingCharFilter style rules into a custom byte[] type table
         private byte[] ParseTypes(IList<string> rules)
         {
-            IDictionary<char, byte> typeMap = new SortedDictionary<char, byte>();
+            IDictionary<char, byte> typeMap = new JCG.SortedDictionary<char, byte>();
             foreach (string rule in rules)
             {
                 Match m = typePattern.Match(rule);

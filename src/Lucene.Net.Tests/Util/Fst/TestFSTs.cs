@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Util.Fst
@@ -1637,8 +1638,8 @@ namespace Lucene.Net.Util.Fst
             Random random = Random;
             int numWords = AtLeast(1000);
 
-            SortedDictionary<string, long> slowCompletor = new SortedDictionary<string, long>(StringComparer.Ordinal);
-            SortedSet<string> allPrefixes = new SortedSet<string>(StringComparer.Ordinal);
+            JCG.SortedDictionary<string, long> slowCompletor = new JCG.SortedDictionary<string, long>(StringComparer.Ordinal);
+            JCG.SortedSet<string> allPrefixes = new JCG.SortedSet<string>(StringComparer.Ordinal);
 
             PositiveInt32Outputs outputs = PositiveInt32Outputs.Singleton;
             Builder<long?> builder = new Builder<long?>(FST.INPUT_TYPE.BYTE1, outputs);
@@ -1776,8 +1777,8 @@ namespace Lucene.Net.Util.Fst
         {
             int numWords = AtLeast(1000);
 
-            SortedDictionary<string, TwoLongs> slowCompletor = new SortedDictionary<string, TwoLongs>(StringComparer.Ordinal);
-            SortedSet<string> allPrefixes = new SortedSet<string>(StringComparer.Ordinal);
+            JCG.SortedDictionary<string, TwoLongs> slowCompletor = new JCG.SortedDictionary<string, TwoLongs>(StringComparer.Ordinal);
+            JCG.SortedSet<string> allPrefixes = new JCG.SortedSet<string>(StringComparer.Ordinal);
 
             PairOutputs<long?, long?> outputs = new PairOutputs<long?, long?>(PositiveInt32Outputs.Singleton, PositiveInt32Outputs.Singleton); // output -  weight
             Builder<Pair> builder = new Builder<Pair>(FST.INPUT_TYPE.BYTE1, outputs);
