@@ -39,6 +39,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Search.Grouping
@@ -562,7 +563,7 @@ namespace Lucene.Net.Search.Grouping
             //Arrays.Sort(groupDocs, groupSortComp);
             ArrayUtil.TimSort(groupDocs, groupSortComp);
             
-            HashMap<BytesRef, List<GroupDoc>> groups = new HashMap<BytesRef, List<GroupDoc>>();
+            IDictionary<BytesRef, List<GroupDoc>> groups = new JCG.Dictionary<BytesRef, List<GroupDoc>>();
             List<BytesRef> sortedGroups = new List<BytesRef>();
             List<IComparable[]> sortedGroupFields = new List<IComparable[]>();
 
@@ -680,7 +681,7 @@ namespace Lucene.Net.Search.Grouping
         {
             // Coalesce by group, but in random order:
             Collections.Shuffle(groupDocs, Random);
-            HashMap<BytesRef, List<GroupDoc>> groupMap = new HashMap<BytesRef, List<GroupDoc>>();
+            IDictionary<BytesRef, List<GroupDoc>> groupMap = new JCG.Dictionary<BytesRef, List<GroupDoc>>();
             List<BytesRef> groupValues = new List<BytesRef>();
 
             foreach (GroupDoc groupDoc in groupDocs)

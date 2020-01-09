@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using Console = Lucene.Net.Support.SystemConsole;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.QueryParsers.Flexible.Standard
 {
@@ -83,7 +84,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard
 
             qp = new StandardQueryParser(ANALYZER);
 
-            HashMap<String, /*Number*/object> randomNumberMap = new HashMap<string, object>();
+            IDictionary<string, /*Number*/object> randomNumberMap = new JCG.Dictionary<string, object>();
 
             /*SimpleDateFormat*/
             string dateFormat;
@@ -192,8 +193,8 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard
                     .SetMergePolicy(NewLogMergePolicy()));
 
             Document doc = new Document();
-            HashMap<String, NumericConfig> numericConfigMap = new HashMap<String, NumericConfig>();
-            HashMap<String, Field> numericFieldMap = new HashMap<String, Field>();
+            IDictionary<String, NumericConfig> numericConfigMap = new JCG.Dictionary<String, NumericConfig>();
+            IDictionary<String, Field> numericFieldMap = new JCG.Dictionary<String, Field>();
             qp.NumericConfigMap = (numericConfigMap);
 
             foreach (NumericType type in Enum.GetValues(typeof(NumericType)))
@@ -313,7 +314,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard
         }
 
         private static void setFieldValues(NumberType numberType,
-            HashMap<String, Field> numericFieldMap)
+            IDictionary<String, Field> numericFieldMap)
         {
 
             /*Number*/

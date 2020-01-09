@@ -1,12 +1,11 @@
-﻿using JCG = J2N.Collections.Generic;
-using Lucene.Net.Analysis;
+﻿using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.QueryParsers.Flexible.Core.Config;
 using Lucene.Net.Search;
-using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using JCG = J2N.Collections.Generic;
 using Operator = Lucene.Net.QueryParsers.Flexible.Standard.Config.StandardQueryConfigHandler.Operator;
 
 namespace Lucene.Net.QueryParsers.Flexible.Standard.Config
@@ -55,7 +54,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard.Config
             Set(ConfigurationKeys.FUZZY_CONFIG, new FuzzyConfig());
             Set(ConfigurationKeys.LOCALE, null);
             Set(ConfigurationKeys.MULTI_TERM_REWRITE_METHOD, MultiTermQuery.CONSTANT_SCORE_AUTO_REWRITE_DEFAULT);
-            Set(ConfigurationKeys.FIELD_DATE_RESOLUTION_MAP, new HashMap<string, DateTools.Resolution?>());
+            Set(ConfigurationKeys.FIELD_DATE_RESOLUTION_MAP, new JCG.Dictionary<string, DateTools.Resolution?>());
         }
 
         /// <summary>

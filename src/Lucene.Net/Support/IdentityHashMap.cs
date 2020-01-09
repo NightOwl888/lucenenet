@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using J2N.Collections.Generic;
 
 namespace Lucene.Net.Support
 {
@@ -19,7 +19,7 @@ namespace Lucene.Net.Support
 	 * limitations under the License.
 	 */
 
-    public class IdentityHashMap<TKey, TValue> : HashMap<TKey, TValue> where TKey : class
+    public class IdentityHashMap<TKey, TValue> : Dictionary<TKey, TValue> where TKey : class
     {
         public IdentityHashMap()
             : base(IdentityComparer<TKey>.Default)
@@ -31,7 +31,7 @@ namespace Lucene.Net.Support
         {
         }
 
-        public IdentityHashMap(IDictionary<TKey, TValue> wrappedDictionary)
+        public IdentityHashMap(System.Collections.Generic.IDictionary<TKey, TValue> wrappedDictionary)
             : base(wrappedDictionary, IdentityComparer<TKey>.Default)
         {
         }

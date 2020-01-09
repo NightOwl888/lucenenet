@@ -1,9 +1,9 @@
-﻿using JCG = J2N.Collections.Generic;
-using Lucene.Net.Index;
+﻿using Lucene.Net.Index;
 using Lucene.Net.Queries.Function;
 using Lucene.Net.Util.Mutable;
 using System.Collections;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Grouping.Function
 {

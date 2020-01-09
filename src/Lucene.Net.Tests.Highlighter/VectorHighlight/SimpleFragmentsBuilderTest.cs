@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 using OpenMode = Lucene.Net.Index.OpenMode;
 
 namespace Lucene.Net.Search.VectorHighlight
@@ -266,7 +267,7 @@ namespace Lucene.Net.Search.VectorHighlight
             int numTerms = 2 + Random.nextInt(3);
             List<Doc> docs = new List<Doc>(numDocs);
             List<Document> documents = new List<Document>(numDocs);
-            IDictionary<String, ISet<int>> valueToDocId = new HashMap<String, ISet<int>>();
+            IDictionary<String, ISet<int>> valueToDocId = new JCG.Dictionary<String, ISet<int>>();
             for (int i = 0; i < numDocs; i++)
             {
                 Document document = new Document();

@@ -486,7 +486,7 @@ namespace Lucene.Net.Util
             // Objects seen so far.
             IdentityHashSet<object> seen = new IdentityHashSet<object>();
             // Class cache with reference Field and precalculated shallow size.
-            HashMap<Type, ClassCache> classCache = new IdentityHashMap<Type, ClassCache>();
+            IDictionary<Type, ClassCache> classCache = new IdentityHashMap<Type, ClassCache>();
             // Stack of objects pending traversal. Recursion caused stack overflows.
             Stack<object> stack = new Stack<object>();
             stack.Push(root);

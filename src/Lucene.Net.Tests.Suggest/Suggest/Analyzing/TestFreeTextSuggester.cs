@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Search.Suggest.Analyzing
@@ -498,7 +499,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                 {
                     Console.WriteLine("TEST: build model for gram=" + gram);
                 }
-                IDictionary<string, int?> model = new HashMap<string, int?>();
+                IDictionary<string, int?> model = new JCG.Dictionary<string, int?>();
                 gramCounts.Add(model);
                 foreach (string[] doc in docs)
                 {

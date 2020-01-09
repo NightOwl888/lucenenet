@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Search.Suggest.Analyzing
@@ -142,7 +143,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
         public void TestRandomRealisticKeys()
         {
             LineFileDocs lineFile = new LineFileDocs(Random);
-            IDictionary<string, long> mapping = new HashMap<string, long>();
+            IDictionary<string, long> mapping = new JCG.Dictionary<string, long>();
             List<Input> keys = new List<Input>();
 
             int howMany = AtLeast(100); // this might bring up duplicates

@@ -8,6 +8,7 @@ using Lucene.Net.Util;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Highlight
 {
@@ -262,7 +263,7 @@ namespace Lucene.Net.Search.Highlight
                 fieldNames.Add(defaultField);
             }
 
-            IDictionary<string, SpanQuery> queries = new HashMap<string, SpanQuery>();
+            IDictionary<string, SpanQuery> queries = new JCG.Dictionary<string, SpanQuery>();
 
             var nonWeightedTerms = new HashSet<Term>();
             bool mustRewriteQuery = MustRewriteQuery(spanQuery);
@@ -288,7 +289,7 @@ namespace Lucene.Net.Search.Highlight
                 q = mustRewriteQuery ? queries[field] : spanQuery;
 
                 AtomicReaderContext context = GetLeafContext();
-                var termContexts = new HashMap<Term, TermContext>();
+                var termContexts = new JCG.Dictionary<Term, TermContext>();
                 TreeSet<Term> extractedTerms = new TreeSet<Term>();
                 q.ExtractTerms(extractedTerms);
                 foreach (Term term in extractedTerms)

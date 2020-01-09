@@ -1,5 +1,4 @@
-﻿using JCG = J2N.Collections.Generic;
-using Lucene.Net.Analysis;
+﻿using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Index.Extensions;
@@ -18,6 +17,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Console = Lucene.Net.Support.SystemConsole;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Grouping
 {
@@ -543,7 +543,7 @@ namespace Lucene.Net.Search.Grouping
             }
 
             List<string> contentStrings = new List<string>();
-            IDictionary<string, IDictionary<string, ISet<string>>> searchTermToGroupCounts = new HashMap<string, IDictionary<string, ISet<string>>>();
+            IDictionary<string, IDictionary<string, ISet<string>>> searchTermToGroupCounts = new JCG.Dictionary<string, IDictionary<string, ISet<string>>>();
             for (int i = 1; i <= numDocs; i++)
             {
                 string groupValue = random.nextInt(23) == 14 ? null : groupValues[random.nextInt(groupValues.Length)];

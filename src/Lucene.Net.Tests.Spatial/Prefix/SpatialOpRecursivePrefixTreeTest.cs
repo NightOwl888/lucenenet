@@ -1,5 +1,4 @@
-﻿using JCG = J2N.Collections.Generic;
-using Lucene.Net.Documents;
+﻿using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Lucene.Net.Spatial.Prefix.Tree;
 using Lucene.Net.Spatial.Queries;
@@ -11,6 +10,7 @@ using Spatial4n.Core.Shapes.Impl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Spatial.Prefix

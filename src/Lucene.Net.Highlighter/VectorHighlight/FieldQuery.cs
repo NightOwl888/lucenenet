@@ -1,9 +1,8 @@
-﻿using JCG = J2N.Collections.Generic;
-using Lucene.Net.Index;
-using Lucene.Net.Support;
+﻿using Lucene.Net.Index;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JCG = J2N.Collections.Generic;
 using TermInfo = Lucene.Net.Search.VectorHighlight.FieldTermStack.TermInfo;
 
 namespace Lucene.Net.Search.VectorHighlight
@@ -35,11 +34,11 @@ namespace Lucene.Net.Search.VectorHighlight
 
         // fieldMatch==true,  Map<fieldName,QueryPhraseMap>
         // fieldMatch==false, Map<null,QueryPhraseMap>
-        internal IDictionary<string, QueryPhraseMap> rootMaps = new HashMap<string, QueryPhraseMap>();
+        internal IDictionary<string, QueryPhraseMap> rootMaps = new JCG.Dictionary<string, QueryPhraseMap>();
 
         // fieldMatch==true,  Map<fieldName,setOfTermsInQueries>
         // fieldMatch==false, Map<null,setOfTermsInQueries>
-        internal IDictionary<string, ISet<string>> termSetMap = new HashMap<string, ISet<string>>();
+        internal IDictionary<string, ISet<string>> termSetMap = new JCG.Dictionary<string, ISet<string>>();
 
         internal int termOrPhraseNumber; // used for colored tag support
 

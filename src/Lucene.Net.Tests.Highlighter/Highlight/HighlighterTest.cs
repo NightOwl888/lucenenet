@@ -16,6 +16,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Xml;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Search.Highlight
@@ -1241,7 +1242,7 @@ namespace Lucene.Net.Search.Highlight
         {
             TestHighlightRunner helper = new TestHighlightRunner((instance) =>
             {
-                HashMap<String, String> synonyms = new HashMap<String, String>();
+                IDictionary<String, String> synonyms = new JCG.Dictionary<String, String>();
                 synonyms.Put("football", "soccer,footie");
                 Analyzer analyzer = new SynonymAnalyzer(synonyms);
 

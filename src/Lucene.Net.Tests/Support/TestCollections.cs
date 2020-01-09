@@ -20,11 +20,11 @@
 */
 
 using Lucene.Net.Attributes;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Globalization;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Support
 {
@@ -49,41 +49,41 @@ namespace Lucene.Net.Support
         [Test, LuceneNetSpecific]
         public void TestEqualityDictionary()
         {
-            var control = new Dictionary<string, IDictionary<HashMap<long, double>, string>>
+            var control = new Dictionary<string, IDictionary<JCG.Dictionary<long, double>, string>>
             {
-                { "a", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
-                { "z", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
-                { "r", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
-                { "t", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
+                { "a", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
+                { "z", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
+                { "r", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
+                { "t", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
             };
-            var equal = new Dictionary<string, IDictionary<HashMap<long, double>, string>>
+            var equal = new Dictionary<string, IDictionary<JCG.Dictionary<long, double>, string>>
             {
-                { "a", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
-                { "z", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
-                { "r", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
-                { "t", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
+                { "a", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
+                { "z", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
+                { "r", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
+                { "t", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
             };
-            var equalDifferentType = new HashMap<string, IDictionary<HashMap<long, double>, string>>
+            var equalDifferentType = new JCG.Dictionary<string, IDictionary<JCG.Dictionary<long, double>, string>>
             {
-                { "a", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
-                { "z", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
-                { "r", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
-                { "t", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
+                { "a", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
+                { "z", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
+                { "r", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
+                { "t", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
             };
-            var equalDifferentOrder = new Dictionary<string, IDictionary<HashMap<long, double>, string>>
+            var equalDifferentOrder = new Dictionary<string, IDictionary<JCG.Dictionary<long, double>, string>>
             {
-                { "r", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
-                { "t", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
-                { "a", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
-                { "z", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
+                { "r", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
+                { "t", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
+                { "a", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
+                { "z", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
             };
 
-            var level1EqualLevel2EqualLevel3Unequal = new Dictionary<string, IDictionary<HashMap<long, double>, string>>
+            var level1EqualLevel2EqualLevel3Unequal = new Dictionary<string, IDictionary<JCG.Dictionary<long, double>, string>>
             {
-                { "a", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 123, 9.87 }, { 80, 88.1 } }, "qwerty" } } },
-                { "z", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
-                { "r", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
-                { "t", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
+                { "a", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 123, 9.87 }, { 80, 88.1 } }, "qwerty" } } },
+                { "z", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
+                { "r", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
+                { "t", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
             };
 
             Assert.AreEqual(Collections.GetHashCode(control), Collections.GetHashCode(control));
@@ -328,7 +328,7 @@ namespace Lucene.Net.Support
         //        //{ "r", new Dictionary<int, string> { { 4, "parasite" } } },
         //        //{ "t", new Dictionary<int, string> { { 61, "octopus" } } },
         //    };
-        //    var equalDifferentType = new HashMap<string, IDictionary<int, string>>
+        //    var equalDifferentType = new JCG.Dictionary<string, IDictionary<int, string>>
         //    {
         //        { "a", new Dictionary<int, string> { { 9, "qwerty" } } },
         //        { "z", new Dictionary<int, string> { { 23, "hexagon" } } },
@@ -379,41 +379,41 @@ namespace Lucene.Net.Support
         //[Test]
         //public void TestEqualityDictionaryDeep()
         //{
-        //    var control = new Dictionary<string, IDictionary<HashMap<long, double>, string>>
+        //    var control = new Dictionary<string, IDictionary<JCG.Dictionary<long, double>, string>>
         //    {
-        //        { "a", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
-        //        { "z", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
-        //        { "r", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
-        //        { "t", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
+        //        { "a", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
+        //        { "z", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
+        //        { "r", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
+        //        { "t", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
         //    };
-        //    var equal = new Dictionary<string, IDictionary<HashMap<long, double>, string>>
+        //    var equal = new Dictionary<string, IDictionary<JCG.Dictionary<long, double>, string>>
         //    {
-        //        { "a", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
-        //        { "z", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
-        //        { "r", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
-        //        { "t", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
+        //        { "a", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
+        //        { "z", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
+        //        { "r", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
+        //        { "t", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
         //    };
-        //    var equalDifferentType = new HashMap<string, IDictionary<HashMap<long, double>, string>>
+        //    var equalDifferentType = new JCG.Dictionary<string, IDictionary<JCG.Dictionary<long, double>, string>>
         //    {
-        //        { "a", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
-        //        { "z", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
-        //        { "r", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
-        //        { "t", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
+        //        { "a", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
+        //        { "z", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
+        //        { "r", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
+        //        { "t", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
         //    };
-        //    var equalDifferentOrder = new Dictionary<string, IDictionary<HashMap<long, double>, string>>
+        //    var equalDifferentOrder = new Dictionary<string, IDictionary<JCG.Dictionary<long, double>, string>>
         //    {
-        //        { "r", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
-        //        { "t", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
-        //        { "a", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
-        //        { "z", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
+        //        { "r", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
+        //        { "t", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
+        //        { "a", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 123, 9.87 }, { 80, 88 } }, "qwerty" } } },
+        //        { "z", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
         //    };
 
-        //    var level1EqualLevel2EqualLevel3Unequal = new Dictionary<string, IDictionary<HashMap<long, double>, string>>
+        //    var level1EqualLevel2EqualLevel3Unequal = new Dictionary<string, IDictionary<JCG.Dictionary<long, double>, string>>
         //    {
-        //        { "a", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 123, 9.87 }, { 80, 88.1 } }, "qwerty" } } },
-        //        { "z", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
-        //        { "r", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
-        //        { "t", new Dictionary<HashMap<long, double>, string> { { new HashMap<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
+        //        { "a", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 123, 9.87 }, { 80, 88.1 } }, "qwerty" } } },
+        //        { "z", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 456, 9.86 }, { 81, 88 } }, "hexagon" } } },
+        //        { "r", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 789, 9.85 }, { 82, 88 } }, "parasite" } } },
+        //        { "t", new Dictionary<JCG.Dictionary<long, double>, string> { { new JCG.Dictionary<long, double> { { 101, 9.84 }, { 83, 88 } }, "octopus" } } },
         //    };
 
         //    Assert.AreEqual(Collections.GetHashCode(control, true), Collections.GetHashCode(control, true));
