@@ -6,6 +6,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Index
@@ -299,7 +300,7 @@ namespace Lucene.Net.Index
                 // From the random terms, pick some ratio and compile an
                 // automaton:
                 HashSet<string> acceptTerms = new HashSet<string>();
-                SortedSet<BytesRef> sortedAcceptTerms = new SortedSet<BytesRef>();
+                JCG.SortedSet<BytesRef> sortedAcceptTerms = new JCG.SortedSet<BytesRef>();
                 double keepPct = Random.NextDouble();
                 Automaton a;
                 if (iter == 0)

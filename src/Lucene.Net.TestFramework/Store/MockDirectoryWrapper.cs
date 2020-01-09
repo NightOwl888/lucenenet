@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 using AssertionError = Lucene.Net.Diagnostics.AssertionException;
 using Console = Lucene.Net.Support.SystemConsole;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
@@ -908,7 +909,7 @@ namespace Lucene.Net.Store
                             if (assertNoUnreferencedFilesOnClose)
                             {
                                 // now look for unreferenced files: discount ones that we tried to delete but could not
-                                HashSet<string> allFiles = new HashSet<string>(Arrays.AsList(ListAll()));
+                                HashSet<string> allFiles = new HashSet<string>(ListAll());
                                 allFiles.ExceptWith(pendingDeletions);
                                 string[] startFiles = allFiles.ToArray(/*new string[0]*/);
                                 IndexWriterConfig iwc = new IndexWriterConfig(LuceneTestCase.TEST_VERSION_CURRENT, null);
@@ -916,8 +917,8 @@ namespace Lucene.Net.Store
                                 new IndexWriter(m_input, iwc).Rollback();
                                 string[] endFiles = m_input.ListAll();
 
-                                ISet<string> startSet = new SortedSet<string>(Arrays.AsList(startFiles), StringComparer.Ordinal);
-                                ISet<string> endSet = new SortedSet<string>(Arrays.AsList(endFiles), StringComparer.Ordinal);
+                                ISet<string> startSet = new JCG.SortedSet<string>(startFiles, StringComparer.Ordinal);
+                                ISet<string> endSet = new JCG.SortedSet<string>(endFiles, StringComparer.Ordinal);
 
                                 if (pendingDeletions.Contains("segments.gen") && endSet.Contains("segments.gen"))
                                 {

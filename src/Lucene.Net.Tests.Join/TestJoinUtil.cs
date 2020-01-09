@@ -10,6 +10,7 @@ using Lucene.Net.Util;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Tests.Join
@@ -712,8 +713,8 @@ namespace Lucene.Net.Tests.Join
                         {
                             DocsEnum docsEnum = null;
                             TermsEnum termsEnum = null;
-                            SortedSet<BytesRef> joinValues =
-                                new SortedSet<BytesRef>(BytesRef.UTF8SortedAsUnicodeComparer);
+                            JCG.SortedSet<BytesRef> joinValues =
+                                new JCG.SortedSet<BytesRef>(BytesRef.UTF8SortedAsUnicodeComparer);
                             joinValues.UnionWith(joinValueToJoinScores.Keys);
                             foreach (BytesRef joinValue in joinValues)
                             {
