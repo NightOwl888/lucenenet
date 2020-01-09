@@ -2,6 +2,7 @@ using Lucene.Net.Index;
 using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
 
 namespace Lucene.Net.Search
@@ -30,7 +31,7 @@ namespace Lucene.Net.Search
         // we need to track scorers using a weak hash map because otherwise we
         // could loose references because of eg.
         // AssertingScorer.Score(Collector) which needs to delegate to work correctly
-        private static IDictionary<Scorer, WeakReference> ASSERTING_INSTANCES = new ConcurrentHashMapWrapper<Scorer, WeakReference>(new HashMap<Scorer, WeakReference>());
+        private static IDictionary<Scorer, WeakReference> ASSERTING_INSTANCES = new ConcurrentHashMapWrapper<Scorer, WeakReference>(new JCG.Dictionary<Scorer, WeakReference>());
 
         public static Scorer Wrap(Random random, Scorer other)
         {

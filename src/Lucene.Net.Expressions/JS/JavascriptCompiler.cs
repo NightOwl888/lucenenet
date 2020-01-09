@@ -1,6 +1,5 @@
 using Antlr.Runtime;
 using Antlr.Runtime.Tree;
-using JCG = J2N.Collections.Generic;
 using Lucene.Net.Queries.Function;
 using Lucene.Net.Support;
 using System;
@@ -9,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using JCG = J2N.Collections.Generic;
 
 #if NETSTANDARD
 using System.IO;

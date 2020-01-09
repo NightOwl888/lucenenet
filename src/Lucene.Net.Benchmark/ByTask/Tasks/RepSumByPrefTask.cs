@@ -1,8 +1,8 @@
-﻿using JCG = J2N.Collections.Generic;
-using Lucene.Net.Benchmarks.ByTask.Stats;
+﻿using Lucene.Net.Benchmarks.ByTask.Stats;
 using System;
 using System.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Benchmarks.ByTask.Tasks
 {

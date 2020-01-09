@@ -2,9 +2,9 @@
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Index;
 using Lucene.Net.Support;
-using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Highlight
 {
@@ -110,7 +110,7 @@ namespace Lucene.Net.Search.Highlight
         /// <param name="weightedTerms">an array of pre-created <see cref="WeightedSpanTerm"/>s</param>
         public QueryScorer(WeightedSpanTerm[] weightedTerms)
         {
-            this.fieldWeightedSpanTerms = new HashMap<string, WeightedSpanTerm>(weightedTerms.Length);
+            this.fieldWeightedSpanTerms = new JCG.Dictionary<string, WeightedSpanTerm>(weightedTerms.Length);
 
             foreach (WeightedSpanTerm t in weightedTerms)
             {

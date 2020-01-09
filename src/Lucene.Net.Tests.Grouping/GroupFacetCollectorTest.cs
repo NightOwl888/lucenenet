@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Console = Lucene.Net.Support.SystemConsole;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Grouping
 {
@@ -609,7 +610,7 @@ namespace Lucene.Net.Search.Grouping
             ISet<string> uniqueFacetValues = new SortedSet<string>(new ComparerAnonymousHelper1());
 
             // LUCENENET NOTE: Need HashMap here because of null keys
-            IDictionary<string, HashMap<string, ISet<string>>> searchTermToFacetToGroups = new Dictionary<string, HashMap<string, ISet<string>>>();
+            IDictionary<string, JCG.Dictionary<string, ISet<string>>> searchTermToFacetToGroups = new Dictionary<string, JCG.Dictionary<string, ISet<string>>>();
             int facetWithMostGroups = 0;
             for (int i = 0; i < numDocs; i++)
             {
@@ -633,9 +634,9 @@ namespace Lucene.Net.Search.Grouping
                 }
 
                 string contentStr = contentBrs[random.nextInt(contentBrs.Length)];
-                if (!searchTermToFacetToGroups.TryGetValue(contentStr, out HashMap<string, ISet<string>> facetToGroups))
+                if (!searchTermToFacetToGroups.TryGetValue(contentStr, out JCG.Dictionary<string, ISet<string>> facetToGroups))
                 {
-                    searchTermToFacetToGroups[contentStr] = facetToGroups = new HashMap<string, ISet<string>>();
+                    searchTermToFacetToGroups[contentStr] = facetToGroups = new JCG.Dictionary<string, ISet<string>>();
                 }
 
                 List<string> facetVals = new List<string>();
@@ -760,10 +761,10 @@ namespace Lucene.Net.Search.Grouping
 
         private GroupedFacetResult CreateExpectedFacetResult(string searchTerm, IndexContext context, int offset, int limit, int minCount, bool orderByCount, string facetPrefix)
         {
-            HashMap<string, ISet<string>> facetGroups;
+            JCG.Dictionary<string, ISet<string>> facetGroups;
             if (!context.searchTermToFacetGroups.TryGetValue(searchTerm, out facetGroups))
             {
-                facetGroups = new HashMap<string, ISet<string>>();
+                facetGroups = new JCG.Dictionary<string, ISet<string>>();
             }
 
             int totalCount = 0;
@@ -856,7 +857,7 @@ namespace Lucene.Net.Search.Grouping
         {
             internal readonly int numDocs;
             internal readonly DirectoryReader indexReader;
-            internal readonly IDictionary<string, HashMap<string, ISet<string>>> searchTermToFacetGroups;
+            internal readonly IDictionary<string, JCG.Dictionary<string, ISet<string>>> searchTermToFacetGroups;
             internal readonly ISet<string> facetValues;
             internal readonly Directory dir;
             internal readonly int facetWithMostGroups;
@@ -864,7 +865,7 @@ namespace Lucene.Net.Search.Grouping
             internal readonly string[] contentStrings;
             internal readonly bool useDV;
 
-            public IndexContext(IDictionary<string, HashMap<string, ISet<string>>> searchTermToFacetGroups, DirectoryReader r,
+            public IndexContext(IDictionary<string, JCG.Dictionary<string, ISet<string>>> searchTermToFacetGroups, DirectoryReader r,
                                 int numDocs, Directory dir, int facetWithMostGroups, int numGroups, string[] contentStrings, ISet<string> facetValues, bool useDV)
             {
                 this.searchTermToFacetGroups = searchTermToFacetGroups;

@@ -11,6 +11,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Suggest
 {
@@ -42,7 +43,7 @@ namespace Lucene.Net.Search.Suggest
         /** Returns Pair(list of invalid document terms, Map of document term -> document) */
         private KeyValuePair<List<string>, IDictionary<string, Document>> GenerateIndexDocuments(int ndocs, bool requiresPayload, bool requiresContexts)
         {
-            IDictionary<string, Document> docs = new HashMap<string, Document>();
+            IDictionary<string, Document> docs = new JCG.Dictionary<string, Document>();
             List<string> invalidDocTerms = new List<string>();
             for (int i = 0; i < ndocs; i++)
             {

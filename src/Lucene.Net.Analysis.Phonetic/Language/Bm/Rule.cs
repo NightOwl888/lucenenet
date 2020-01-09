@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Analysis.Phonetic.Language.Bm
 {
@@ -419,7 +420,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
 
         private static IDictionary<string, IList<Rule>> ParseRules(TextReader reader, string location)
         {
-            IDictionary<string, IList<Rule>> lines = new HashMap<string, IList<Rule>>();
+            IDictionary<string, IList<Rule>> lines = new JCG.Dictionary<string, IList<Rule>>();
             int currentLine = 0;
 
             bool inMultilineComment = false;

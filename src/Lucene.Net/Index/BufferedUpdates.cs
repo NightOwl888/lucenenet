@@ -1,6 +1,5 @@
 using J2N.Collections.Generic;
 using J2N.Threading.Atomic;
-using Lucene.Net.Support;
 using SCG = System.Collections.Generic;
 
 namespace Lucene.Net.Index

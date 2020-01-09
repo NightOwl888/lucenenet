@@ -1,5 +1,4 @@
-﻿using JCG = J2N.Collections.Generic;
-using Lucene.Net.Store;
+﻿using Lucene.Net.Store;
 using Lucene.Net.Support;
 using Lucene.Net.Support.IO;
 using Lucene.Net.Util;
@@ -12,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Analysis.Hunspell
 {
