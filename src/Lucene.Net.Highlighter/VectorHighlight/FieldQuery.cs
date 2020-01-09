@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Index;
+﻿using JCG = J2N.Collections.Generic;
+using Lucene.Net.Index;
 using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
@@ -49,7 +50,7 @@ namespace Lucene.Net.Search.VectorHighlight
         {
             this.fieldMatch = fieldMatch;
             // LUCENENET NOTE: LinkedHashSet cares about insertion order - in .NET, we can just use List<T> for that
-            List<Query> flatQueries = new List<Query>();
+            ISet<Query> flatQueries = new JCG.LinkedHashSet<Query>();
             Flatten(query, reader, flatQueries);
             SaveTerms(flatQueries, reader);
             ICollection<Query> expandQueries = Expand(flatQueries);
@@ -119,8 +120,7 @@ namespace Lucene.Net.Search.VectorHighlight
                     {
                         Query flat = new TermQuery(pq.GetTerms()[0]);
                         flat.Boost = pq.Boost;
-                        if (!flatQueries.Contains(flat)) // LUCENENET specific - set semantics, but this is a list
-                            flatQueries.Add(flat);
+                        flatQueries.Add(flat);
                     }
                 }
             }
@@ -192,8 +192,7 @@ namespace Lucene.Net.Search.VectorHighlight
         /// <returns></returns>
         internal ICollection<Query> Expand(ICollection<Query> flatQueries)
         {
-            // LUCENENET NOTE: LinkedHashSet cares about insertion order - in .NET, we can just use List<T> for that
-            List<Query> expandQueries = new List<Query>();
+            ISet<Query> expandQueries = new JCG.LinkedHashSet<Query>();
 
             for (int i = 0; i < flatQueries.Count; )
             {
@@ -203,8 +202,7 @@ namespace Lucene.Net.Search.VectorHighlight
                 {
                     i++;
                 }
-                if (!expandQueries.Contains(query)) // LUCENENET specific - set semantics, but this is a list
-                    expandQueries.Add(query);
+                expandQueries.Add(query);
                 if (!(query is PhraseQuery)) continue;
                 using (IEnumerator<Query> j = flatQueries.GetEnumerator())
                 {
