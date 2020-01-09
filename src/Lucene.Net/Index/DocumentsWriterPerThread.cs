@@ -560,7 +560,7 @@ namespace Lucene.Net.Index
             {
                 consumer.Flush(flushState);
                 pendingUpdates.terms.Clear();
-                segmentInfo.SetFiles(new HashSet<string>(directory.CreatedFiles));
+                segmentInfo.SetFiles(new FastHashSet<string>(directory.CreatedFiles));
 
                 SegmentCommitInfo segmentInfoPerCommit = new SegmentCommitInfo(segmentInfo, 0, -1L, -1L);
                 if (infoStream.IsEnabled("DWPT"))
@@ -605,7 +605,7 @@ namespace Lucene.Net.Index
             }
         }
 
-        private readonly HashSet<string> filesToDelete = new HashSet<string>();
+        private readonly FastHashSet<string> filesToDelete = new FastHashSet<string>();
 
         public virtual ISet<string> PendingFilesToDelete
         {

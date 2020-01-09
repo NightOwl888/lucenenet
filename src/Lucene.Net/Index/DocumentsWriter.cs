@@ -250,7 +250,7 @@ namespace Lucene.Net.Index
             {
                 //Debug.Assert(!Thread.HoldsLock(writer), "IndexWriter lock should never be hold when aborting");
                 bool success = false;
-                HashSet<string> newFilesSet = new HashSet<string>();
+                FastHashSet<string> newFilesSet = new FastHashSet<string>();
                 try
                 {
                     deleteQueue.Clear();
@@ -301,7 +301,7 @@ namespace Lucene.Net.Index
                 {
                     deleteQueue.Clear();
                     int limit = perThreadPool.MaxThreadStates;
-                    HashSet<string> newFilesSet = new HashSet<string>();
+                    FastHashSet<string> newFilesSet = new FastHashSet<string>();
                     for (int i = 0; i < limit; i++)
                     {
                         ThreadState perThread = perThreadPool.GetThreadState(i);
@@ -801,7 +801,7 @@ namespace Lucene.Net.Index
                 }
                 else
                 {
-                    HashSet<string> newFilesSet = new HashSet<string>();
+                    FastHashSet<string> newFilesSet = new FastHashSet<string>();
                     flushControl.AbortFullFlushes(newFilesSet);
                     PutEvent(new DeleteNewFilesEvent(newFilesSet));
                 }

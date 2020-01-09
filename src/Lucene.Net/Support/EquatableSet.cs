@@ -45,7 +45,7 @@ namespace Lucene.Net.Support
         /// default initial capacity.</summary>
         public EquatableSet()
         {
-            set = new HashSet<T>();
+            set = new FastHashSet<T>();
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Lucene.Net.Support
             }
             else
             {
-                this.set = new HashSet<T>(collection);
+                this.set = new FastHashSet<T>(collection);
             }
         }
 
@@ -90,7 +90,7 @@ namespace Lucene.Net.Support
         /// <param name="collection">The collection whose elements are copied to the new set.</param>
         public EquatableSet(ICollection<T> collection)
         {
-            set = new HashSet<T>(collection);
+            set = new FastHashSet<T>(collection);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Lucene.Net.Support
         /// <see cref="EqualityComparer{T}"/> implementation for the set type.</param>
         public EquatableSet(IEqualityComparer<T> comparer)
         {
-            set = new HashSet<T>(comparer);
+            set = new FastHashSet<T>(comparer);
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace Lucene.Net.Support
         /// implementation for the set type.</param>
         public EquatableSet(IEnumerable<T> collection, IEqualityComparer<T> comparer)
         {
-            set = new HashSet<T>(collection, comparer);
+            set = new FastHashSet<T>(collection, comparer);
         }
 
 

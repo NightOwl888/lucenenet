@@ -32,11 +32,11 @@ namespace Lucene.Net.Util
     /// </summary>
     public class SPIClassIterator<S> : IEnumerable<Type>
     {
-        private static HashSet<Type> types = LoadTypes();
+        private static FastHashSet<Type> types = LoadTypes();
 
-        private static HashSet<Type> LoadTypes() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
+        private static FastHashSet<Type> LoadTypes() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)
         {
-            types = new HashSet<Type>();
+            types = new FastHashSet<Type>();
 
             var assembliesToExamine = Support.AssemblyUtils.GetReferencedAssemblies();
 

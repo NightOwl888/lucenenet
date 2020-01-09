@@ -125,7 +125,7 @@ namespace Lucene.Net.Util.Automaton
                         return BasicAutomata.MakeEmpty();
                     }
                 }
-                HashSet<int> ids = new HashSet<int>();
+                FastHashSet<int> ids = new FastHashSet<int>();
                 foreach (Automaton a in l)
                 {
                     ids.Add(a.GetHashCode());
@@ -493,7 +493,7 @@ namespace Lucene.Net.Util.Automaton
             Transition[][] transitions1 = a1.GetSortedTransitions();
             Transition[][] transitions2 = a2.GetSortedTransitions();
             LinkedList<StatePair> worklist = new LinkedList<StatePair>();
-            HashSet<StatePair> visited = new HashSet<StatePair>();
+            FastHashSet<StatePair> visited = new FastHashSet<StatePair>();
             StatePair p = new StatePair(a1.initial, a2.initial);
             worklist.AddLast(p);
             visited.Add(p);
@@ -587,7 +587,7 @@ namespace Lucene.Net.Util.Automaton
         /// </summary>
         public static Automaton Union(ICollection<Automaton> l)
         {
-            HashSet<int> ids = new HashSet<int>();
+            FastHashSet<int> ids = new FastHashSet<int>();
             foreach (Automaton a in l)
             {
                 ids.Add(a.GetHashCode());
@@ -928,35 +928,35 @@ namespace Lucene.Net.Util.Automaton
         public static void AddEpsilons(Automaton a, ICollection<StatePair> pairs)
         {
             a.ExpandSingleton();
-            Dictionary<State, HashSet<State>> forward = new Dictionary<State, HashSet<State>>();
-            Dictionary<State, HashSet<State>> back = new Dictionary<State, HashSet<State>>();
+            Dictionary<State, FastHashSet<State>> forward = new Dictionary<State, FastHashSet<State>>();
+            Dictionary<State, FastHashSet<State>> back = new Dictionary<State, FastHashSet<State>>();
             foreach (StatePair p in pairs)
             {
-                HashSet<State> to;
+                FastHashSet<State> to;
                 if (!forward.TryGetValue(p.S1, out to))
                 {
-                    to = new HashSet<State>();
+                    to = new FastHashSet<State>();
                     forward[p.S1] = to;
                 }
                 to.Add(p.S2);
-                HashSet<State> from;
+                FastHashSet<State> from;
                 if (!back.TryGetValue(p.S2, out from))
                 {
-                    from = new HashSet<State>();
+                    from = new FastHashSet<State>();
                     back[p.S2] = from;
                 }
                 from.Add(p.S1);
             }
             // calculate epsilon closure
             LinkedList<StatePair> worklist = new LinkedList<StatePair>(pairs);
-            HashSet<StatePair> workset = new HashSet<StatePair>(pairs);
+            FastHashSet<StatePair> workset = new FastHashSet<StatePair>(pairs);
             while (worklist.Count > 0)
             {
                 StatePair p = worklist.First.Value;
                 worklist.Remove(p);
                 workset.Remove(p);
-                HashSet<State> to;
-                HashSet<State> from;
+                FastHashSet<State> to;
+                FastHashSet<State> from;
                 if (forward.TryGetValue(p.S2, out to))
                 {
                     foreach (State s in to)

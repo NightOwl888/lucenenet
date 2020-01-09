@@ -512,7 +512,7 @@ namespace Lucene.Net.Index
             IndexOutput segnOutput = null;
             bool success = false;
 
-            var upgradedSIFiles = new HashSet<string>();
+            var upgradedSIFiles = new FastHashSet<string>();
 
             try
             {
@@ -1164,7 +1164,7 @@ namespace Lucene.Net.Index
         /// </summary>
         public ICollection<string> GetFiles(Directory dir, bool includeSegmentsFile)
         {
-            var files = new HashSet<string>();
+            var files = new FastHashSet<string>();
             if (includeSegmentsFile)
             {
                 string segmentFileName = GetSegmentsFileName();
@@ -1355,7 +1355,7 @@ namespace Lucene.Net.Index
         /// applies all changes caused by committing a merge to this <see cref="SegmentInfos"/> </summary>
         internal void ApplyMergeChanges(MergePolicy.OneMerge merge, bool dropSegment)
         {
-            var mergedAway = new HashSet<SegmentCommitInfo>(merge.Segments);
+            var mergedAway = new FastHashSet<SegmentCommitInfo>(merge.Segments);
             bool inserted = false;
             int newSegIdx = 0;
             for (int segIdx = 0, cnt = segments.Count; segIdx < cnt; segIdx++)

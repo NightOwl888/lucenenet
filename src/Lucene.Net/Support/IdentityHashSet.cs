@@ -19,7 +19,7 @@ namespace Lucene.Net.Support
 	 * limitations under the License.
 	 */
 
-    public class IdentityHashSet<T> : HashSet<T> where T : class
+    public class IdentityHashSet<T> : FastHashSet<T> where T : class
     {
         public IdentityHashSet()
             : base(IdentityComparer<T>.Default)

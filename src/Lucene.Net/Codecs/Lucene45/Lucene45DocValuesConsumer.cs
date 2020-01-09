@@ -121,11 +121,11 @@ namespace Lucene.Net.Codecs.Lucene45
             long gcd = 0;
             bool missing = false;
             // TODO: more efficient?
-            HashSet<long> uniqueValues = null;
+            FastHashSet<long> uniqueValues = null;
             
             if (optimizeStorage)
             {
-                uniqueValues = new HashSet<long>();
+                uniqueValues = new FastHashSet<long>();
 
                 foreach (long? nv in values)
                 {

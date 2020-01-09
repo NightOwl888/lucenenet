@@ -155,7 +155,7 @@ namespace Lucene.Net.Index
 
         public ICollection<DocFieldConsumerPerField> Fields()
         {
-            ICollection<DocFieldConsumerPerField> fields = new HashSet<DocFieldConsumerPerField>();
+            ICollection<DocFieldConsumerPerField> fields = new FastHashSet<DocFieldConsumerPerField>();
             for (int i = 0; i < fieldHash.Length; i++)
             {
                 DocFieldProcessorPerField field = fieldHash[i];

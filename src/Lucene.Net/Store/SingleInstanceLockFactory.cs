@@ -30,7 +30,7 @@ namespace Lucene.Net.Store
     /// <seealso cref="LockFactory"/>
     public class SingleInstanceLockFactory : LockFactory
     {
-        private HashSet<string> locks = new HashSet<string>();
+        private FastHashSet<string> locks = new FastHashSet<string>();
 
         public override Lock MakeLock(string lockName)
         {
@@ -55,9 +55,9 @@ namespace Lucene.Net.Store
     internal class SingleInstanceLock : Lock
     {
         internal string lockName;
-        private HashSet<string> locks;
+        private FastHashSet<string> locks;
 
-        public SingleInstanceLock(HashSet<string> locks, string lockName)
+        public SingleInstanceLock(FastHashSet<string> locks, string lockName)
         {
             this.locks = locks;
             this.lockName = lockName;

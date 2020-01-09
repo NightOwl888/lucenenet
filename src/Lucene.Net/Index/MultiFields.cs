@@ -318,7 +318,7 @@ namespace Lucene.Net.Index
         /// </summary>
         public static ICollection<string> GetIndexedFields(IndexReader reader)
         {
-            ICollection<string> fields = new HashSet<string>();
+            ICollection<string> fields = new FastHashSet<string>();
             foreach (FieldInfo fieldInfo in GetMergedFieldInfos(reader))
             {
                 if (fieldInfo.IsIndexed)

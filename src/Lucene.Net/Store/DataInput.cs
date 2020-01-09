@@ -297,8 +297,8 @@ namespace Lucene.Net.Store
         /// </summary>
         public virtual ISet<string> ReadStringSet()
         {
-            ISet<string> set = new HashSet<string>();
             int count = ReadInt32();
+            ISet<string> set = new FastHashSet<string>(count);
             for (int i = 0; i < count; i++)
             {
                 set.Add(ReadString());

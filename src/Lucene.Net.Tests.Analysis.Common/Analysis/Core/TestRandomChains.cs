@@ -440,7 +440,7 @@ namespace Lucene.Net.Analysis.Core
             public object Create(Random random)
             {
                 // TypeTokenFilter
-                ISet<string> set = new HashSet<string>();
+                ISet<string> set = new FastHashSet<string>();
                 int num = random.nextInt(5);
                 for (int i = 0; i < num; i++)
                 {
@@ -620,7 +620,7 @@ namespace Lucene.Net.Analysis.Core
             {
                 NormalizeCharMap.Builder builder = new NormalizeCharMap.Builder();
                 // we can't add duplicate keys, or NormalizeCharMap gets angry
-                ISet<string> keys = new HashSet<string>();
+                ISet<string> keys = new FastHashSet<string>();
                 int num = random.nextInt(5);
                 //System.out.println("NormalizeCharMap=");
                 for (int i = 0; i < num; i++)

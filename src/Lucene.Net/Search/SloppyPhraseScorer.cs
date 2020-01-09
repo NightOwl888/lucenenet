@@ -504,14 +504,14 @@ namespace Lucene.Net.Search
             else
             {
                 // more involved - has multi-terms
-                List<HashSet<PhrasePositions>> tmp = new List<HashSet<PhrasePositions>>();
+                List<FastHashSet<PhrasePositions>> tmp = new List<FastHashSet<PhrasePositions>>();
                 IList<FixedBitSet> bb = PpTermsBitSets(rpp, rptTerms);
                 UnionTermGroups(bb);
                 IDictionary<Term, int> tg = TermGroups(rptTerms, bb);
-                HashSet<int> distinctGroupIDs = new HashSet<int>(tg.Values);
+                FastHashSet<int> distinctGroupIDs = new FastHashSet<int>(tg.Values);
                 for (int i = 0; i < distinctGroupIDs.Count; i++)
                 {
-                    tmp.Add(new HashSet<PhrasePositions>());
+                    tmp.Add(new FastHashSet<PhrasePositions>());
                 }
                 foreach (PhrasePositions pp in rpp)
                 {
@@ -526,7 +526,7 @@ namespace Lucene.Net.Search
                         }
                     }
                 }
-                foreach (HashSet<PhrasePositions> hs in tmp)
+                foreach (FastHashSet<PhrasePositions> hs in tmp)
                 {
                     res.Add(new List<PhrasePositions>(hs));
                 }

@@ -197,7 +197,7 @@ namespace Lucene.Net.Util
             }
             else
             {
-                return (new HashSet<Attribute>()).GetEnumerator();
+                return (new FastHashSet<Attribute>()).GetEnumerator();
             }
         }
 

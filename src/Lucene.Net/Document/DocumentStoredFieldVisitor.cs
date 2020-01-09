@@ -47,7 +47,7 @@ namespace Lucene.Net.Documents
         /// Load only fields named in the provided fields. </summary>
         public DocumentStoredFieldVisitor(params string[] fields)
         {
-            fieldsToAdd = new HashSet<string>();
+            fieldsToAdd = new FastHashSet<string>();
             foreach (string field in fields)
             {
                 fieldsToAdd.Add(field);

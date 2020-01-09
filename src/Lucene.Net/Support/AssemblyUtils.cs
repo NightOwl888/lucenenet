@@ -97,7 +97,7 @@ namespace Lucene.Net.Support
             /// These keys are a collection of public key tokens derived from all the reference assemblies in
             /// "%ProgramFiles%\Reference Assemblies\Microsoft" on a Windows 10 machine with VS 2015 installed
             /// </summary>
-            private static readonly ICollection<string> s_microsoftKeys = new HashSet<string>(new[]
+            private static readonly ICollection<string> s_microsoftKeys = new FastHashSet<string>(new[]
             {
                 "b77a5c561934e089", // ECMA
                 "b03f5f7f11d50a3a", // DEVDIV

@@ -126,7 +126,7 @@ namespace Lucene.Net.Codecs.Lucene3x
             if (Lucene3xSegmentInfoFormat.GetDocStoreOffset(info) != -1)
             {
                 string dsName = Lucene3xSegmentInfoFormat.GetDocStoreSegment(info);
-                ISet<string> files = new HashSet<string>();
+                ISet<string> files = new FastHashSet<string>();
                 if (Lucene3xSegmentInfoFormat.GetDocStoreIsCompoundFile(info))
                 {
                     files.Add(IndexFileNames.SegmentFileName(dsName, "", COMPOUND_FILE_STORE_EXTENSION));

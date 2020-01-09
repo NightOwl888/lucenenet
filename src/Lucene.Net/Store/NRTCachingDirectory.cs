@@ -131,7 +131,7 @@ namespace Lucene.Net.Store
         {
             lock (this)
             {
-                ISet<string> files = new HashSet<string>();
+                ISet<string> files = new FastHashSet<string>();
                 foreach (string f in cache.ListAll())
                 {
                     files.Add(f);

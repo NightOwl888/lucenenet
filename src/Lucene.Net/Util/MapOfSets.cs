@@ -53,7 +53,7 @@ namespace Lucene.Net.Util
             // LUCENENET: Eliminated extra lookup by using TryGetValue instead of ContainsKey
             if (!theMap.TryGetValue(key, out ISet<TValue> theSet))
             {
-                theMap[key] = theSet = new HashSet<TValue>();
+                theMap[key] = theSet = new FastHashSet<TValue>();
             }
             theSet.Add(val);
             return theSet.Count;
@@ -69,7 +69,7 @@ namespace Lucene.Net.Util
             // LUCENENET: Eliminated extra lookup by using TryGetValue instead of ContainsKey
             if (!theMap.TryGetValue(key, out ISet<TValue> theSet))
             {
-                theMap[key] = theSet = new HashSet<TValue>();
+                theMap[key] = theSet = new FastHashSet<TValue>();
             }
             theSet.UnionWith(vals);
             return theSet.Count;

@@ -27,22 +27,22 @@ namespace Lucene.Net.Support
 
         public ConcurrentHashSet()
         {
-            _set = new HashSet<T>();
+            _set = new FastHashSet<T>();
         }
 
         public ConcurrentHashSet(IEnumerable<T> collection)
         {
-            _set = new HashSet<T>(collection);
+            _set = new FastHashSet<T>(collection);
         }
 
         public ConcurrentHashSet(IEqualityComparer<T> comparer)
         {
-            _set = new HashSet<T>(comparer);
+            _set = new FastHashSet<T>(comparer);
         }
 
         public ConcurrentHashSet(IEnumerable<T> collection, IEqualityComparer<T> comparer)
         {
-            _set = new HashSet<T>(collection, comparer);
+            _set = new FastHashSet<T>(collection, comparer);
         }
 
         public bool Add(T item)

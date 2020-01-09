@@ -84,10 +84,10 @@ namespace Lucene.Net.Codecs.Lucene42
             long maxValue = long.MinValue;
             long gcd = 0;
             // TODO: more efficient?
-            HashSet<long> uniqueValues = null;
+            FastHashSet<long> uniqueValues = null;
             if (true)
             {
-                uniqueValues = new HashSet<long>();
+                uniqueValues = new FastHashSet<long>();
 
                 long count = 0;
                 foreach (long? nv in values)

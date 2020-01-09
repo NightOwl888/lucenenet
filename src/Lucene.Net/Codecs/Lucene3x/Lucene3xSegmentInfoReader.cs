@@ -222,7 +222,7 @@ namespace Lucene.Net.Codecs.Lucene3x
             }
 
             // Replicate logic from 3.x's SegmentInfo.files():
-            ISet<string> files = new HashSet<string>();
+            ISet<string> files = new FastHashSet<string>();
             if (isCompoundFile)
             {
                 files.Add(IndexFileNames.SegmentFileName(name, "", IndexFileNames.COMPOUND_FILE_EXTENSION));

@@ -123,7 +123,7 @@ namespace Lucene.Net.Util
             MapOfSets<ReaderField, int> readerFieldToValIds = new MapOfSets<ReaderField, int>(new Dictionary<ReaderField, ISet<int>>(17));
 
             // any keys that we know result in more then one valId
-            ISet<ReaderField> valMismatchKeys = new HashSet<ReaderField>();
+            ISet<ReaderField> valMismatchKeys = new FastHashSet<ReaderField>();
 
             // iterate over all the cacheEntries to get the mappings we'll need
             for (int i = 0; i < cacheEntries.Length; i++)
@@ -217,7 +217,7 @@ namespace Lucene.Net.Util
             IDictionary<int, ISet<FieldCache.CacheEntry>> viToItemSets = valIdToItems.Map;
             IDictionary<ReaderField, ISet<int>> rfToValIdSets = readerFieldToValIds.Map;
 
-            HashSet<ReaderField> seen = new HashSet<ReaderField>();
+            FastHashSet<ReaderField> seen = new FastHashSet<ReaderField>();
 
             //IDictionary<ReaderField, ISet<int>>.KeyCollection readerFields = rfToValIdSets.Keys;
             foreach (ReaderField rf in rfToValIdSets.Keys)

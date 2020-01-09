@@ -367,7 +367,7 @@ namespace Lucene.Net.Search.Spans
         {
             matchStart = subSpans[subSpans.Length - 1].Start;
             matchEnd = subSpans[subSpans.Length - 1].End;
-            var possibleMatchPayloads = new HashSet<byte[]>();
+            var possibleMatchPayloads = new FastHashSet<byte[]>();
             if (subSpans[subSpans.Length - 1].IsPayloadAvailable)
             {
                 possibleMatchPayloads.UnionWith(subSpans[subSpans.Length - 1].GetPayload());

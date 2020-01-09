@@ -115,7 +115,7 @@ namespace Lucene.Net.Util.Automaton
                 return a.singleton;
             }
             StringBuilder b = new StringBuilder();
-            HashSet<State> visited = new HashSet<State>();
+            FastHashSet<State> visited = new FastHashSet<State>();
             State s = a.initial;
             bool done;
             do
@@ -146,7 +146,7 @@ namespace Lucene.Net.Util.Automaton
                 return new BytesRef(a.singleton);
             }
             BytesRef @ref = new BytesRef(10);
-            HashSet<State> visited = new HashSet<State>();
+            FastHashSet<State> visited = new FastHashSet<State>();
             State s = a.initial;
             bool done;
             do
@@ -278,7 +278,7 @@ namespace Lucene.Net.Util.Automaton
         /// </summary>
         public static ISet<Int32sRef> GetFiniteStrings(Automaton a, int limit)
         {
-            HashSet<Int32sRef> strings = new HashSet<Int32sRef>();
+            FastHashSet<Int32sRef> strings = new FastHashSet<Int32sRef>();
             if (a.IsSingleton)
             {
                 if (limit > 0)
@@ -286,7 +286,7 @@ namespace Lucene.Net.Util.Automaton
                     strings.Add(Util.ToUTF32(a.Singleton, new Int32sRef()));
                 }
             }
-            else if (!GetFiniteStrings(a.initial, new HashSet<State>(), strings, new Int32sRef(), limit))
+            else if (!GetFiniteStrings(a.initial, new FastHashSet<State>(), strings, new Int32sRef(), limit))
             {
                 return strings;
             }
@@ -298,7 +298,7 @@ namespace Lucene.Net.Util.Automaton
         /// <c>false</c> if more than <paramref name="limit"/> strings are found.
         /// <paramref name="limit"/>&lt;0 means "infinite".
         /// </summary>
-        private static bool GetFiniteStrings(State s, HashSet<State> pathstates, HashSet<Int32sRef> strings, Int32sRef path, int limit)
+        private static bool GetFiniteStrings(State s, FastHashSet<State> pathstates, FastHashSet<Int32sRef> strings, Int32sRef path, int limit)
         {
             pathstates.Add(s);
             foreach (Transition t in s.GetTransitions())

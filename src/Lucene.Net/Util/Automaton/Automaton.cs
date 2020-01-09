@@ -281,7 +281,7 @@ namespace Lucene.Net.Util.Automaton
             if (numberedStates == null)
             {
                 ExpandSingleton();
-                HashSet<State> visited = new HashSet<State>();
+                FastHashSet<State> visited = new FastHashSet<State>();
                 LinkedList<State> worklist = new LinkedList<State>();
                 State[] states = new State[4];
                 int upto = 0;
@@ -358,8 +358,8 @@ namespace Lucene.Net.Util.Automaton
         public virtual ISet<State> GetAcceptStates()
         {
             ExpandSingleton();
-            HashSet<State> accepts = new HashSet<State>();
-            HashSet<State> visited = new HashSet<State>();
+            FastHashSet<State> accepts = new FastHashSet<State>();
+            FastHashSet<State> visited = new FastHashSet<State>();
             LinkedList<State> worklist = new LinkedList<State>();
             worklist.AddLast(initial);
             visited.Add(initial);
@@ -448,7 +448,7 @@ namespace Lucene.Net.Util.Automaton
         public virtual int[] GetStartPoints()
         {
             State[] states = GetNumberedStates();
-            HashSet<int> pointset = new HashSet<int>();
+            FastHashSet<int> pointset = new FastHashSet<int>();
             pointset.Add(Character.MIN_CODE_POINT);
             foreach (State s in states)
             {
@@ -479,7 +479,7 @@ namespace Lucene.Net.Util.Automaton
         private State[] GetLiveStates()
         {
             State[] states = GetNumberedStates();
-            HashSet<State> live = new HashSet<State>();
+            FastHashSet<State> live = new FastHashSet<State>();
             foreach (State q in states)
             {
                 if (q.Accept)
@@ -488,10 +488,10 @@ namespace Lucene.Net.Util.Automaton
                 }
             }
             // map<state, set<state>>
-            ISet<State>[] map = new HashSet<State>[states.Length];
+            ISet<State>[] map = new FastHashSet<State>[states.Length];
             for (int i = 0; i < map.Length; i++)
             {
-                map[i] = new HashSet<State>();
+                map[i] = new FastHashSet<State>();
             }
             foreach (State s in states)
             {
@@ -662,7 +662,7 @@ namespace Lucene.Net.Util.Automaton
 
             Transition[][] transitions = this.GetSortedTransitions();
             LinkedList<State> worklist = new LinkedList<State>();
-            HashSet<State> visited = new HashSet<State>();
+            FastHashSet<State> visited = new FastHashSet<State>();
 
             State current = this.initial;
             worklist.AddLast(this.initial);

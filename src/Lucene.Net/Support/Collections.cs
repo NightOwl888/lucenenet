@@ -90,7 +90,7 @@ namespace Lucene.Net.Support
 
         public static ISet<T> Singleton<T>(T o)
         {
-            return new HashSet<T>(new T[] { o });
+            return new FastHashSet<T>(new T[] { o });
         }
 
         public static IDictionary<TKey, TValue> SingletonMap<TKey, TValue>(TKey key, TValue value)
