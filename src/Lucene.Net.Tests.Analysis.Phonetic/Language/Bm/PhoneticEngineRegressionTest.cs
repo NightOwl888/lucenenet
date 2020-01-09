@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Analysis.Phonetic.Language.Bm
 {
@@ -35,7 +36,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             IDictionary<String, String> args;
 
             // concat is true, ruleType is EXACT
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             args.Put("nameType", "GENERIC");
             Assert.AreEqual(Encode(args, true, "Angelo"), "agilo|angilo|aniilo|anilo|anxilo|anzilo|ogilo|ongilo|oniilo|onilo|onxilo|onzilo");
             args.Put("ruleType", "EXACT");
@@ -46,7 +47,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             Assert.AreEqual(Encode(args, true, "1234"), "");
 
             // concat is false, ruleType is EXACT
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             Assert.AreEqual(Encode(args, false, "Angelo"), "agilo|angilo|aniilo|anilo|anxilo|anzilo|ogilo|ongilo|oniilo|onilo|onxilo|onzilo");
             args.Put("ruleType", "EXACT");
             Assert.AreEqual(Encode(args, false, "Angelo"), "anZelo|andZelo|angelo|anhelo|anjelo|anxelo");
@@ -56,7 +57,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             Assert.AreEqual(Encode(args, false, "1234"), "");
 
             // concat is true, ruleType is APPROX
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             Assert.AreEqual(Encode(args, true, "Angelo"), "agilo|angilo|aniilo|anilo|anxilo|anzilo|ogilo|ongilo|oniilo|onilo|onxilo|onzilo");
             args.Put("ruleType", "APPROX");
             Assert.AreEqual(Encode(args, true, "Angelo"), "agilo|angilo|aniilo|anilo|anxilo|anzilo|ogilo|ongilo|oniilo|onilo|onxilo|onzilo");
@@ -66,7 +67,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             Assert.AreEqual(Encode(args, true, "1234"), "");
 
             // concat is false, ruleType is APPROX
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             Assert.AreEqual(Encode(args, false, "Angelo"), "agilo|angilo|aniilo|anilo|anxilo|anzilo|ogilo|ongilo|oniilo|onilo|onxilo|onzilo");
             args.Put("ruleType", "APPROX");
             Assert.AreEqual(Encode(args, false, "Angelo"), "agilo|angilo|aniilo|anilo|anxilo|anzilo|ogilo|ongilo|oniilo|onilo|onxilo|onzilo");
@@ -82,7 +83,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             IDictionary<String, String> args;
 
             // concat is true, ruleType is EXACT
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             args.Put("nameType", "ASHKENAZI");
             Assert.AreEqual(Encode(args, true, "Angelo"), "AnElO|AnSelO|AngElO|AngzelO|AnkselO|AnzelO");
             args.Put("ruleType", "EXACT");
@@ -93,7 +94,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             Assert.AreEqual(Encode(args, true, "1234"), "");
 
             // concat is false, ruleType is EXACT
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             args.Put("nameType", "ASHKENAZI");
             Assert.AreEqual(Encode(args, false, "Angelo"), "AnElO|AnSelO|AngElO|AngzelO|AnkselO|AnzelO");
             args.Put("ruleType", "EXACT");
@@ -104,7 +105,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             Assert.AreEqual(Encode(args, false, "1234"), "");
 
             // concat is true, ruleType is APPROX
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             args.Put("nameType", "ASHKENAZI");
             Assert.AreEqual(Encode(args, true, "Angelo"), "AnElO|AnSelO|AngElO|AngzelO|AnkselO|AnzelO");
             args.Put("ruleType", "APPROX");
@@ -115,7 +116,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             Assert.AreEqual(Encode(args, true, "1234"), "");
 
             // concat is false, ruleType is APPROX
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             args.Put("nameType", "ASHKENAZI");
             Assert.AreEqual(Encode(args, false, "Angelo"), "AnElO|AnSelO|AngElO|AngzelO|AnkselO|AnzelO");
             args.Put("ruleType", "APPROX");
@@ -132,7 +133,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             IDictionary<String, String> args;
 
             // concat is true, ruleType is EXACT
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             args.Put("nameType", "SEPHARDIC");
             Assert.AreEqual(Encode(args, true, "Angelo"), "anhila|anhilu|anzila|anzilu|nhila|nhilu|nzila|nzilu");
             args.Put("ruleType", "EXACT");
@@ -143,7 +144,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             Assert.AreEqual(Encode(args, true, "1234"), "");
 
             // concat is false, ruleType is EXACT
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             args.Put("nameType", "SEPHARDIC");
             Assert.AreEqual(Encode(args, false, "Angelo"), "anhila|anhilu|anzila|anzilu|nhila|nhilu|nzila|nzilu");
             args.Put("ruleType", "EXACT");
@@ -154,7 +155,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             Assert.AreEqual(Encode(args, false, "1234"), "");
 
             // concat is true, ruleType is APPROX
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             args.Put("nameType", "SEPHARDIC");
             Assert.AreEqual(Encode(args, true, "Angelo"), "anhila|anhilu|anzila|anzilu|nhila|nhilu|nzila|nzilu");
             args.Put("ruleType", "APPROX");
@@ -165,7 +166,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             Assert.AreEqual(Encode(args, true, "1234"), "");
 
             // concat is false, ruleType is APPROX
-            args = new SortedDictionary<String, String>();
+            args = new JCG.SortedDictionary<String, String>();
             args.Put("nameType", "SEPHARDIC");
             Assert.AreEqual(Encode(args, false, "Angelo"), "anhila|anhilu|anzila|anzilu|nhila|nhilu|nzila|nzilu");
             args.Put("ruleType", "APPROX");

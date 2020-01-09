@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Codecs.Pulsing
 {
@@ -41,7 +42,7 @@ namespace Lucene.Net.Codecs.Pulsing
         private readonly SegmentReadState _segmentState;
         private int _maxPositions;
         private int _version;
-        private SortedDictionary<int, int> _fields;
+        private IDictionary<int, int> _fields;
 
         public PulsingPostingsReader(SegmentReadState state, PostingsReaderBase wrappedPostingsReader)
         {
@@ -64,7 +65,7 @@ namespace Lucene.Net.Codecs.Pulsing
             }
             else
             {
-                _fields = new SortedDictionary<int, int>();
+                _fields = new JCG.SortedDictionary<int, int>();
                 var summaryFileName = IndexFileNames.SegmentFileName(_segmentState.SegmentInfo.Name,
                     _segmentState.SegmentSuffix, PulsingPostingsWriter.SUMMARY_EXTENSION);
                 IndexInput input = null;

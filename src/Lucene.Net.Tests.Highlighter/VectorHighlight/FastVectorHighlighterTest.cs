@@ -11,6 +11,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.VectorHighlight
 {
@@ -643,7 +644,7 @@ namespace Lucene.Net.Search.VectorHighlight
 
         internal class AnalyzerWrapperAnonymousHelper : AnalyzerWrapper
         {
-            IDictionary<String, Analyzer> fieldAnalyzers = new SortedDictionary<String, Analyzer>(StringComparer.Ordinal);
+            IDictionary<String, Analyzer> fieldAnalyzers = new JCG.SortedDictionary<String, Analyzer>(StringComparer.Ordinal);
 
 #pragma warning disable 612, 618 // LUCENENET NOTE: Class calls obsolete (default) constructor
             public AnalyzerWrapperAnonymousHelper()

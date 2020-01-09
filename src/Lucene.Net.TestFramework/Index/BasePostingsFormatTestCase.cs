@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
 using Assert = Lucene.Net.TestFramework.Assert;
@@ -321,7 +322,7 @@ namespace Lucene.Net.Index
         }
 
         // Holds all postings:
-        private static SortedDictionary<string, SortedDictionary<BytesRef, long>> fields;
+        private static JCG.SortedDictionary<string, JCG.SortedDictionary<BytesRef, long>> fields;
 
         private static FieldInfos fieldInfos;
 
@@ -392,7 +393,7 @@ namespace Lucene.Net.Index
             totalPayloadBytes = 0;
 
             // LUCENENET specific: Use StringComparer.Ordinal to get the same ordering as Java
-            fields = new SortedDictionary<string, SortedDictionary<BytesRef, long>>(StringComparer.Ordinal);
+            fields = new JCG.SortedDictionary<string, JCG.SortedDictionary<BytesRef, long>>(StringComparer.Ordinal);
 
             int numFields = TestUtil.NextInt32(Random, 1, 5);
             if (VERBOSE)
@@ -416,7 +417,7 @@ namespace Lucene.Net.Index
                                                         DocValuesType.NONE, DocValuesType.NUMERIC, null);
                 fieldUpto++;
 
-                SortedDictionary<BytesRef, long> postings = new SortedDictionary<BytesRef, long>();
+                JCG.SortedDictionary<BytesRef, long> postings = new JCG.SortedDictionary<BytesRef, long>();
                 fields[field] = postings;
                 HashSet<string> seenTerms = new HashSet<string>();
 
@@ -492,7 +493,7 @@ namespace Lucene.Net.Index
             }
 
             allTerms = new List<FieldAndTerm>();
-            foreach (KeyValuePair<string, SortedDictionary<BytesRef, long>> fieldEnt in fields)
+            foreach (KeyValuePair<string, JCG.SortedDictionary<BytesRef, long>> fieldEnt in fields)
             {
                 string field = fieldEnt.Key;
                 foreach (KeyValuePair<BytesRef, long> termEnt in fieldEnt.Value)
@@ -584,7 +585,7 @@ namespace Lucene.Net.Index
             using (FieldsConsumer fieldsConsumer = codec.PostingsFormat.FieldsConsumer(writeState))
             {
 
-                foreach (KeyValuePair<string, SortedDictionary<BytesRef, long>> fieldEnt in fields)
+                foreach (KeyValuePair<string, JCG.SortedDictionary<BytesRef, long>> fieldEnt in fields)
                 {
                     string field = fieldEnt.Key;
                     IDictionary<BytesRef, long> terms = fieldEnt.Value;
