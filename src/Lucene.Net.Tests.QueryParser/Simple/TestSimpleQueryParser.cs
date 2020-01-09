@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Analysis;
+﻿using JCG = J2N.Collections.Generic;
+using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Support;
@@ -541,7 +542,7 @@ namespace Lucene.Net.QueryParsers.Simple
         [Test]
         public virtual void TestWeightedTerm()
         {
-            IDictionary<string, float> weights = new LinkedHashMap<string, float>();
+            IDictionary<string, float> weights = new JCG.LinkedDictionary<string, float>();
             weights["field0"] = 5f;
             weights["field1"] = 10f;
 
@@ -562,7 +563,7 @@ namespace Lucene.Net.QueryParsers.Simple
         [Test]
         public virtual void TestWeightedOR()
         {
-            IDictionary<string, float> weights = new LinkedHashMap<string, float>();
+            IDictionary<string, float> weights = new JCG.LinkedDictionary<string, float>();
             weights["field0"] = 5f;
             weights["field1"] = 10f;
 

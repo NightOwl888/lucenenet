@@ -1,5 +1,6 @@
 using Antlr.Runtime;
 using Antlr.Runtime.Tree;
+using JCG = J2N.Collections.Generic;
 using Lucene.Net.Queries.Function;
 using Lucene.Net.Support;
 using System;
@@ -91,7 +92,7 @@ namespace Lucene.Net.Expressions.JS
 
         private readonly string sourceText;
 
-        private readonly IDictionary<string, int> externalsMap = new LinkedHashMap<string, int>();
+        private readonly IDictionary<string, int> externalsMap = new JCG.LinkedDictionary<string, int>();
 
         private TypeBuilder dynamicType;
 

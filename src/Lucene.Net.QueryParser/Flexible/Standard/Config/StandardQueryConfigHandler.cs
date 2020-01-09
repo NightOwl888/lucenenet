@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Analysis;
+﻿using JCG = J2N.Collections.Generic;
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.QueryParsers.Flexible.Core.Config;
 using Lucene.Net.Search;
@@ -50,7 +51,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard.Config
             Set(ConfigurationKeys.PHRASE_SLOP, 0); //default value 2.4
             Set(ConfigurationKeys.LOWERCASE_EXPANDED_TERMS, true); //default value 2.4
             Set(ConfigurationKeys.ENABLE_POSITION_INCREMENTS, false); //default value 2.4
-            Set(ConfigurationKeys.FIELD_BOOST_MAP, new LinkedHashMap<string, float?>());
+            Set(ConfigurationKeys.FIELD_BOOST_MAP, new JCG.LinkedDictionary<string, float?>());
             Set(ConfigurationKeys.FUZZY_CONFIG, new FuzzyConfig());
             Set(ConfigurationKeys.LOCALE, null);
             Set(ConfigurationKeys.MULTI_TERM_REWRITE_METHOD, MultiTermQuery.CONSTANT_SCORE_AUTO_REWRITE_DEFAULT);

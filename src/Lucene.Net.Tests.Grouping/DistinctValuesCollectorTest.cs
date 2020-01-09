@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Analysis;
+﻿using JCG = J2N.Collections.Generic;
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Index.Extensions;
@@ -552,7 +553,7 @@ namespace Lucene.Net.Search.Grouping
                 if (!searchTermToGroupCounts.TryGetValue(content, out groupToCounts))
                 {
                     // Groups sort always DOCID asc...
-                    searchTermToGroupCounts.Add(content, groupToCounts = new LinkedHashMap<string, ISet<string>>());
+                    searchTermToGroupCounts.Add(content, groupToCounts = new JCG.LinkedDictionary<string, ISet<string>>());
                     contentStrings.Add(content);
                 }
 

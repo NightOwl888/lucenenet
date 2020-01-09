@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Documents;
+﻿using JCG = J2N.Collections.Generic;
+using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Lucene.Net.Spatial.Prefix.Tree;
 using Lucene.Net.Spatial.Queries;
@@ -217,8 +218,8 @@ namespace Lucene.Net.Spatial.Prefix
             bool biasContains = (operation == SpatialOperation.Contains);
 
             //Main index loop:
-            IDictionary<String, IShape> indexedShapes = new LinkedHashMap<String, IShape>();
-            IDictionary<String, IShape> indexedShapesGS = new LinkedHashMap<String, IShape>();//grid snapped
+            IDictionary<String, IShape> indexedShapes = new JCG.LinkedDictionary<String, IShape>();
+            IDictionary<String, IShape> indexedShapesGS = new JCG.LinkedDictionary<String, IShape>();//grid snapped
             int numIndexedShapes = randomIntBetween(1, 6);
 #pragma warning disable 219
             bool indexedAtLeastOneShapePair = false;
