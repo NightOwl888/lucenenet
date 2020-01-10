@@ -1040,7 +1040,7 @@ namespace Lucene.Net.Index
                 this.OuterInstance = outerInstance;
                 termAtt = AddAttribute<ICharTermAttribute>();
                 posIncrAtt = AddAttribute<IPositionIncrementAttribute>();
-                terms = Arrays.AsList("a", "b", "c").GetEnumerator();
+                terms = new List<string> { "a", "b", "c" }.GetEnumerator();
                 first = true;
             }
 
@@ -1663,7 +1663,7 @@ namespace Lucene.Net.Index
                     r = DirectoryReader.Open(dir);
                 }
 
-                IList<string> files = new List<string>(Arrays.AsList(dir.ListAll()));
+                IList<string> files = new List<string>(dir.ListAll());
 
                 // RAMDir won't have a write.lock, but fs dirs will:
                 files.Remove("write.lock");
@@ -1693,7 +1693,7 @@ namespace Lucene.Net.Index
                 IndexReader r2 = DirectoryReader.OpenIfChanged(r);
                 Assert.IsNotNull(r2);
                 Assert.IsTrue(r != r2);
-                files = Arrays.AsList(dir.ListAll());
+                files = dir.ListAll();
 
                 // NOTE: here we rely on "Windows" behavior, ie, even
                 // though IW wanted to delete _0.cfs since it was
@@ -1704,7 +1704,7 @@ namespace Lucene.Net.Index
                 //Assert.IsTrue(files.Contains("_2.cfs"));
                 w.DeleteUnusedFiles();
 
-                files = Arrays.AsList(dir.ListAll());
+                files = dir.ListAll();
                 // r still holds this file open
                 Assert.IsTrue(files.Contains("_0.cfs"));
                 //Assert.IsTrue(files.Contains("_2.cfs"));
@@ -1713,14 +1713,14 @@ namespace Lucene.Net.Index
                 if (iter == 0)
                 {
                     // on closing NRT reader, it calls writer.deleteUnusedFiles
-                    files = Arrays.AsList(dir.ListAll());
+                    files = dir.ListAll();
                     Assert.IsFalse(files.Contains("_0.cfs"));
                 }
                 else
                 {
                     // now writer can remove it
                     w.DeleteUnusedFiles();
-                    files = Arrays.AsList(dir.ListAll());
+                    files = dir.ListAll();
                     Assert.IsFalse(files.Contains("_0.cfs"));
                 }
                 //Assert.IsTrue(files.Contains("_2.cfs"));
@@ -1823,7 +1823,7 @@ namespace Lucene.Net.Index
             int computedExtraFileCount = 0;
             foreach (string file in dir.ListAll())
             {
-                if (file.LastIndexOf('.') < 0 || !Arrays.AsList("fdx", "fdt", "tvx", "tvd", "tvf").Contains(file.Substring(file.LastIndexOf('.') + 1)))
+                if (file.LastIndexOf('.') < 0 || !new List<string> { "fdx", "fdt", "tvx", "tvd", "tvf" }.Contains(file.Substring(file.LastIndexOf('.') + 1)))
                 // don't count stored fields and term vectors in
                 {
                     ++computedExtraFileCount;

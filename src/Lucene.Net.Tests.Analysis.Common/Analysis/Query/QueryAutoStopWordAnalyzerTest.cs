@@ -101,12 +101,12 @@ namespace Lucene.Net.Analysis.Query
         [Test]
         public virtual void TestStopwordsPerFieldMaxPercentDocs()
         {
-            protectedAnalyzer = new QueryAutoStopWordAnalyzer(TEST_VERSION_CURRENT, appAnalyzer, reader, Arrays.AsList("variedField"), 1f / 2f);
+            protectedAnalyzer = new QueryAutoStopWordAnalyzer(TEST_VERSION_CURRENT, appAnalyzer, reader, new string[] { "variedField" }, 1f / 2f);
             TokenStream protectedTokenStream = protectedAnalyzer.GetTokenStream("repetitiveField", "boring");
             // A filter on one Field should not affect queries on another
             AssertTokenStreamContents(protectedTokenStream, new string[] { "boring" });
 
-            protectedAnalyzer = new QueryAutoStopWordAnalyzer(TEST_VERSION_CURRENT, appAnalyzer, reader, Arrays.AsList("variedField", "repetitiveField"), 1f / 2f);
+            protectedAnalyzer = new QueryAutoStopWordAnalyzer(TEST_VERSION_CURRENT, appAnalyzer, reader, new string[] { "variedField", "repetitiveField" }, 1f / 2f);
             protectedTokenStream = protectedAnalyzer.GetTokenStream("repetitiveField", "boring");
             // A filter on the right Field should affect queries on it
             AssertTokenStreamContents(protectedTokenStream, new string[0]);
@@ -115,11 +115,11 @@ namespace Lucene.Net.Analysis.Query
         [Test]
         public virtual void TestStopwordsPerFieldMaxDocFreq()
         {
-            protectedAnalyzer = new QueryAutoStopWordAnalyzer(TEST_VERSION_CURRENT, appAnalyzer, reader, Arrays.AsList("repetitiveField"), 10);
+            protectedAnalyzer = new QueryAutoStopWordAnalyzer(TEST_VERSION_CURRENT, appAnalyzer, reader, new string[] { "repetitiveField" }, 10);
             int numStopWords = protectedAnalyzer.GetStopWords("repetitiveField").Length;
             assertTrue("Should have identified stop words", numStopWords > 0);
 
-            protectedAnalyzer = new QueryAutoStopWordAnalyzer(TEST_VERSION_CURRENT, appAnalyzer, reader, Arrays.AsList("repetitiveField", "variedField"), 10);
+            protectedAnalyzer = new QueryAutoStopWordAnalyzer(TEST_VERSION_CURRENT, appAnalyzer, reader, new string[] { "repetitiveField", "variedField" }, 10);
             int numNewStopWords = protectedAnalyzer.GetStopWords("repetitiveField").Length + protectedAnalyzer.GetStopWords("variedField").Length;
             assertTrue("Should have identified more stop words", numNewStopWords > numStopWords);
         }
@@ -127,7 +127,7 @@ namespace Lucene.Net.Analysis.Query
         [Test]
         public virtual void TestNoFieldNamePollution()
         {
-            protectedAnalyzer = new QueryAutoStopWordAnalyzer(TEST_VERSION_CURRENT, appAnalyzer, reader, Arrays.AsList("repetitiveField"), 10);
+            protectedAnalyzer = new QueryAutoStopWordAnalyzer(TEST_VERSION_CURRENT, appAnalyzer, reader, new string[] { "repetitiveField" }, 10);
 
             TokenStream protectedTokenStream = protectedAnalyzer.GetTokenStream("repetitiveField", "boring");
             // Check filter set up OK

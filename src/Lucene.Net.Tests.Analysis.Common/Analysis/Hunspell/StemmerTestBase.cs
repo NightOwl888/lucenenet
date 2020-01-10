@@ -60,7 +60,7 @@ namespace Lucene.Net.Analysis.Hunspell
 
             try
             {
-                Dictionary dictionary = new Dictionary(affixStream, Arrays.AsList(dictStreams), ignoreCase);
+                Dictionary dictionary = new Dictionary(affixStream, dictStreams, ignoreCase);
                 stemmer = new Stemmer(dictionary);
             }
             finally

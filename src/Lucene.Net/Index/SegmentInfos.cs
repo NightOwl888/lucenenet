@@ -1,3 +1,5 @@
+using J2N.Collections;
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Support;
 using Lucene.Net.Support.IO;
 using System;
@@ -1427,7 +1429,7 @@ namespace Lucene.Net.Index
         /// Returns all contained segments as an <b>unmodifiable</b> <see cref="T:IList{SegmentCommitInfo}"/> view. </summary>
         public IList<SegmentCommitInfo> AsList()
         {
-            return Collections.UnmodifiableList<SegmentCommitInfo>(segments);
+            return segments.ToUnmodifiableList();
         }
 
         /// <summary>

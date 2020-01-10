@@ -804,8 +804,8 @@ namespace Lucene.Net.Tests.Join
                 }
 
                 // Merge both sorts:
-                IList<SortField> sortFields = new List<SortField>(Arrays.AsList(parentSort.GetSort()));
-                sortFields.AddRange(Arrays.AsList(childSort.GetSort()));
+                IList<SortField> sortFields = new List<SortField>(parentSort.GetSort());
+                sortFields.AddRange(childSort.GetSort());
                 Sort parentAndChildSort = new Sort(sortFields.ToArray());
 
                 TopDocs results = s.Search(parentQuery, null, r.NumDocs, parentAndChildSort);
@@ -1254,7 +1254,7 @@ namespace Lucene.Net.Tests.Join
             childDoc.Add(NewStringField("child", "1", Field.Store.NO));
             Document parentDoc = new Document();
             parentDoc.Add(NewStringField("parent", "1", Field.Store.NO));
-            w.AddDocuments(Arrays.AsList(childDoc, parentDoc));
+            w.AddDocuments(new Document[] { childDoc, parentDoc });
             IndexReader r = w.GetReader();
             w.Dispose();
             IndexSearcher s = NewSearcher(r);
@@ -1277,7 +1277,7 @@ namespace Lucene.Net.Tests.Join
             Document parentDoc = new Document();
             parentDoc.Add(NewStringField("parent", "1", Field.Store.NO));
             parentDoc.Add(NewStringField("isparent", "yes", Field.Store.NO));
-            w.AddDocuments(Arrays.AsList(parentDoc));
+            w.AddDocuments(new Document[] { parentDoc });
 
             // Add another doc so scorer is not null
             parentDoc = new Document();
@@ -1285,7 +1285,7 @@ namespace Lucene.Net.Tests.Join
             parentDoc.Add(NewStringField("isparent", "yes", Field.Store.NO));
             Document childDoc = new Document();
             childDoc.Add(NewStringField("child", "2", Field.Store.NO));
-            w.AddDocuments(Arrays.AsList(childDoc, parentDoc));
+            w.AddDocuments(new Document[] { childDoc, parentDoc });
 
             // Need single seg:
             w.ForceMerge(1);
@@ -1612,12 +1612,12 @@ namespace Lucene.Net.Tests.Join
             parentDoc.Add(NewStringField("isparent", "yes", Field.Store.NO));
             Document childDoc = new Document();
             childDoc.Add(NewStringField("child", "1", Field.Store.NO));
-            w.AddDocuments(Arrays.AsList(childDoc, parentDoc));
+            w.AddDocuments(new Document[] { childDoc, parentDoc });
 
             parentDoc = new Document();
             parentDoc.Add(NewStringField("parent", "2", Field.Store.NO));
             parentDoc.Add(NewStringField("isparent", "yes", Field.Store.NO));
-            w.AddDocuments(Arrays.AsList(parentDoc));
+            w.AddDocuments(new Document[] { parentDoc });
 
             w.DeleteDocuments(new Term("parent", "2"));
 
@@ -1626,7 +1626,7 @@ namespace Lucene.Net.Tests.Join
             parentDoc.Add(NewStringField("isparent", "yes", Field.Store.NO));
             childDoc = new Document();
             childDoc.Add(NewStringField("child", "2", Field.Store.NO));
-            w.AddDocuments(Arrays.AsList(childDoc, parentDoc));
+            w.AddDocuments(new Document[] { childDoc, parentDoc });
 
             IndexReader r = w.GetReader();
             w.Dispose();

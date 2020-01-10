@@ -608,7 +608,7 @@ namespace Lucene.Net.Analysis
 
         private Automaton Join(params Automaton[] @as)
         {
-            return BasicOperations.Concatenate(Arrays.AsList(@as));
+            return BasicOperations.Concatenate(@as);
         }
 
         private Automaton S2a(string s)

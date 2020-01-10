@@ -38,8 +38,7 @@ namespace Lucene.Net.Analysis.Synonym
 
         internal static IList<string> Strings(string str)
         {
-            string[] arr = str.Split(' ').TrimEnd();
-            return Arrays.AsList(arr);
+            return str.Split(' ').TrimEnd();
         }
 
         internal static void AssertTokenizesTo(SlowSynonymMap dict, string input, string[] expected)

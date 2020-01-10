@@ -43,7 +43,7 @@ namespace Lucene.Net.Analysis.Ga
 #pragma warning disable 612, 618
             LuceneVersion.LUCENE_CURRENT,
 #pragma warning restore 612, 618
-            Arrays.AsList("d", "m", "b"), true));
+            new string[] { "d", "m", "b" }, true));
 
         /// <summary>
         /// When StandardTokenizer splits t‑athair into {t, athair}, we don't
@@ -54,7 +54,7 @@ namespace Lucene.Net.Analysis.Ga
 #pragma warning disable 612, 618
             LuceneVersion.LUCENE_CURRENT,
 #pragma warning restore 612, 618
-            Arrays.AsList("h", "n", "t"), true));
+            new string[] { "h", "n", "t" }, true));
 
         /// <summary>
         /// Returns an unmodifiable instance of the default stop words set. </summary>

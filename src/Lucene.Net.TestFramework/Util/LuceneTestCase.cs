@@ -400,11 +400,12 @@ namespace Lucene.Net.Util
         private static bool LoadLeaveTemorary()
         {
             bool defaultValue = false;
-            foreach (string property in Arrays.AsList(
+            foreach (string property in new string[] {
                 "tests.leaveTemporary" /* ANT tasks's (junit4) flag. */,
                 "tests.leavetemporary" /* lowercase */,
                 "tests.leavetmpdir" /* default */,
-                "solr.test.leavetmpdir" /* Solr's legacy */))
+                "solr.test.leavetmpdir" /* Solr's legacy */
+            })
             {
                 defaultValue |= SystemProperties.GetPropertyAsBoolean(property, false);
             }
@@ -421,11 +422,11 @@ namespace Lucene.Net.Util
 
         /// <summary>
         /// Filesystem-based <see cref="Directory"/> implementations. </summary>
-        private static readonly IList<string> FS_DIRECTORIES = Arrays.AsList(
-            "SimpleFSDirectory", 
-            "NIOFSDirectory", 
+        private static readonly IList<string> FS_DIRECTORIES = new string[] {
+            "SimpleFSDirectory",
+            "NIOFSDirectory",
             "MMapDirectory"
-        );
+        };
 
         /// <summary>
         /// All <see cref="Directory"/> implementations. </summary>
@@ -562,7 +563,7 @@ namespace Lucene.Net.Util
 
         /////// <summary>
         /////// By-name list of ignored types like loggers etc. </summary>
-        //////private static ISet<string> STATIC_LEAK_IGNORED_TYPES = new JCG.HashSet<string>(Arrays.AsList("org.slf4j.Logger", "org.apache.solr.SolrLogFormatter", typeof(EnumSet).Name));
+        //////private static ISet<string> STATIC_LEAK_IGNORED_TYPES = new JCG.HashSet<string>(new string[] { "org.slf4j.Logger", "org.apache.solr.SolrLogFormatter", typeof(EnumSet).Name });
 
         /////// <summary>
         /////// this controls how suite-level rules are nested. It is important that _all_ rules declared
@@ -1115,7 +1116,7 @@ namespace Lucene.Net.Util
         /// <seealso cref="DumpEnumerator(string, IEnumerator, TextWriter)"/>
         public static void DumpArray(string label, object[] objs, TextWriter stream)
         {
-            IEnumerator iter = (null == objs) ? (IEnumerator)null : Arrays.AsList(objs).GetEnumerator();
+            IEnumerator iter = (null == objs) ? (IEnumerator)null : objs.GetEnumerator();
             DumpEnumerator(label, iter, stream);
         }
 

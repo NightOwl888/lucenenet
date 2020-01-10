@@ -49,7 +49,7 @@ namespace Lucene.Net.Analysis.Miscellaneous
         public virtual void TestDups(string expected, params Token[] tokens)
         {
 
-            IEnumerator<Token> toks = Arrays.AsList(tokens).GetEnumerator();
+            IEnumerator<Token> toks = ((IEnumerable<Token>)tokens).GetEnumerator();
             TokenStream ts = new RemoveDuplicatesTokenFilter((new TokenStreamAnonymousInnerClassHelper(this, toks)));
 
             AssertTokenStreamContents(ts, Regex.Split(expected, "\\s").TrimEnd());

@@ -47,7 +47,7 @@ namespace Lucene.Net.Analysis.Pattern
         {
             pattern = GetPattern(args, "pattern");
             replacement = Get(args, "replacement");
-            replaceAll = "all".Equals(Get(args, "replace", Arrays.AsList("all", "first"), "all"), StringComparison.Ordinal);
+            replaceAll = "all".Equals(Get(args, "replace", new string[] { "all", "first" }, "all"), StringComparison.Ordinal);
             if (args.Count > 0)
             {
                 throw new System.ArgumentException("Unknown parameters: " + args);

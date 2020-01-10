@@ -242,7 +242,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                     // on input (but not in UTF8).
                     LevenshteinAutomata lev = new LevenshteinAutomata(ints, unicodeAware ? Character.MAX_CODE_POINT : 255, transpositions);
                     Automaton levAutomaton = lev.ToAutomaton(maxEdits);
-                    Automaton combined = BasicOperations.Concatenate(Arrays.AsList(prefix, levAutomaton));
+                    Automaton combined = BasicOperations.Concatenate(prefix, levAutomaton);
                     combined.IsDeterministic = true; // its like the special case in concatenate itself, except we cloneExpanded already
                     subs[upto] = combined;
                     upto++;
@@ -263,7 +263,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
             {
                 // multiple paths: this is really scary! is it slow?
                 // maybe we should not do this and throw UOE?
-                Automaton a = BasicOperations.Union(Arrays.AsList(subs));
+                Automaton a = BasicOperations.Union(subs);
                 // TODO: we could call toLevenshteinAutomata() before det? 
                 // this only happens if you have multiple paths anyway (e.g. synonyms)
                 BasicOperations.Determinize(a);

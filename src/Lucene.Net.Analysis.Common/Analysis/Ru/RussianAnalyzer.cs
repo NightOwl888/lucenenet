@@ -70,7 +70,7 @@ namespace Lucene.Net.Analysis.Ru
         {
             /// @deprecated (3.1) remove this for Lucene 5.0 
             [Obsolete("(3.1) remove this for Lucene 5.0")]
-            internal static readonly CharArraySet DEFAULT_STOP_SET_30 = CharArraySet.UnmodifiableSet(new CharArraySet(LuceneVersion.LUCENE_CURRENT, Arrays.AsList(RUSSIAN_STOP_WORDS_30), false));
+            internal static readonly CharArraySet DEFAULT_STOP_SET_30 = CharArraySet.UnmodifiableSet(new CharArraySet(LuceneVersion.LUCENE_CURRENT, RUSSIAN_STOP_WORDS_30, false));
             internal static readonly CharArraySet DEFAULT_STOP_SET = LoadDefaultStopSet();
 
             private static CharArraySet LoadDefaultStopSet() // LUCENENET: Avoid static constructors (see https://github.com/apache/lucenenet/pull/224#issuecomment-469284006)

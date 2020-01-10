@@ -446,17 +446,17 @@ namespace Lucene.Net.Util
         /// <summary>
         /// Operators for <see cref="RandomRegexpishString(Random, int)"/>.
         /// </summary>
-        private static readonly IList<string> ops = Arrays.AsList(
-            ".", "?", 
+        private static readonly IList<string> ops = new string[] {
+            ".", "?",
             "{0," + MaxRecursionBound + "}", // bounded replacement for '*'
             "{1," + MaxRecursionBound + "}", // bounded replacement for '+'
-            "(", 
-            ")", 
-            "-", 
-            "[", 
-            "]", 
+            "(",
+            ")",
+            "-",
+            "[",
+            "]",
             "|"
-        );
+        };
 
         /// <summary>
         /// Returns a <see cref="string"/> thats "regexpish" (contains lots of operators typically found in regular expressions)

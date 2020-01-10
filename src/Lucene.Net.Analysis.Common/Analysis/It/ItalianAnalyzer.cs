@@ -52,8 +52,8 @@ namespace Lucene.Net.Analysis.It
 #pragma warning disable 612, 618
             LuceneVersion.LUCENE_CURRENT,
 #pragma warning restore 612, 618
-            Arrays.AsList("c", "l", "all", "dall", "dell", "nell", "sull", "coll", "pell", "gl", "agl", 
-                "dagl", "degl", "negl", "sugl", "un", "m", "t", "s", "v", "d"), true));
+            new string[] { "c", "l", "all", "dall", "dell", "nell", "sull", "coll", "pell", "gl", "agl",
+                "dagl", "degl", "negl", "sugl", "un", "m", "t", "s", "v", "d" }, true));
 
         /// <summary>
         /// Returns an unmodifiable instance of the default stop words set. </summary>

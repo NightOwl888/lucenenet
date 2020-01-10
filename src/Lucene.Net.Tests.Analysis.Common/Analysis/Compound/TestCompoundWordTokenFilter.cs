@@ -33,7 +33,7 @@ namespace Lucene.Net.Analysis.Compound
 
         private static CharArraySet makeDictionary(params string[] dictionary)
         {
-            return new CharArraySet(TEST_VERSION_CURRENT, Arrays.AsList(dictionary), true);
+            return new CharArraySet(TEST_VERSION_CURRENT, dictionary, true);
         }
 
         [Test]

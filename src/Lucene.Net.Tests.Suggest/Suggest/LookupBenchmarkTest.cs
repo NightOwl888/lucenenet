@@ -39,7 +39,7 @@ namespace Lucene.Net.Search.Suggest
     [Ignore("COMMENT ME TO RUN BENCHMARKS!")]
     public class LookupBenchmarkTest : LuceneTestCase
     {
-        private readonly List<Type> benchmarkClasses = Arrays.AsList(
+        private readonly IList<Type> benchmarkClasses = new Type[] {
             typeof(FuzzySuggester),
             typeof(AnalyzingSuggester),
             typeof(AnalyzingInfixSuggester),
@@ -47,7 +47,7 @@ namespace Lucene.Net.Search.Suggest
             typeof(TSTLookup),
             typeof(FSTCompletionLookup),
             typeof(WFSTCompletionLookup)
-            );
+        };
 
         private readonly static int rounds = 15;
         private readonly static int warmup = 5;
