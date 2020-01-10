@@ -317,13 +317,13 @@ namespace Lucene.Net.Search.Grouping
         {
 
             private readonly GroupComparer<T> groupComp;
-            private readonly TreeSet<MergedGroup<T>> queue;
+            private readonly JCG.SortedSet<MergedGroup<T>> queue;
             private readonly IDictionary<T, MergedGroup<T>> groupsSeen;
 
             public GroupMerger(Sort groupSort)
             {
                 groupComp = new GroupComparer<T>(groupSort);
-                queue = new TreeSet<MergedGroup<T>>(groupComp);
+                queue = new JCG.SortedSet<MergedGroup<T>>(groupComp);
                 groupsSeen = new JCG.Dictionary<T, MergedGroup<T>>();
             }
 
