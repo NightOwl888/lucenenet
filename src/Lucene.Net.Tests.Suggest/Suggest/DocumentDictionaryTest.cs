@@ -254,7 +254,7 @@ namespace Lucene.Net.Search.Suggest
                 IIndexableField weightField = doc.GetField(WEIGHT_FIELD_NAME);
                 assertEquals(inputIterator.Weight, (weightField != null) ? weightField.GetInt64ValueOrDefault() : 0);
                 assertTrue(inputIterator.Payload.equals(doc.GetField(PAYLOAD_FIELD_NAME).GetBinaryValue()));
-                ISet<BytesRef> oriCtxs = new HashSet<BytesRef>();
+                ISet<BytesRef> oriCtxs = new JCG.HashSet<BytesRef>();
                 IEnumerable<BytesRef> contextSet = inputIterator.Contexts;
                 foreach (IIndexableField ctxf in doc.GetFields(CONTEXT_FIELD_NAME))
                 {

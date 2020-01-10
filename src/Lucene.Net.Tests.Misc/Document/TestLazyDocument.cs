@@ -232,7 +232,7 @@ namespace Lucene.Net.Documents
             internal LazyTestingStoredFieldVisitor(LazyDocument l, params string[] fields)
             {
                 lazyDoc = l;
-                lazyFieldNames = new HashSet<string>(Arrays.AsList(fields));
+                lazyFieldNames = new JCG.HashSet<string>(fields);
             }
 
 

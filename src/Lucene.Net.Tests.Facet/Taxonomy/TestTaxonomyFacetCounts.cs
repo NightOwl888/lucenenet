@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Facet.Taxonomy
@@ -525,7 +526,7 @@ namespace Lucene.Net.Facet.Taxonomy
 
             FacetResult result = facets.GetTopChildren(int.MaxValue, "dim");
             Assert.AreEqual(numLabels, result.LabelValues.Length);
-            var allLabels = new HashSet<string>();
+            var allLabels = new JCG.HashSet<string>();
             foreach (LabelAndValue labelValue in result.LabelValues)
             {
                 allLabels.Add(labelValue.Label);

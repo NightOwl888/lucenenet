@@ -1,6 +1,7 @@
 using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
 
 namespace Lucene.Net.Util.Automaton
@@ -367,7 +368,7 @@ namespace Lucene.Net.Util.Automaton
             {
                 return true;
             }
-            return IsFiniteSlow(a.initial, new HashSet<State>());
+            return IsFiniteSlow(a.initial, new JCG.HashSet<State>());
         }
 
         /// <summary>
@@ -376,7 +377,7 @@ namespace Lucene.Net.Util.Automaton
         /// </summary>
         // TODO: not great that this is recursive... in theory a
         // large automata could exceed java's stack
-        private static bool IsFiniteSlow(State s, HashSet<State> path)
+        private static bool IsFiniteSlow(State s, JCG.HashSet<State> path)
         {
             path.Add(s);
             foreach (Transition t in s.GetTransitions())
@@ -441,7 +442,7 @@ namespace Lucene.Net.Util.Automaton
             IDictionary<State, IList<ArrivingTransition>> allArriving = new Dictionary<State, IList<ArrivingTransition>>();
 
             LinkedList<State> q = new LinkedList<State>();
-            HashSet<State> seen = new HashSet<State>();
+            ISet<State> seen = new JCG.HashSet<State>();
 
             // reverse map the transitions, so we can quickly look
             // up all arriving transitions to a given state

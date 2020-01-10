@@ -1,13 +1,14 @@
 using System.Linq;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.Support;
+using NUnit.Framework;
 using System.Collections.Generic;
 using System.Diagnostics;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search
 {
-    using Lucene.Net.Support;
-    using NUnit.Framework;
     using AtomicReader = Lucene.Net.Index.AtomicReader;
     using BooleanWeight = Lucene.Net.Search.BooleanQuery.BooleanWeight;
     using BytesRef = Lucene.Net.Util.BytesRef;
@@ -346,7 +347,7 @@ namespace Lucene.Net.Search
             internal readonly SortedSetDocValues Dv;
             internal readonly int MaxDoc;
 
-            internal readonly HashSet<long?> Ords = new HashSet<long?>();
+            internal readonly ISet<long?> Ords = new JCG.HashSet<long?>();
             internal readonly SimScorer[] Sims;
             internal readonly int MinNrShouldMatch;
 

@@ -309,7 +309,7 @@ namespace Lucene.Net.Util.Fst
                 for (int inputMode = 0; inputMode < 2; inputMode++)
                 {
                     int numWords = random.Next(maxNumWords + 1);
-                    HashSet<Int32sRef> termsSet = new HashSet<Int32sRef>();
+                    ISet<Int32sRef> termsSet = new JCG.HashSet<Int32sRef>();
                     Int32sRef[] terms = new Int32sRef[numWords];
                     while (termsSet.Count < numWords)
                     {
@@ -1041,7 +1041,7 @@ namespace Lucene.Net.Util.Fst
                 {
                     Console.WriteLine("TEST: NUM_IDS=" + NUM_IDS);
                 }
-                HashSet<string> allIDs = new HashSet<string>();
+                ISet<string> allIDs = new JCG.HashSet<string>();
                 for (int id = 0; id < NUM_IDS; id++)
                 {
                     string idString;
@@ -1079,7 +1079,7 @@ namespace Lucene.Net.Util.Fst
                 CollectionUtil.TimSort(sortedAllIDsList);
 
                 // Sprinkle in some non-existent PKs:
-                HashSet<string> outOfBounds = new HashSet<string>();
+                ISet<string> outOfBounds = new JCG.HashSet<string>();
                 for (int idx = 0; idx < NUM_IDS / 10; idx++)
                 {
                     string idString;
@@ -1207,7 +1207,7 @@ namespace Lucene.Net.Util.Fst
                 Console.WriteLine("TEST: NUM_TERMS=" + NUM_TERMS);
             }
 
-            HashSet<string> allTerms = new HashSet<string>();
+            ISet<string> allTerms = new JCG.HashSet<string>();
             while (allTerms.Count < NUM_TERMS)
             {
                 allTerms.Add(FSTTester<object>.SimpleRandomString(Random));

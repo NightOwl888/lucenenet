@@ -11,6 +11,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Benchmarks.ByTask.Tasks
 {
@@ -408,7 +409,7 @@ namespace Lucene.Net.Benchmarks.ByTask.Tasks
 
             } // wldt.Dispose();
 
-            ISet<String> ids = new HashSet<string>();
+            ISet<String> ids = new JCG.HashSet<string>();
             TextReader br = new StreamReader(new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.None), Encoding.UTF8);
             try
             {

@@ -297,7 +297,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
         /// <returns>A list of <see cref="Rule"/>s that apply.</returns>
         public static IList<Rule> GetInstance(NameType nameType, RuleType rt, string lang)
         {
-            return GetInstance(nameType, rt, LanguageSet.From(new HashSet<string>() { lang }));
+            return GetInstance(nameType, rt, LanguageSet.From(new JCG.HashSet<string>() { lang }));
         }
 
         /// <summary>
@@ -357,7 +357,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
                 }
                 string before = ph.Substring(0, open - 0);
                 string input = ph.Substring(open + 1, (ph.Length - 1) - (open + 1));
-                ISet<string> langs = new HashSet<string>(PLUS.Split(input).TrimEnd());
+                ISet<string> langs = new JCG.HashSet<string>(PLUS.Split(input).TrimEnd());
 
                 return new Phoneme(before, LanguageSet.From(langs));
             }

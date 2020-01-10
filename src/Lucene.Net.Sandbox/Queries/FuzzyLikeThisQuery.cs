@@ -7,6 +7,7 @@ using Lucene.Net.Support;
 using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Sandbox.Queries
 {
@@ -202,7 +203,7 @@ namespace Lucene.Net.Sandbox.Queries
                 ICharTermAttribute termAtt = ts.AddAttribute<ICharTermAttribute>();
 
                 int corpusNumDocs = reader.NumDocs;
-                HashSet<string> processedTerms = new HashSet<string>();
+                ISet<string> processedTerms = new JCG.HashSet<string>();
                 ts.Reset();
                 while (ts.IncrementToken())
                 {

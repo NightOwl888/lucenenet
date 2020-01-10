@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Index
@@ -162,7 +163,7 @@ namespace Lucene.Net.Index
                     while (!(Postings.Count == 0))
                     {
                         StringBuilder text = new StringBuilder();
-                        HashSet<string> visited = new HashSet<string>();
+                        ISet<string> visited = new JCG.HashSet<string>();
                         for (int i = 0; i < MaxTermsPerDoc; i++)
                         {
                             string token;

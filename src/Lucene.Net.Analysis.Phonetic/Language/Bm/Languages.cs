@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Analysis.Phonetic.Language.Bm
 {
@@ -89,7 +90,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
         public static Languages GetInstance(string languagesResourceName)
         {
             // read languages list
-            ISet<string> ls = new HashSet<string>();
+            ISet<string> ls = new JCG.HashSet<string>();
             Stream langIS = typeof(Languages).GetTypeInfo().Assembly.FindAndGetManifestResourceStream(typeof(Languages), languagesResourceName);
 
             if (langIS == null)
@@ -306,7 +307,12 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             else
             {
                 SomeLanguages sl = (SomeLanguages)other;
-                ISet<string> ls = new HashSet<string>(/*Math.Min(languages.Count, sl.languages.Count)*/);
+                ISet<string> ls =
+#if FEATURE_HASHSET_CAPACITY
+                    new JCG.HashSet<string>(Math.Min(languages.Count, sl.languages.Count));
+#else
+                    new JCG.HashSet<string>();
+#endif
                 foreach (string lang in languages)
                 {
                     if (sl.languages.Contains(lang))

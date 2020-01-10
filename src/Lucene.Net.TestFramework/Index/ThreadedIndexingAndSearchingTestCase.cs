@@ -610,8 +610,8 @@ namespace Lucene.Net.Index
 
             int RUN_TIME_SEC = LuceneTestCase.TEST_NIGHTLY ? 300 : RANDOM_MULTIPLIER;
 
-            ISet<string> delIDs = new ConcurrentHashSet<string>(new HashSet<string>());
-            ISet<string> delPackIDs = new ConcurrentHashSet<string>(new HashSet<string>());
+            ISet<string> delIDs = new ConcurrentHashSet<string>();
+            ISet<string> delPackIDs = new ConcurrentHashSet<string>();
             ConcurrentQueue<SubDocs> allSubDocs = new ConcurrentQueue<SubDocs>();
 
             long stopTime = Environment.TickCount + (RUN_TIME_SEC * 1000);

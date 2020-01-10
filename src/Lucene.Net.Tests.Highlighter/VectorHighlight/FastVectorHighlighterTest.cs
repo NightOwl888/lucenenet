@@ -619,7 +619,7 @@ namespace Lucene.Net.Search.VectorHighlight
             String[] bestFragments;
             if (useMatchedFields)
             {
-                ISet<String> matchedFields = new HashSet<String>();
+                ISet<String> matchedFields = new JCG.HashSet<String>();
                 matchedFields.Add("field");
                 matchedFields.Add("field_exact");
                 matchedFields.Add("field_super_exact");

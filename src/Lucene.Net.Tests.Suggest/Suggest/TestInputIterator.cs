@@ -57,7 +57,7 @@ namespace Lucene.Net.Search.Suggest
             {
                 BytesRef key2;
                 BytesRef payload;
-                ctxs = new HashSet<BytesRef>();
+                ctxs = new JCG.HashSet<BytesRef>();
                 do
                 {
                     key2 = new BytesRef(TestUtil.RandomUnicodeString(random));

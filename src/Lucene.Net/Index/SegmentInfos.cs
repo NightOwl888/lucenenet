@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Index
 {
@@ -512,7 +513,7 @@ namespace Lucene.Net.Index
             IndexOutput segnOutput = null;
             bool success = false;
 
-            var upgradedSIFiles = new HashSet<string>();
+            var upgradedSIFiles = new JCG.HashSet<string>();
 
             try
             {
@@ -1164,7 +1165,7 @@ namespace Lucene.Net.Index
         /// </summary>
         public ICollection<string> GetFiles(Directory dir, bool includeSegmentsFile)
         {
-            var files = new HashSet<string>();
+            var files = new JCG.HashSet<string>();
             if (includeSegmentsFile)
             {
                 string segmentFileName = GetSegmentsFileName();
@@ -1355,7 +1356,7 @@ namespace Lucene.Net.Index
         /// applies all changes caused by committing a merge to this <see cref="SegmentInfos"/> </summary>
         internal void ApplyMergeChanges(MergePolicy.OneMerge merge, bool dropSegment)
         {
-            var mergedAway = new HashSet<SegmentCommitInfo>(merge.Segments);
+            var mergedAway = new JCG.HashSet<SegmentCommitInfo>(merge.Segments);
             bool inserted = false;
             int newSegIdx = 0;
             for (int segIdx = 0, cnt = segments.Count; segIdx < cnt; segIdx++)

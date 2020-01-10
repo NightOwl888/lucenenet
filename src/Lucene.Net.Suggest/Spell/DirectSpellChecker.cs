@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Spell
 {
@@ -427,7 +428,7 @@ namespace Lucene.Net.Search.Spell
             terms = SuggestSimilar(term, inspections, ir, docfreq, 1, accuracy, spare);
             if (maxEdits > 1 && terms.Count() < inspections)
             {
-                var moreTerms = new HashSet<ScoreTerm>();
+                var moreTerms = new JCG.HashSet<ScoreTerm>();
                 moreTerms.UnionWith(terms);
                 moreTerms.UnionWith(SuggestSimilar(term, inspections, ir, docfreq, maxEdits, accuracy, spare));
                 terms = moreTerms;

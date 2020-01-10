@@ -24,6 +24,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Util.Fst
@@ -65,7 +66,7 @@ namespace Lucene.Net.Util.Fst
                 for (int inputMode = 0; inputMode < 2; inputMode++)
                 {
                     int numWords = random.nextInt(maxNumWords + 1);
-                    ISet<Int32sRef> termsSet = new HashSet<Int32sRef>();
+                    ISet<Int32sRef> termsSet = new JCG.HashSet<Int32sRef>();
                     Int32sRef[] terms = new Int32sRef[numWords];
                     while (termsSet.size() < numWords)
                     {

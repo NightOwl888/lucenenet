@@ -58,12 +58,6 @@ namespace Lucene.Net.Store
 
         // maybe clone before returning.... all callers are
         // cloning anyway....
-        public ISet<string> CreatedFiles
-        {
-            get
-            {
-                return createdFileNames;
-            }
-        }
+        public ISet<string> CreatedFiles => createdFileNames;
     }
 }

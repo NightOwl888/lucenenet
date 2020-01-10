@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Suggest.Analyzing
 {
@@ -515,7 +516,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                 // still index the hightest-weight one).  We clear
                 // this when we see a new analyzed form, so it cannot
                 // grow unbounded (at most 256 entries):
-                var seenSurfaceForms = new HashSet<BytesRef>();
+                var seenSurfaceForms = new JCG.HashSet<BytesRef>();
 
                 var dedup = 0;
                 while (reader.Read(scratch))
@@ -888,10 +889,10 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                 this.outerInstance = outerInstance;
                 this.utf8Key = utf8Key;
                 this.results = results;
-                seen = new HashSet<BytesRef>();
+                seen = new JCG.HashSet<BytesRef>();
             }
 
-            private readonly HashSet<BytesRef> seen;
+            private readonly ISet<BytesRef> seen;
 
             protected override bool AcceptResult(Int32sRef input, PairOutputs<long?, BytesRef>.Pair output)
             {

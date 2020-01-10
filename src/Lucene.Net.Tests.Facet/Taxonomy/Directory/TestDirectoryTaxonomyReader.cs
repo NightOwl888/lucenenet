@@ -2,7 +2,7 @@
 using Lucene.Net.Support;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Facet.Taxonomy.Directory
 {
@@ -586,7 +586,7 @@ namespace Lucene.Net.Facet.Taxonomy.Directory
             Assert.AreEqual(TaxonomyReader.INVALID_ORDINAL, it.Next());
 
             // root's children
-            var roots = new HashSet<string>(Arrays.AsList("a", "b", "c"));
+            var roots = new JCG.HashSet<string> { "a", "b", "c" };
             it = taxoReader.GetChildren(TaxonomyReader.ROOT_ORDINAL);
             while (roots.Count > 0)
             {

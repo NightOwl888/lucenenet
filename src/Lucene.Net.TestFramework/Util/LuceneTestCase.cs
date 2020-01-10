@@ -439,13 +439,14 @@ namespace Lucene.Net.Util
             };
         }
 
-        protected static ICollection<string> DoesntSupportOffsets { get; } = new HashSet<string>(Arrays.AsList(
+        protected static ICollection<string> DoesntSupportOffsets { get; } = new JCG.HashSet<string>
+        {
             "Lucene3x",
             "MockFixedIntBlock",
             "MockVariableIntBlock",
             "MockSep",
             "MockRandom"
-        ));
+        };
 
         // -----------------------------------------------------------------
         // Fields initialized in class or instance rules.
@@ -561,7 +562,7 @@ namespace Lucene.Net.Util
 
         /////// <summary>
         /////// By-name list of ignored types like loggers etc. </summary>
-        //////private static ISet<string> STATIC_LEAK_IGNORED_TYPES = new HashSet<string>(Arrays.AsList("org.slf4j.Logger", "org.apache.solr.SolrLogFormatter", typeof(EnumSet).Name));
+        //////private static ISet<string> STATIC_LEAK_IGNORED_TYPES = new JCG.HashSet<string>(Arrays.AsList("org.slf4j.Logger", "org.apache.solr.SolrLogFormatter", typeof(EnumSet).Name));
 
         /////// <summary>
         /////// this controls how suite-level rules are nested. It is important that _all_ rules declared
@@ -636,7 +637,7 @@ namespace Lucene.Net.Util
         ////    around(new TestRuleFieldCacheSanity()).
         ////    around(ParentChainCallRule);
         ////*/
-        
+
         // -----------------------------------------------------------------
         // Suite and test case setup/ cleanup.
         // -----------------------------------------------------------------
@@ -1082,7 +1083,7 @@ namespace Lucene.Net.Util
         /// </summary>
         public static ISet<object> AsSet(params object[] args)
         {
-            return new HashSet<object>(Arrays.AsList(args));
+            return new JCG.HashSet<object>(args);
         }
 
         /// <summary>
@@ -1834,7 +1835,7 @@ namespace Lucene.Net.Util
                             }
                             Collections.Shuffle(allFields);
                             int end = allFields.Count == 0 ? 0 : random.Next(allFields.Count);
-                            HashSet<string> fields = new HashSet<string>(allFields.SubList(0, end));
+                            ISet<string> fields = new JCG.HashSet<string>(allFields.SubList(0, end));
                             // will create no FC insanity as ParallelAtomicReader has own cache key:
                             r = new ParallelAtomicReader(new FieldFilterAtomicReader(ar, fields, false), new FieldFilterAtomicReader(ar, fields, true));
                             break;
@@ -2561,7 +2562,7 @@ namespace Lucene.Net.Util
             Random random = Random;
 
             // collect this number of terms from the left side
-            HashSet<BytesRef> tests = new HashSet<BytesRef>();
+            ISet<BytesRef> tests = new JCG.HashSet<BytesRef>();
             int numPasses = 0;
             while (numPasses < 10 && tests.Count < numTests)
             {
@@ -2757,7 +2758,7 @@ namespace Lucene.Net.Util
 
         private static ISet<string> GetDVFields(IndexReader reader)
         {
-            HashSet<string> fields = new HashSet<string>();
+            ISet<string> fields = new JCG.HashSet<string>();
             foreach (FieldInfo fi in MultiFields.GetMergedFieldInfos(reader))
             {
                 if (fi.HasDocValues)

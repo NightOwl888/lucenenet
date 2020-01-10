@@ -184,33 +184,30 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
          * Making a JUnit test out of it to protect Solr from possible future
          * regressions in Commons-Codec.
          */
-        private static String Encode(IDictionary<String, String> args, bool concat, String input)
+        private static string Encode(IDictionary<string, string> args, bool concat, string input)
         {
             LanguageSet languageSet;
             PhoneticEngine engine;
 
             // PhoneticEngine = NameType + RuleType + concat
             // we use common-codec's defaults: GENERIC + APPROX + true
-            String nameTypeArg;
-            args.TryGetValue("nameType", out nameTypeArg);
+            args.TryGetValue("nameType", out string nameTypeArg);
             NameType nameType = (nameTypeArg == null) ? NameType.GENERIC : (NameType)Enum.Parse(typeof(NameType), nameTypeArg, true);
 
-            String ruleTypeArg;
-            args.TryGetValue("ruleType", out ruleTypeArg);
+            args.TryGetValue("ruleType", out string ruleTypeArg);
             RuleType ruleType = (ruleTypeArg == null) ? RuleType.APPROX : (RuleType)Enum.Parse(typeof(RuleType), ruleTypeArg, true);
 
             engine = new PhoneticEngine(nameType, ruleType, concat);
 
             // LanguageSet: defaults to automagic, otherwise a comma-separated list.
-            String languageSetArg;
-            args.TryGetValue("languageSet", out languageSetArg);
+            args.TryGetValue("languageSet", out string languageSetArg);
             if (languageSetArg == null || languageSetArg.Equals("auto", StringComparison.Ordinal))
             {
                 languageSet = null;
             }
             else
             {
-                languageSet = LanguageSet.From(new HashSet<String>(Arrays.AsList(languageSetArg.Split(',').TrimEnd())));
+                languageSet = LanguageSet.From(new JCG.HashSet<string>(languageSetArg.Split(',').TrimEnd()));
             }
 
             /*

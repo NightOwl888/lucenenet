@@ -357,7 +357,7 @@ namespace Lucene.Net.Search.VectorHighlight
             String value = randomValues[Random.nextInt(randomValues.Length)];
             if (!valueToDocId.TryGetValue(value, out ISet<int> docIds))
             {
-                valueToDocId[value] = docIds = new HashSet<int>();
+                valueToDocId[value] = docIds = new JCG.HashSet<int>();
             }
             docIds.Add(docId);
             return value;

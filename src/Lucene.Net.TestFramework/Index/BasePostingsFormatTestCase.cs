@@ -419,7 +419,7 @@ namespace Lucene.Net.Index
 
                 JCG.SortedDictionary<BytesRef, long> postings = new JCG.SortedDictionary<BytesRef, long>();
                 fields[field] = postings;
-                HashSet<string> seenTerms = new HashSet<string>();
+                ISet<string> seenTerms = new JCG.HashSet<string>();
 
                 int numTerms;
                 if (Random.Next(10) == 7)
@@ -1303,13 +1303,13 @@ namespace Lucene.Net.Index
 
                     for (int i = 0; i <= maxIndexOption; i++)
                     {
-                        ISet<Option> allOptionsHashSet = new HashSet<Option>(Enum.GetValues(typeof(Option)).Cast<Option>());
+                        ISet<Option> allOptionsHashSet = new JCG.HashSet<Option>(Enum.GetValues(typeof(Option)).Cast<Option>());
                         TestTerms(fieldsProducer, allOptionsHashSet, allOptions[i], options, true);
                         if (withPayloads)
                         {
                             // If we indexed w/ payloads, also test enums w/o accessing payloads:
-                            ISet<Option> payloadsHashSet = new HashSet<Option>() { Option.PAYLOADS };
-                            var complementHashSet = new HashSet<Option>(allOptionsHashSet.Except(payloadsHashSet));
+                            ISet<Option> payloadsHashSet = new JCG.HashSet<Option>() { Option.PAYLOADS };
+                            var complementHashSet = new JCG.HashSet<Option>(allOptionsHashSet.Except(payloadsHashSet));
                             TestTerms(fieldsProducer, complementHashSet, allOptions[i], options, true);
                         }
                     }
@@ -1376,7 +1376,7 @@ namespace Lucene.Net.Index
                         // you indexed with:
                         TestTerms(fieldsProducer,
                             // LUCENENET: Skip our NONE option
-                            new HashSet<Option>(Enum.GetValues(typeof(Option)).Cast<Option>().Skip(1)),
+                            new JCG.HashSet<Option>(Enum.GetValues(typeof(Option)).Cast<Option>().Skip(1)),
                             IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS,
                             IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS,
                             false);

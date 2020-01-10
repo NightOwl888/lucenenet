@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Highlight
 {
@@ -79,7 +80,7 @@ namespace Lucene.Net.Search.Highlight
         /// <returns>an array of the terms used in a query, plus their weights.</returns>
         public static WeightedTerm[] GetTerms(Query query, bool prohibited, string fieldName)
         {
-            var terms = new HashSet<WeightedTerm>();
+            var terms = new JCG.HashSet<WeightedTerm>();
             if (fieldName != null)
             {
                 fieldName = fieldName.Intern();
@@ -100,7 +101,7 @@ namespace Lucene.Net.Search.Highlight
         }
 
         //fieldname MUST be interned prior to this call
-        private static void GetTerms(Query query, HashSet<WeightedTerm> terms, bool prohibited, string fieldName)
+        private static void GetTerms(Query query, ISet<WeightedTerm> terms, bool prohibited, string fieldName)
         {
             try
             {
@@ -110,7 +111,7 @@ namespace Lucene.Net.Search.Highlight
                     GetTermsFromFilteredQuery((FilteredQuery)query, terms, prohibited, fieldName);
                 else
                 {
-                    var nonWeightedTerms = new HashSet<Term>();
+                    var nonWeightedTerms = new JCG.HashSet<Term>();
                     query.ExtractTerms(nonWeightedTerms);
                     foreach (var term in nonWeightedTerms)
                     {
@@ -139,7 +140,7 @@ namespace Lucene.Net.Search.Highlight
         /// something common which would allow access to child queries so what follows here are query-specific
         /// implementations for accessing embedded query elements. 
         /// </summary>
-        private static void GetTermsFromBooleanQuery(BooleanQuery query, HashSet<WeightedTerm> terms, bool prohibited, string fieldName)
+        private static void GetTermsFromBooleanQuery(BooleanQuery query, ISet<WeightedTerm> terms, bool prohibited, string fieldName)
         {
             var queryClauses = query.Clauses;
             for (int i = 0; i < queryClauses.Count; i++)
@@ -148,7 +149,7 @@ namespace Lucene.Net.Search.Highlight
                     GetTerms(queryClauses[i].Query, terms, prohibited, fieldName);
             }
         }
-        private static void GetTermsFromFilteredQuery(FilteredQuery query, HashSet<WeightedTerm> terms, bool prohibited, string fieldName)
+        private static void GetTermsFromFilteredQuery(FilteredQuery query, ISet<WeightedTerm> terms, bool prohibited, string fieldName)
         {
             GetTerms(query.Query, terms, prohibited, fieldName);
         }

@@ -568,7 +568,7 @@ namespace Lucene.Net.Search.Grouping
             List<IComparable[]> sortedGroupFields = new List<IComparable[]>();
 
             int totalHitCount = 0;
-            ISet<BytesRef> knownGroups = new HashSet<BytesRef>();
+            ISet<BytesRef> knownGroups = new JCG.HashSet<BytesRef>();
 
             //Console.WriteLine("TEST: slowGrouping");
             foreach (GroupDoc d in groupDocs)

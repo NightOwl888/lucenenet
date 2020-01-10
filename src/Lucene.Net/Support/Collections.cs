@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Support
 {
@@ -90,7 +91,7 @@ namespace Lucene.Net.Support
 
         public static ISet<T> Singleton<T>(T o)
         {
-            return new HashSet<T>(new T[] { o });
+            return new JCG.HashSet<T>(new T[] { o });
         }
 
         public static IDictionary<TKey, TValue> SingletonMap<TKey, TValue>(TKey key, TValue value)

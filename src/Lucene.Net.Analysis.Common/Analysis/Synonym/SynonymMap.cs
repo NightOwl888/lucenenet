@@ -251,11 +251,11 @@ namespace Lucene.Net.Analysis.Synonym
                 BytesRef scratch = new BytesRef(64);
                 ByteArrayDataOutput scratchOutput = new ByteArrayDataOutput();
 
-                HashSet<int?> dedupSet;
+                ISet<int?> dedupSet;
 
                 if (dedup)
                 {
-                    dedupSet = new HashSet<int?>();
+                    dedupSet = new JCG.HashSet<int?>();
                 }
                 else
                 {

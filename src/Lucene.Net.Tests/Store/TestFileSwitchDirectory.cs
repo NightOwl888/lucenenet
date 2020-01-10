@@ -3,6 +3,7 @@ using Lucene.Net.Support;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Store
 {
@@ -44,7 +45,7 @@ namespace Lucene.Net.Store
         [Test]
         public virtual void TestBasic()
         {
-            HashSet<string> fileExtensions = new HashSet<string>();
+            ISet<string> fileExtensions = new JCG.HashSet<string>();
             fileExtensions.Add(Lucene40StoredFieldsWriter.FIELDS_EXTENSION);
             fileExtensions.Add(Lucene40StoredFieldsWriter.FIELDS_INDEX_EXTENSION);
 
@@ -113,7 +114,7 @@ namespace Lucene.Net.Store
             DirectoryInfo secondDir = CreateTempDir("bar");
             System.IO.Directory.Delete(primDir.FullName, true);
             System.IO.Directory.Delete(secondDir.FullName, true);
-            using (Directory dir = NewFSSwitchDirectory(primDir, secondDir, new HashSet<string>()))
+            using (Directory dir = NewFSSwitchDirectory(primDir, secondDir, new JCG.HashSet<string>()))
             {
                 try
                 {
@@ -131,7 +132,7 @@ namespace Lucene.Net.Store
         [Test]
         public virtual void TestDirectoryFilter()
         {
-            Directory dir = NewFSSwitchDirectory(new HashSet<string>());
+            Directory dir = NewFSSwitchDirectory(new JCG.HashSet<string>());
             string name = "file";
             try
             {

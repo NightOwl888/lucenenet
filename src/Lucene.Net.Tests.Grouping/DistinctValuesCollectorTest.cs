@@ -500,7 +500,7 @@ namespace Lucene.Net.Search.Grouping
                 {
                     break;
                 }
-                ISet<BytesRef> uniqueValues = new HashSet<BytesRef>();
+                ISet<BytesRef> uniqueValues = new JCG.HashSet<BytesRef>();
                 foreach (string val in groupCounts[group])
                 {
                     uniqueValues.Add(val != null ? new BytesRef(val) : null);
@@ -560,7 +560,7 @@ namespace Lucene.Net.Search.Grouping
                 ISet<string> countsVals;
                 if (!groupToCounts.TryGetValue(groupValue, out countsVals))
                 {
-                    groupToCounts.Add(groupValue, countsVals = new HashSet<string>());
+                    groupToCounts.Add(groupValue, countsVals = new JCG.HashSet<string>());
                 }
                 countsVals.Add(countValue);
 
