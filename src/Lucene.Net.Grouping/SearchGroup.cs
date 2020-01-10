@@ -194,9 +194,8 @@ namespace Lucene.Net.Search.Grouping
             // Only for assert
             private bool NeverEquals(object other)
             {
-                if (other is MergedGroup<T>)
+                if (other is MergedGroup<T> otherMergedGroup)
                 {
-                    MergedGroup<T> otherMergedGroup = (MergedGroup<T>)other;
                     if (groupValue == null)
                     {
                         Debug.Assert(otherMergedGroup.groupValue != null);
@@ -205,11 +204,11 @@ namespace Lucene.Net.Search.Grouping
                     {
                         
                         Debug.Assert(!groupValueIsValueType 
-                            ? groupValue.Equals(otherMergedGroup.groupValue)
+                            ? JCG.EqualityComparer<T>.Default.Equals(groupValue, otherMergedGroup.groupValue)
 
-                            // LUCENENET specific - use Collections.Equals() if we have a reference type
+                            // LUCENENET specific - use J2N.Collections.StructuralEqualityComparer.Default.Equals() if we have a reference type
                             // to ensure if it is a collection its contents are compared
-                            : Collections.Equals(groupValue, otherMergedGroup.groupValue));
+                            : J2N.Collections.StructuralEqualityComparer.Default.Equals(groupValue, otherMergedGroup.groupValue));
                     }
                 }
                 return true;
@@ -221,18 +220,19 @@ namespace Lucene.Net.Search.Grouping
                 // same groupValue
                 Debug.Assert(NeverEquals(other));
 
-                if (other is MergedGroup<T>)
+                if (other is MergedGroup<T> otherMergedGroup)
                 {
-                    MergedGroup<T> otherMergedGroup = (MergedGroup<T>)other;
                     if (groupValue == null)
                     {
                         return otherMergedGroup == null;
                     }
                     else
                     {
-                        // LUCENENET specific - use Collections.Equals() if we have a reference type
+                        // LUCENENET specific - use J2N.Collections.StructuralEqualityComparer.Default.Equals() if we have a reference type
                         // to ensure if it is a collection its contents are compared
-                        return groupValueIsValueType ? groupValue.Equals(otherMergedGroup) : Collections.Equals(groupValue, otherMergedGroup);
+                        return groupValueIsValueType ?
+                            JCG.EqualityComparer<T>.Default.Equals(groupValue, otherMergedGroup.groupValue) :
+                            J2N.Collections.StructuralEqualityComparer.Default.Equals(groupValue, otherMergedGroup.groupValue);
                     }
                 }
                 else
@@ -249,9 +249,11 @@ namespace Lucene.Net.Search.Grouping
                 }
                 else
                 {
-                    // LUCENENET specific - use Collections.GetHashCode() if we have a reference type
+                    // LUCENENET specific - use J2N.Collections.StructuralEqualityComparer.Default.GetHashCode() if we have a reference type
                     // to ensure if it is a collection its contents are compared
-                    return groupValueIsValueType ? groupValue.GetHashCode() : Collections.GetHashCode(groupValue);
+                    return groupValueIsValueType ?
+                        JCG.EqualityComparer<T>.Default.GetHashCode(groupValue) :
+                        J2N.Collections.StructuralEqualityComparer.Default.GetHashCode(groupValue);
                 }
             }
         }

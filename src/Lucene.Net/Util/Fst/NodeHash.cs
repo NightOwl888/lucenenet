@@ -1,6 +1,8 @@
+using J2N.Collections;
 using Lucene.Net.Support;
 using System.Diagnostics;
 using System.Reflection;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Util.Fst
 {
@@ -58,7 +60,12 @@ namespace Lucene.Net.Util.Fst
             for (int arcUpto = 0; arcUpto < node.NumArcs; arcUpto++)
             {
                 Builder.Arc<T> arc = node.Arcs[arcUpto];
-                if (arc.Label != scratchArc.Label || !arc.Output.Equals(scratchArc.Output) || ((Builder.CompiledNode)arc.Target).Node != scratchArc.Target || !arc.NextFinalOutput.Equals(scratchArc.NextFinalOutput) || arc.IsFinal != scratchArc.IsFinal)
+                if (arc.IsFinal != scratchArc.IsFinal ||
+                    arc.Label != scratchArc.Label ||
+                    ((Builder.CompiledNode)arc.Target).Node != scratchArc.Target ||
+                    !(tIsValueType ? JCG.EqualityComparer<T>.Default.Equals(arc.Output, scratchArc.Output) : StructuralEqualityComparer.Default.Equals(arc.Output, scratchArc.Output)) || 
+                    !(tIsValueType ? JCG.EqualityComparer<T>.Default.Equals(arc.NextFinalOutput, scratchArc.NextFinalOutput) : StructuralEqualityComparer.Default.Equals(arc.NextFinalOutput, scratchArc.NextFinalOutput))
+                    )
                 {
                     return false;
                 }
@@ -99,8 +106,8 @@ namespace Lucene.Net.Util.Fst
 
                 // LUCENENET specific - optimize the Hash methods
                 // by only calling Collections.GetHashCode() if the value is a reference type
-                h = PRIME * h + (tIsValueType ? arc.Output.GetHashCode() : Collections.GetHashCode(arc.Output));
-                h = PRIME * h + (tIsValueType ? arc.NextFinalOutput.GetHashCode() : Collections.GetHashCode(arc.NextFinalOutput));
+                h = PRIME * h + (tIsValueType ? JCG.EqualityComparer<T>.Default.GetHashCode(arc.Output) : StructuralEqualityComparer.Default.GetHashCode(arc.Output));
+                h = PRIME * h + (tIsValueType ? JCG.EqualityComparer<T>.Default.GetHashCode(arc.NextFinalOutput) : StructuralEqualityComparer.Default.GetHashCode(arc.NextFinalOutput));
                 if (arc.IsFinal)
                 {
                     h += 17;
@@ -126,9 +133,9 @@ namespace Lucene.Net.Util.Fst
                 h = PRIME * h + (int)(scratchArc.Target ^ (scratchArc.Target >> 32));
 
                 // LUCENENET specific - optimize the Hash methods
-                // by only calling Collections.GetHashCode() if the value is a reference type
-                h = PRIME * h + (tIsValueType ? scratchArc.Output.GetHashCode() : Collections.GetHashCode(scratchArc.Output));
-                h = PRIME * h + (tIsValueType ? scratchArc.NextFinalOutput.GetHashCode() : Collections.GetHashCode(scratchArc.NextFinalOutput));
+                // by only calling StructuralEqualityComparer.Default.GetHashCode() if the value is a reference type
+                h = PRIME * h + (tIsValueType ? JCG.EqualityComparer<T>.Default.GetHashCode(scratchArc.Output) : StructuralEqualityComparer.Default.GetHashCode(scratchArc.Output));
+                h = PRIME * h + (tIsValueType ? JCG.EqualityComparer<T>.Default.GetHashCode(scratchArc.NextFinalOutput) : StructuralEqualityComparer.Default.GetHashCode(scratchArc.NextFinalOutput));
                 if (scratchArc.IsFinal)
                 {
                     h += 17;
