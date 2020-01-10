@@ -245,17 +245,19 @@ namespace Lucene.Net.Search.Highlight
         /// <exception cref="System.IO.IOException">If there is a low-level I/O error</exception>
         protected virtual void ExtractWeightedSpanTerms(IDictionary<string, WeightedSpanTerm> terms, SpanQuery spanQuery)
         {
-            HashSet<string> fieldNames;
+            ISet<string> fieldNames;
 
             if (fieldName == null)
             {
-                fieldNames = new HashSet<string>();
+                fieldNames = new JCG.HashSet<string>();
                 CollectSpanQueryFields(spanQuery, fieldNames);
             }
             else
             {
-                fieldNames = new HashSet<string>();
-                fieldNames.Add(fieldName);
+                fieldNames = new JCG.HashSet<string>
+                {
+                    fieldName
+                };
             }
             // To support the use of the default field name
             if (defaultField != null)
@@ -265,7 +267,7 @@ namespace Lucene.Net.Search.Highlight
 
             IDictionary<string, SpanQuery> queries = new JCG.Dictionary<string, SpanQuery>();
 
-            var nonWeightedTerms = new HashSet<Term>();
+            var nonWeightedTerms = new JCG.HashSet<Term>();
             bool mustRewriteQuery = MustRewriteQuery(spanQuery);
             if (mustRewriteQuery)
             {
@@ -344,7 +346,7 @@ namespace Lucene.Net.Search.Highlight
         /// <exception cref="System.IO.IOException">If there is a low-level I/O error</exception>
         protected virtual void ExtractWeightedTerms(IDictionary<string, WeightedSpanTerm> terms, Query query)
         {
-            var nonWeightedTerms = new HashSet<Term>();
+            var nonWeightedTerms = new JCG.HashSet<Term>();
             query.ExtractTerms(nonWeightedTerms);
 
             foreach (Term queryTerm in nonWeightedTerms)

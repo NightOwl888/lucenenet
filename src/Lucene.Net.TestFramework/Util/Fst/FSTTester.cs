@@ -427,7 +427,7 @@ namespace Lucene.Net.Util.Fst
             {
                 FST<long?> fstLong0 = fst as FST<long?>;
                 fstLong = fstLong0;
-                validOutputs = new HashSet<long?>();
+                validOutputs = new JCG.HashSet<long?>();
                 foreach (InputOutput<T> pair in pairs)
                 {
                     long? output = pair.Output as long?;

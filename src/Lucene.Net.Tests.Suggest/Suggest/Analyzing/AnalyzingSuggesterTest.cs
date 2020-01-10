@@ -779,7 +779,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
 
             List<TermFreq2> slowCompletor = new List<TermFreq2>();
             ISet<string> allPrefixes = new JCG.SortedSet<string>(StringComparer.Ordinal);
-            ISet<string> seen = new HashSet<string>();
+            ISet<string> seen = new JCG.HashSet<string>();
 
             bool doPayloads = Random.nextBoolean();
 

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Index
 {
@@ -334,7 +335,7 @@ namespace Lucene.Net.Index
                 return null;
             }
             ICollection<SegmentCommitInfo> merging = m_writer.Get().MergingSegments;
-            ICollection<SegmentCommitInfo> toBeMerged = new HashSet<SegmentCommitInfo>();
+            ICollection<SegmentCommitInfo> toBeMerged = new JCG.HashSet<SegmentCommitInfo>();
 
             List<SegmentCommitInfo> infosSorted = new List<SegmentCommitInfo>(infos.AsList());
             infosSorted.Sort(new SegmentByteSizeDescending(this));

@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Benchmarks.ByTask.Utils
 {
@@ -362,7 +363,7 @@ namespace Lucene.Net.Benchmarks.ByTask.Utils
             // it is only necessary for assemblies that are not
             // referenced by the host assembly.
 
-            HashSet<string> result = new HashSet<string>();
+            ISet<string> result = new JCG.HashSet<string>();
             string alts = config.Get("alt.tasks.packages", null);
             string dfltPkg = typeof(PerfTask).GetTypeInfo().Assembly.GetName().Name;
             string[] referencedAssemblies = AssemblyUtils.GetReferencedAssemblies().Select(a => a.GetName().Name).ToArray();

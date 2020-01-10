@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 
 /*
  * dk.brics.automaton
@@ -281,7 +282,7 @@ namespace Lucene.Net.Util.Automaton
             if (numberedStates == null)
             {
                 ExpandSingleton();
-                HashSet<State> visited = new HashSet<State>();
+                JCG.HashSet<State> visited = new JCG.HashSet<State>();
                 LinkedList<State> worklist = new LinkedList<State>();
                 State[] states = new State[4];
                 int upto = 0;
@@ -358,8 +359,8 @@ namespace Lucene.Net.Util.Automaton
         public virtual ISet<State> GetAcceptStates()
         {
             ExpandSingleton();
-            HashSet<State> accepts = new HashSet<State>();
-            HashSet<State> visited = new HashSet<State>();
+            JCG.HashSet<State> accepts = new JCG.HashSet<State>();
+            JCG.HashSet<State> visited = new JCG.HashSet<State>();
             LinkedList<State> worklist = new LinkedList<State>();
             worklist.AddLast(initial);
             visited.Add(initial);
@@ -448,7 +449,7 @@ namespace Lucene.Net.Util.Automaton
         public virtual int[] GetStartPoints()
         {
             State[] states = GetNumberedStates();
-            HashSet<int> pointset = new HashSet<int>();
+            JCG.HashSet<int> pointset = new JCG.HashSet<int>();
             pointset.Add(Character.MIN_CODE_POINT);
             foreach (State s in states)
             {
@@ -479,7 +480,7 @@ namespace Lucene.Net.Util.Automaton
         private State[] GetLiveStates()
         {
             State[] states = GetNumberedStates();
-            HashSet<State> live = new HashSet<State>();
+            JCG.HashSet<State> live = new JCG.HashSet<State>();
             foreach (State q in states)
             {
                 if (q.Accept)
@@ -488,10 +489,10 @@ namespace Lucene.Net.Util.Automaton
                 }
             }
             // map<state, set<state>>
-            ISet<State>[] map = new HashSet<State>[states.Length];
+            ISet<State>[] map = new JCG.HashSet<State>[states.Length];
             for (int i = 0; i < map.Length; i++)
             {
-                map[i] = new HashSet<State>();
+                map[i] = new JCG.HashSet<State>();
             }
             foreach (State s in states)
             {
@@ -662,7 +663,7 @@ namespace Lucene.Net.Util.Automaton
 
             Transition[][] transitions = this.GetSortedTransitions();
             LinkedList<State> worklist = new LinkedList<State>();
-            HashSet<State> visited = new HashSet<State>();
+            JCG.HashSet<State> visited = new JCG.HashSet<State>();
 
             State current = this.initial;
             worklist.AddLast(this.initial);

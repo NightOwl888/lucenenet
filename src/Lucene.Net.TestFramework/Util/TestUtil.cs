@@ -16,7 +16,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 using Assert = Lucene.Net.TestFramework.Assert;
 using Directory = Lucene.Net.Store.Directory;
@@ -64,7 +64,7 @@ namespace Lucene.Net.Util
         /// of directories) cannot be removed.</exception>
         public static void Rm(params DirectoryInfo[] locations)
         {
-            HashSet<FileSystemInfo> unremoved = Rm(new HashSet<FileSystemInfo>(), locations);
+            ISet<FileSystemInfo> unremoved = Rm(new JCG.HashSet<FileSystemInfo>(), locations);
             if (unremoved.Any())
             {
                 StringBuilder b = new StringBuilder("Could not remove the following files (in the order of attempts):\n");
@@ -78,7 +78,7 @@ namespace Lucene.Net.Util
             }
         }
 
-        private static HashSet<FileSystemInfo> Rm(HashSet<FileSystemInfo> unremoved, params DirectoryInfo[] locations)
+        private static ISet<FileSystemInfo> Rm(ISet<FileSystemInfo> unremoved, params DirectoryInfo[] locations)
         {
             foreach (DirectoryInfo location in locations)
             {
@@ -104,7 +104,7 @@ namespace Lucene.Net.Util
         /// <summary>
         /// LUCENENET specific overload, since files and directories are different entities in .NET
         /// </summary>
-        private static HashSet<FileSystemInfo> Rm(HashSet<FileSystemInfo> unremoved, params FileInfo[] locations)
+        private static ISet<FileSystemInfo> Rm(ISet<FileSystemInfo> unremoved, params FileInfo[] locations)
         {
             foreach (FileInfo file in locations)
             {

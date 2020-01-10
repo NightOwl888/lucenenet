@@ -10,6 +10,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Benchmarks.ByTask.Tasks
 {
@@ -129,7 +130,7 @@ namespace Lucene.Net.Benchmarks.ByTask.Tasks
             else
             {
                 checkSufficientFields = true;
-                HashSet<string> sf = new HashSet<string>(suff.Split(',').TrimEnd());
+                ISet<string> sf = new JCG.HashSet<string>(suff.Split(',').TrimEnd());
                 for (int i = 0; i < fieldsToWrite.Length; i++)
                 {
                     if (sf.Contains(fieldsToWrite[i]))

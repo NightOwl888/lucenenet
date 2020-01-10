@@ -582,7 +582,7 @@ namespace Lucene.Net.Tests.Join
             IndexIterationContext context = new IndexIterationContext();
             int numRandomValues = nDocs/2;
             context.RandomUniqueValues = new string[numRandomValues];
-            ISet<string> trackSet = new HashSet<string>();
+            ISet<string> trackSet = new JCG.HashSet<string>();
             context.RandomFrom = new bool[numRandomValues];
             for (int i = 0; i < numRandomValues; i++)
             {

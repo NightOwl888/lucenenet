@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Analysis.Util
 {
@@ -286,12 +287,14 @@ namespace Lucene.Net.Analysis.Util
             if (args.TryGetValue(name, out s))
             {
                 args.Remove(name);
-                HashSet<string> set = null;
+                ISet<string> set = null;
                 Match matcher = ITEM_PATTERN.Match(s);
                 if (matcher.Success)
                 {
-                    set = new HashSet<string>();
-                    set.Add(matcher.Groups[0].Value);
+                    set = new JCG.HashSet<string>
+                    {
+                        matcher.Groups[0].Value
+                    };
                     matcher = matcher.NextMatch();
                     while (matcher.Success)
                     {

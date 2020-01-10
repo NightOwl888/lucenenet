@@ -379,7 +379,7 @@ namespace Lucene.Net.Store
         //        using (IndexOutput output = dir.CreateOutput("stringset", NewIOContext(Random)))
         //        {
         //            output.WriteSetOfStrings(AsSet("test1", "test2"));
-        //            output.WriteSetOfStrings(new HashSet<string>());
+        //            output.WriteSetOfStrings(new JCG.HashSet<string>());
         //            output.WriteSetOfStrings(AsSet("test3"));
         //        } // output.close();
 
@@ -393,14 +393,14 @@ namespace Lucene.Net.Store
         //            });
 
         //            ISet<string> set2 = input.ReadSetOfStrings();
-        //            assertEquals(new HashSet<string>(), set2);
+        //            assertEquals(new JCG.HashSet<string>(), set2);
         //            // set should be immutable
         //            Assert.Throws<NotSupportedException>(() => {
         //                set2.Add("bogus");
         //            });
 
         //            ISet<string> set3 = input.ReadSetOfStrings();
-        //            assertEquals(new HashSet<string> { "test3" }, set3);
+        //            assertEquals(new JCG.HashSet<string> { "test3" }, set3);
         //            // set should be immutable
         //            Assert.Throws<NotSupportedException>(() => {
         //                set3.Add("bogus");
@@ -1526,7 +1526,7 @@ namespace Lucene.Net.Store
         //    using (Directory dir = GetDirectory(CreateTempDir()))
         //    {
         //        int count = AtLeast(20);
-        //        ISet<string> names = new HashSet<string>();
+        //        ISet<string> names = new JCG.HashSet<string>();
         //        while (names.Count < count)
         //        {
         //            // create a random filename (segment file name style), so it cannot hit windows problem with special filenames ("con", "com1",...):

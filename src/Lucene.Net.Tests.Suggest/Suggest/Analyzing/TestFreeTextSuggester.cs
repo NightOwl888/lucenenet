@@ -442,7 +442,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
         public void TestRandom()
         {
             string[] terms = new string[TestUtil.NextInt32(Random, 2, 10)];
-            ISet<string> seen = new HashSet<string>();
+            ISet<string> seen = new JCG.HashSet<string>();
             while (seen.size() < terms.Length)
             {
                 string token = TestUtil.RandomSimpleString(Random, 1, 5);
@@ -572,7 +572,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                 // Expected:
                 List<Lookup.LookupResult> expected = new List<Lookup.LookupResult>();
                 double backoff = 1.0;
-                seen = new HashSet<string>();
+                seen = new JCG.HashSet<string>();
 
                 if (VERBOSE)
                 {

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Index
@@ -294,7 +295,7 @@ namespace Lucene.Net.Index
             //final int numTerms = 2;
             TermData[] terms = new TermData[numTerms];
 
-            HashSet<string> termsSeen = new HashSet<string>();
+            ISet<string> termsSeen = new JCG.HashSet<string>();
 
             for (int i = 0; i < numTerms; i++)
             {

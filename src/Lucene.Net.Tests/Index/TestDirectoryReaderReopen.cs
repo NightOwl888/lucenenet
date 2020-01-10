@@ -254,7 +254,7 @@ namespace Lucene.Net.Index
             DirectoryReader reader = firstReader;
 
             ReaderThread[] threads = new ReaderThread[n];
-            ISet<DirectoryReader> readersToClose = new ConcurrentHashSet<DirectoryReader>(new HashSet<DirectoryReader>());
+            ISet<DirectoryReader> readersToClose = new ConcurrentHashSet<DirectoryReader>();
 
             for (int i = 0; i < n; i++)
             {

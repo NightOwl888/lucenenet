@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Analysis.Synonym
@@ -533,7 +534,7 @@ namespace Lucene.Net.Analysis.Synonym
 
         private void PruneDups(IList<OneSyn> syns)
         {
-            ISet<string> seen = new HashSet<string>();
+            ISet<string> seen = new JCG.HashSet<string>();
             foreach (OneSyn syn in syns)
             {
                 int idx = 0;

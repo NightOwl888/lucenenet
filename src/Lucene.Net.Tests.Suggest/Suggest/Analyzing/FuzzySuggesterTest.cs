@@ -722,7 +722,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
 
             List<TermFreqPayload2> slowCompletor = new List<TermFreqPayload2>();
             JCG.SortedSet<string> allPrefixes = new JCG.SortedSet<string>(StringComparer.Ordinal);
-            ISet<string> seen = new HashSet<string>();
+            ISet<string> seen = new JCG.HashSet<string>();
 
             Input[] keys = new Input[numQueries];
 
@@ -1116,7 +1116,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
         {
             int NUM = AtLeast(200);
             List<Input> answers = new List<Input>();
-            ISet<string> seen = new HashSet<string>();
+            ISet<string> seen = new JCG.HashSet<string>();
             for (int i = 0; i < NUM; i++)
             {
                 string s = RandomSimpleString(8);

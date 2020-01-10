@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.PostingsHighlight
 {
@@ -179,7 +180,7 @@ namespace Lucene.Net.Search.PostingsHighlight
          */
         internal class FakePassageFormatter : PassageFormatter
         {
-            internal HashSet<Pair> seen = new HashSet<Pair>();
+            internal ISet<Pair> seen = new JCG.HashSet<Pair>();
 
             public override object Format(Passage[] passages, String content)
             {

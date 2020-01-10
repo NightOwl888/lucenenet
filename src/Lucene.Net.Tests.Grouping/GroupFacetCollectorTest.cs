@@ -646,7 +646,7 @@ namespace Lucene.Net.Search.Grouping
                         uniqueFacetValues.Add(facetValue);
                         if (!facetToGroups.TryGetValue(facetValue, out ISet<string> groupsInFacet))
                         {
-                            facetToGroups[facetValue] = groupsInFacet = new HashSet<string>();
+                            facetToGroups[facetValue] = groupsInFacet = new JCG.HashSet<string>();
                         }
                         groupsInFacet.add(groupValue);
                         if (groupsInFacet.size() > facetWithMostGroups)
@@ -665,7 +665,7 @@ namespace Lucene.Net.Search.Grouping
                             uniqueFacetValues.Add(facetValue);
                             if (!facetToGroups.TryGetValue(facetValue, out ISet<string> groupsInFacet))
                             {
-                                facetToGroups[facetValue] = groupsInFacet = new HashSet<string>();
+                                facetToGroups[facetValue] = groupsInFacet = new JCG.HashSet<string>();
                             }
                             groupsInFacet.add(groupValue);
                             if (groupsInFacet.size() > facetWithMostGroups)
@@ -682,7 +682,7 @@ namespace Lucene.Net.Search.Grouping
                     uniqueFacetValues.Add(null);
                     if (!facetToGroups.TryGetValue(null, out ISet<string> groupsInFacet))
                     {
-                        facetToGroups[null] = groupsInFacet = new HashSet<string>();
+                        facetToGroups[null] = groupsInFacet = new JCG.HashSet<string>();
                     }
                     groupsInFacet.add(groupValue);
                     if (groupsInFacet.size() > facetWithMostGroups)
@@ -770,7 +770,7 @@ namespace Lucene.Net.Search.Grouping
             ISet<string> facetValues;
             if (facetPrefix != null)
             {
-                facetValues = new HashSet<string>();
+                facetValues = new JCG.HashSet<string>();
                 foreach (string facetValue in context.facetValues)
                 {
                     if (facetValue != null && facetValue.StartsWith(facetPrefix, StringComparison.Ordinal))

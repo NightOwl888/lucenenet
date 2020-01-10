@@ -16,6 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Search.Suggest.Analyzing
@@ -666,8 +667,8 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                 int iters = AtLeast(1000);
                 int visibleUpto = 0;
 
-                ISet<long> usedWeights = new HashSet<long>();
-                ISet<string> usedKeys = new HashSet<string>();
+                ISet<long> usedWeights = new JCG.HashSet<long>();
+                ISet<string> usedKeys = new JCG.HashSet<string>();
 
                 List<Input> inputs = new List<Input>();
                 List<Update> pendingUpdates = new List<Update>();
@@ -1023,7 +1024,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
 
         private IEnumerable<BytesRef> AsSet(params string[] values)
         {
-            HashSet<BytesRef> result = new HashSet<BytesRef>();
+            ISet<BytesRef> result = new JCG.HashSet<BytesRef>();
             foreach (string value in values)
             {
                 result.add(new BytesRef(value));

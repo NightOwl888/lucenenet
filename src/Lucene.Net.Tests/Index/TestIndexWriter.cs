@@ -17,6 +17,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Index
@@ -2591,7 +2592,7 @@ namespace Lucene.Net.Index
             int iters = AtLeast(100);
             int docCount = 0;
             int docId = 0;
-            HashSet<string> liveIds = new HashSet<string>();
+            ISet<string> liveIds = new JCG.HashSet<string>();
             for (int i = 0; i < iters; i++)
             {
                 IList<IEnumerable<IIndexableField>> docs = new List<IEnumerable<IIndexableField>>();

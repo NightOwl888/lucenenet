@@ -163,7 +163,7 @@ namespace Lucene.Net.Search.Suggest
                 assertTrue(f.equals(new BytesRef(doc.Get(FIELD_NAME))));
                 assertEquals(inputIterator.Weight, (w1 + w2 + w3));
                 assertTrue(inputIterator.Payload.equals(doc.GetField(PAYLOAD_FIELD_NAME).GetBinaryValue()));
-                ISet<BytesRef> originalCtxs = new HashSet<BytesRef>();
+                ISet<BytesRef> originalCtxs = new JCG.HashSet<BytesRef>();
                 foreach (IIndexableField ctxf in doc.GetFields(CONTEXTS_FIELD_NAME))
                 {
                     originalCtxs.add(ctxf.GetBinaryValue());

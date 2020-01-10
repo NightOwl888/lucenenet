@@ -167,7 +167,7 @@ namespace Lucene.Net.Codecs.Lucene40
         public override void AddBinaryField(FieldInfo field, IEnumerable<BytesRef> values)
         {
             // examine the values to determine best type to use
-            HashSet<BytesRef> uniqueValues = new HashSet<BytesRef>();
+            ISet<BytesRef> uniqueValues = new JCG.HashSet<BytesRef>();
             int minLength = int.MaxValue;
             int maxLength = int.MinValue;
 

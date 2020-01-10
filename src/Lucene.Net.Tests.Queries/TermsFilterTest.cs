@@ -25,12 +25,12 @@ using System.Linq;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Queries;
-using Lucene.Net.Randomized.Generators;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
 using NUnit.Framework;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Tests.Queries
 {
@@ -40,7 +40,7 @@ namespace Lucene.Net.Tests.Queries
         public void TestCachability()
         {
             TermsFilter a = TermsFilter(Random.NextBoolean(), new Term("field1", "a"), new Term("field1", "b"));
-            HashSet<Filter> cachedFilters = new HashSet<Filter>();
+            ISet<Filter> cachedFilters = new JCG.HashSet<Filter>();
             cachedFilters.Add(a);
             TermsFilter b = TermsFilter(Random.NextBoolean(), new Term("field1", "b"), new Term("field1", "a"));
             assertTrue("Must be cached", cachedFilters.Contains(b));
@@ -193,7 +193,7 @@ namespace Lucene.Net.Tests.Queries
 #endif
                 Random, dir);
             int num = AtLeast(10);
-            var terms = new HashSet<Term>();
+            var terms = new JCG.HashSet<Term>();
             for (int i = 0; i < num; i++)
             {
                 string field = "field" + Random.Next(100);
@@ -316,7 +316,7 @@ namespace Lucene.Net.Tests.Queries
             int num = AtLeast(100);
             bool singleField = Random.NextBoolean();
             IList<Term> terms = new List<Term>();
-            var uniqueTerms = new HashSet<Term>();
+            var uniqueTerms = new JCG.HashSet<Term>();
             for (int i = 0; i < num; i++)
             {
                 string field = "field" + (singleField ? "1" : Random.Next(100).ToString());

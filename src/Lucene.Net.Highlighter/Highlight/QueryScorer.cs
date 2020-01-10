@@ -240,7 +240,7 @@ namespace Lucene.Net.Search.Highlight
         /// <seealso cref="IScorer.StartFragment"/>
         public virtual void StartFragment(TextFragment newFragment)
         {
-            foundTerms = new HashSet<string>();
+            foundTerms = new JCG.HashSet<string>();
             totalScore = 0;
         }
 

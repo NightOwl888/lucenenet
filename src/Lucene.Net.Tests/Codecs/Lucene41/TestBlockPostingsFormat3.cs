@@ -5,16 +5,15 @@ using Lucene.Net.Index;
 using Lucene.Net.Index.Extensions;
 using Lucene.Net.Support;
 using Lucene.Net.Util.Automaton;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Codecs.Lucene41
 {
-    using Lucene.Net.Randomized.Generators;
-    using NUnit.Framework;
-    using System.IO;
-
     /*
          * Licensed to the Apache Software Foundation (ASF) under one or more
          * contributor license agreements.  See the NOTICE file distributed with
@@ -238,7 +237,7 @@ namespace Lucene.Net.Codecs.Lucene41
             Random random = Random;
 
             // collect this number of terms from the left side
-            HashSet<BytesRef> tests = new HashSet<BytesRef>();
+            ISet<BytesRef> tests = new JCG.HashSet<BytesRef>();
             int numPasses = 0;
             while (numPasses < 10 && tests.Count < numTests)
             {

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 using Version = Lucene.Net.Util.LuceneVersion;
 
 namespace Lucene.Net.Analysis.Util
@@ -516,7 +517,7 @@ namespace Lucene.Net.Analysis.Util
         [Test]
         public virtual void TestCopyJDKSet()
         {
-            ISet<string> set = new HashSet<string>();
+            ISet<string> set = new JCG.HashSet<string>();
 
             IList<string> stopwords = TEST_STOP_WORDS;
             IList<string> stopwordsUpper = new List<string>();

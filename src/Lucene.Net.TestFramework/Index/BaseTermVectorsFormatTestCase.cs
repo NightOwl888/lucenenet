@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 using static Lucene.Net.Index.TermsEnum;
 using Assert = Lucene.Net.TestFramework.Assert;
 using Attribute = Lucene.Net.Util.Attribute;
@@ -378,9 +379,9 @@ namespace Lucene.Net.Index
             private ISet<T> NewHashSet<T>(int capacity)
             {
 #if FEATURE_HASHSET_CAPACITY
-                return new HashSet<T>(capacity);
+                return new JCG.HashSet<T>(capacity);
 #else
-                return new HashSet<T>();
+                return new JCG.HashSet<T>();
 #endif
             }
 
@@ -433,7 +434,7 @@ namespace Lucene.Net.Index
                 fieldTypes = new FieldType[fieldCount];
                 tokenStreams = new RandomTokenStream[fieldCount];
                 Arrays.Fill(fieldTypes, outerInstance.FieldType(options));
-                HashSet<string> usedFileNames = new HashSet<string>();
+                ISet<string> usedFileNames = new JCG.HashSet<string>();
                 for (int i = 0; i < fieldCount; ++i)
                 {
                     // LUCENENET NOTE: Using a simple Linq query to filter rather than using brute force makes this a lot
@@ -471,7 +472,7 @@ namespace Lucene.Net.Index
             protected internal RandomDocumentFactory(BaseTermVectorsFormatTestCase outerInstance, int distinctFieldNames, int disctinctTerms)
             {
                 this.outerInstance = outerInstance;
-                HashSet<string> fieldNames = new HashSet<string>();
+                ISet<string> fieldNames = new JCG.HashSet<string>();
                 while (fieldNames.Count < distinctFieldNames)
                 {
                     fieldNames.Add(TestUtil.RandomSimpleString(Random));
@@ -498,8 +499,8 @@ namespace Lucene.Net.Index
             // compare field names
             Assert.AreEqual(doc == null, fields == null);
             Assert.AreEqual(doc.fieldNames.Length, fields.Count);
-            HashSet<string> fields1 = new HashSet<string>();
-            HashSet<string> fields2 = new HashSet<string>();
+            ISet<string> fields1 = new JCG.HashSet<string>();
+            ISet<string> fields2 = new JCG.HashSet<string>();
             for (int i = 0; i < doc.fieldNames.Length; ++i)
             {
                 fields1.Add(doc.fieldNames[i]);
@@ -537,13 +538,13 @@ namespace Lucene.Net.Index
         protected virtual void AssertEquals(RandomTokenStream tk, FieldType ft, Terms terms)
         {
             Assert.AreEqual(1, terms.DocCount);
-            int termCount = (new HashSet<string>(Arrays.AsList(tk.terms))).Count;
+            int termCount = new JCG.HashSet<string>(tk.terms).Count;
             Assert.AreEqual((long)termCount, terms.Count); // LUCENENET specific - cast required because types don't match (xUnit checks this)
             Assert.AreEqual((long)termCount, terms.SumDocFreq); // LUCENENET specific - cast required because types don't match (xUnit checks this)
             Assert.AreEqual(ft.StoreTermVectorPositions, terms.HasPositions);
             Assert.AreEqual(ft.StoreTermVectorOffsets, terms.HasOffsets);
             Assert.AreEqual(ft.StoreTermVectorPayloads && tk.HasPayloads(), terms.HasPayloads);
-            HashSet<BytesRef> uniqueTerms = new HashSet<BytesRef>();
+            ISet<BytesRef> uniqueTerms = new JCG.HashSet<BytesRef>();
             foreach (string term in tk.freqs.Keys)
             {
                 uniqueTerms.Add(new BytesRef(term));
@@ -860,7 +861,7 @@ namespace Lucene.Net.Index
             RandomDocumentFactory docFactory = new RandomDocumentFactory(this, 5, 20);
             int numDocs = AtLeast(100);
             int numDeletes = Random.Next(numDocs);
-            HashSet<int?> deletes = new HashSet<int?>();
+            ISet<int?> deletes = new JCG.HashSet<int?>();
             while (deletes.Count < numDeletes)
             {
                 deletes.Add(Random.Next(numDocs));

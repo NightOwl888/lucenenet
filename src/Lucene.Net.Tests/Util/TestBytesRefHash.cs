@@ -247,7 +247,7 @@ namespace Lucene.Net.Util
             int num = AtLeast(2);
             for (int j = 0; j < num; j++)
             {
-                HashSet<string> strings = new HashSet<string>();
+                ISet<string> strings = new JCG.HashSet<string>();
                 int uniqueCount = 0;
                 for (int i = 0; i < 797; i++)
                 {
@@ -291,7 +291,7 @@ namespace Lucene.Net.Util
             int num = AtLeast(2);
             for (int j = 0; j < num; j++)
             {
-                HashSet<string> strings = new HashSet<string>();
+                ISet<string> strings = new JCG.HashSet<string>();
                 int uniqueCount = 0;
                 for (int i = 0; i < 797; i++)
                 {
@@ -373,7 +373,7 @@ namespace Lucene.Net.Util
             int num = AtLeast(2);
             for (int j = 0; j < num; j++)
             {
-                HashSet<string> strings = new HashSet<string>();
+                ISet<string> strings = new JCG.HashSet<string>();
                 int uniqueCount = 0;
                 for (int i = 0; i < 797; i++)
                 {

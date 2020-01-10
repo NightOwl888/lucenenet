@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Util
 {
@@ -197,7 +198,7 @@ namespace Lucene.Net.Util
             }
             else
             {
-                return (new HashSet<Attribute>()).GetEnumerator();
+                return (new JCG.HashSet<Attribute>()).GetEnumerator();
             }
         }
 
