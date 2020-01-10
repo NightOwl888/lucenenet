@@ -22,6 +22,7 @@
 using Lucene.Net.Support.C5;
 using System;
 using System.Collections;
+using JCG = J2N.Collections.Generic;
 using SCG = System.Collections.Generic;
 
 namespace Lucene.Net.Support
@@ -39,13 +40,12 @@ namespace Lucene.Net.Support
     /// <h2>Unordered Dictionaries</h2>
     /// <list type="bullet">
     ///     <item><description><see cref="SCG.Dictionary{TKey, TValue}"/> - use when order is not important and all keys are non-null.</description></item>
-    ///     <item><description><see cref="HashMap{TKey, TValue}"/> - use when order is not important and support for a null key is required.</description></item>
+    ///     <item><description><see cref="JCG.Dictionary{TKey, TValue}"/> - use when order is not important and support for a null key is required.</description></item>
     /// </list>
     /// <h2>Ordered Dictionaries</h2>
     /// <list type="bullet">
-    ///     <item><description><see cref="LinkedHashMap{TKey, TValue}"/> - use when you need to preserve entry insertion order. Keys are nullable.</description></item>
-    ///     <item><description><see cref="SCG.SortedDictionary{TKey, TValue}"/> - use when you need natural sort order. Keys must be unique.</description></item>
-    ///     <item><description><see cref="TreeDictionary{K, V}"/> - use when you need natural sort order. Keys are nullable.</description></item>
+    ///     <item><description><see cref="JCG.LinkedDictionary{TKey, TValue}"/> - use when you need to preserve entry insertion order. Keys are nullable.</description></item>
+    ///     <item><description><see cref="JCG.SortedDictionary{TKey, TValue}"/> - use when you need natural sort order. Keys are nullable.</description></item>
     ///     <item><description><see cref="LurchTable{TKey, TValue}"/> - use when you need to sort by most recent access or most recent update. Works well for LRU caching.</description></item>
     /// </list>
     /// </remarks>
