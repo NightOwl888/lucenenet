@@ -1299,7 +1299,7 @@ namespace Lucene.Net.Index
 
                     var allOptions = ((IndexOptions[])Enum.GetValues(typeof(IndexOptions))).Skip(1).ToArray(); // LUCENENET: Skip our NONE option
                                                                                                                //IndexOptions_e.values();
-                    int maxIndexOption = Arrays.AsList(allOptions).IndexOf(options);
+                    int maxIndexOption = Array.IndexOf(allOptions, options);
 
                     for (int i = 0; i <= maxIndexOption; i++)
                     {

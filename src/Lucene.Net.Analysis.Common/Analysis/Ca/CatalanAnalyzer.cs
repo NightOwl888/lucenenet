@@ -48,7 +48,7 @@ namespace Lucene.Net.Analysis.Ca
 
         private static readonly CharArraySet DEFAULT_ARTICLES = CharArraySet.UnmodifiableSet(
 #pragma warning disable 612, 618
-            new CharArraySet(LuceneVersion.LUCENE_CURRENT, Arrays.AsList("d", "l", "m", "n", "s", "t"), true));
+            new CharArraySet(LuceneVersion.LUCENE_CURRENT, new string[] { "d", "l", "m", "n", "s", "t" }, true));
 #pragma warning restore 612, 618
 
         /// <summary>

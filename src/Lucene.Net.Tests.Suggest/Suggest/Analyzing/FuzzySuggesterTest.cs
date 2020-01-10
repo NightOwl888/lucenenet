@@ -986,21 +986,21 @@ namespace Lucene.Net.Search.Suggest.Analyzing
             Analyzer a = new MockAnalyzer(Random);
             FuzzySuggester suggester = new FuzzySuggester(a, a, 0, 2, -1, true, 1, true, 1, 3, false);
 
-            IList<Input> keys = Arrays.AsList(new Input[] {
+            IList<Input> keys = new Input[] {
                 new Input("a", 40),
                 new Input("a ", 50),
                 new Input(" a", 60),
-            });
+            };
 
             Collections.Shuffle(keys, Random);
             suggester.Build(new InputArrayIterator(keys));
 
             IList<Lookup.LookupResult> results = suggester.DoLookup("a", false, 5);
-            assertEquals(2, results.size());
-            assertEquals(" a", results.ElementAt(0).Key);
-            assertEquals(60, results.ElementAt(0).Value);
-            assertEquals("a ", results.ElementAt(1).Key);
-            assertEquals(50, results.ElementAt(1).Value);
+            assertEquals(2, results.Count);
+            assertEquals(" a", results[0].Key);
+            assertEquals(60, results[0].Value);
+            assertEquals("a ", results[1].Key);
+            assertEquals(50, results[1].Value);
         }
 
         [Test]
@@ -1009,12 +1009,12 @@ namespace Lucene.Net.Search.Suggest.Analyzing
             Analyzer a = new MockAnalyzer(Random);
             FuzzySuggester suggester = new FuzzySuggester(a, a, SuggesterOptions.PRESERVE_SEP, 2, -1, true, 2, true, 1, 3, false);
 
-            IList<Input> keys = Arrays.AsList(new Input[] {
+            IList<Input> keys = new Input[] {
                 new Input("foo bar", 40),
                 new Input("foo bar baz", 50),
                 new Input("barbaz", 60),
                 new Input("barbazfoo", 10),
-            });
+            };
 
             Collections.Shuffle(keys, Random);
             suggester.Build(new InputArrayIterator(keys));

@@ -421,8 +421,15 @@ namespace Lucene.Net.Index
                     float f = Random.NextSingle();
                     double d = Random.NextDouble();
 
-                    IList<Field> fields = Arrays.AsList(new Field("bytes", bytes, ft), new Field("string", @string, ft), new Int64Field("long", l, Field.Store.YES), new Int32Field("int", i, Field.Store.YES), new SingleField("float", f, Field.Store.YES), new DoubleField("double", d, Field.Store.YES)
-                   );
+                    Field[] fields = new Field[]
+                    {
+                        new Field("bytes", bytes, ft), 
+                        new Field("string", @string, ft), 
+                        new Int64Field("long", l, Field.Store.YES), 
+                        new Int32Field("int", i, Field.Store.YES), 
+                        new SingleField("float", f, Field.Store.YES), 
+                        new DoubleField("double", d, Field.Store.YES)
+                    };
 
                     for (int k = 0; k < 100; ++k)
                     {
@@ -770,7 +777,7 @@ namespace Lucene.Net.Index
                     Document[] docs = new Document[numDocs];
                     for (int i = 0; i < numDocs; ++i)
                     {
-                        docs[i] = RandomPicks.RandomFrom(Random, Arrays.AsList(emptyDoc, bigDoc1, bigDoc2));
+                        docs[i] = RandomPicks.RandomFrom(Random, new Document[] { emptyDoc, bigDoc1, bigDoc2 });
                     }
                     for (int i = 0; i < numDocs; ++i)
                     {

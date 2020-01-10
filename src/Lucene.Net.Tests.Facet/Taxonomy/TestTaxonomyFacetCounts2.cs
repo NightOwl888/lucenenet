@@ -99,9 +99,9 @@ namespace Lucene.Net.Facet.Taxonomy
             int numFacetsA = random.Next(3) + 1; // 1-3
             int numFacetsB = random.Next(2) + 1; // 1-2
             List<FacetField> categories_a = new List<FacetField>();
-            categories_a.AddRange(Arrays.AsList(CATEGORIES_A));
+            categories_a.AddRange(CATEGORIES_A);
             List<FacetField> categories_b = new List<FacetField>();
-            categories_b.AddRange(Arrays.AsList(CATEGORIES_B));
+            categories_b.AddRange(CATEGORIES_B);
             Collections.Shuffle(categories_a);
             Collections.Shuffle(categories_b);
 

@@ -94,7 +94,7 @@ namespace Lucene.Net.Analysis.Core
                 brokenConstructors[typeof(LimitTokenCountFilter).GetConstructor(new Type[] { typeof(TokenStream), typeof(int), typeof(bool) })] = new PredicateAnonymousInnerClassHelper2();
                 brokenConstructors[typeof(LimitTokenPositionFilter).GetConstructor(new Type[] { typeof(TokenStream), typeof(int) })] = ALWAYS;
                 brokenConstructors[typeof(LimitTokenPositionFilter).GetConstructor(new Type[] { typeof(TokenStream), typeof(int), typeof(bool) })] = new PredicateAnonymousInnerClassHelper3();
-                foreach (Type c in Arrays.AsList(
+                foreach (Type c in new Type[] {
                     // TODO: can we promote some of these to be only
                     // offsets offenders?
                     // doesn't actual reset itself:
@@ -103,7 +103,8 @@ namespace Lucene.Net.Analysis.Core
                     typeof(CrankyTokenFilter),
                     // Not broken: we forcefully add this, so we shouldn't
                     // also randomly pick it:
-                    typeof(ValidatingTokenFilter)))
+                    typeof(ValidatingTokenFilter)
+                })
                 {
                     foreach (ConstructorInfo ctor in c.GetConstructors())
                     {
@@ -117,7 +118,7 @@ namespace Lucene.Net.Analysis.Core
             }
             try
             {
-                foreach (Type c in Arrays.AsList(
+                foreach (Type c in new Type[] {
                     typeof(ReversePathHierarchyTokenizer),
                     typeof(PathHierarchyTokenizer),
                     // TODO: it seems to mess up offsets!?
@@ -131,7 +132,7 @@ namespace Lucene.Net.Analysis.Core
                     // TODO: doesn't handle graph inputs
                     typeof(CommonGramsQueryFilter),
                     // TODO: probably doesnt handle graph inputs, too afraid to try
-                    typeof(WordDelimiterFilter)))
+                    typeof(WordDelimiterFilter) })
                 {
                     foreach (ConstructorInfo ctor in c.GetConstructors())
                     {
@@ -218,19 +219,19 @@ namespace Lucene.Net.Analysis.Core
                     if (typeInfo.IsSubclassOf(typeof(Tokenizer)))
                     {
                         assertTrue(ctor.ToString() + " has unsupported parameter types", 
-                            allowedTokenizerArgs.containsAll(Arrays.AsList(ctor.GetParameters().Select(p => p.ParameterType).ToArray())));
+                            allowedTokenizerArgs.containsAll(ctor.GetParameters().Select(p => p.ParameterType).ToArray()));
                         tokenizers.Add(ctor);
                     }
                     else if (typeInfo.IsSubclassOf(typeof(TokenFilter)))
                     {
                         assertTrue(ctor.ToString() + " has unsupported parameter types", 
-                            allowedTokenFilterArgs.containsAll(Arrays.AsList(ctor.GetParameters().Select(p => p.ParameterType).ToArray())));
+                            allowedTokenFilterArgs.containsAll(ctor.GetParameters().Select(p => p.ParameterType).ToArray()));
                         tokenfilters.Add(ctor);
                     }
                     else if (typeInfo.IsSubclassOf(typeof(CharFilter)))
                     {
                         assertTrue(ctor.ToString() + " has unsupported parameter types", 
-                            allowedCharFilterArgs.containsAll(Arrays.AsList(ctor.GetParameters().Select(p => p.ParameterType).ToArray())));
+                            allowedCharFilterArgs.containsAll(ctor.GetParameters().Select(p => p.ParameterType).ToArray()));
                         charfilters.Add(ctor);
                     }
                     else

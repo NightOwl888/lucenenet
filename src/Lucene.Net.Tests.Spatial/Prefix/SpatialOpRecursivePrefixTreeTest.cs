@@ -437,7 +437,7 @@ namespace Lucene.Net.Spatial.Prefix
             internal bool biasContainsThenWithin;//a hack
 
             public ShapePair(IShape shape1, IShape shape2, bool containsThenWithin, SpatialContext ctx)
-                        : base(Arrays.AsList(shape1, shape2), ctx)
+                        : base(new List<IShape> { shape1, shape2 }, ctx)
             {
                 this.ctx = ctx;
 

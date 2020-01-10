@@ -243,9 +243,8 @@ namespace Lucene.Net.Support
             assertEquals(0, integerQueue.size());
             assertEquals(objectComparator, integerQueue.Comparer);
             int[] array = { 2, 45, 7, -12, 9 };
-            List<int> list = Arrays.AsList(array);
-            integerQueue.AddAll(list);
-            assertEquals(list.size(), integerQueue.size());
+            integerQueue.AddAll(array);
+            assertEquals(array.Length, integerQueue.Count);
             // just test here no cast exception raises.
         }
 

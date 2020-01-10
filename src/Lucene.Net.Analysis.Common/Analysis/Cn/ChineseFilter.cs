@@ -59,7 +59,7 @@ namespace Lucene.Net.Analysis.Cn
         public ChineseFilter(TokenStream @in)
             : base(@in)
         {
-            stopTable = new CharArraySet(LuceneVersion.LUCENE_CURRENT, Arrays.AsList(STOP_WORDS), false);
+            stopTable = new CharArraySet(LuceneVersion.LUCENE_CURRENT, STOP_WORDS, false);
             termAtt = AddAttribute<ICharTermAttribute>();
         }
 

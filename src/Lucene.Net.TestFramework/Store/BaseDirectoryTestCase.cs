@@ -134,19 +134,25 @@ namespace Lucene.Net.Store
         //    }
         //}
 
+        private static bool ContainsFile(Directory directory, string file) // LUCENENET specific method to prevent having to use Arrays.AsList(), which creates unnecessary memory allocations
+        {
+            return Array.IndexOf(directory.ListAll(), file) > -1;
+        }
+
+
         [Test]
         public virtual void TestDeleteFile()
         {
             using (Directory dir = GetDirectory(CreateTempDir("testDeleteFile")))
             {
-                String file = "foo.txt";
-                Assert.IsFalse(Arrays.AsList(dir.ListAll()).Contains(file));
+                string file = "foo.txt";
+                Assert.IsFalse(ContainsFile(dir, file));
 
                 using (dir.CreateOutput("foo.txt", IOContext.DEFAULT)) { }
-                Assert.IsTrue(Arrays.AsList(dir.ListAll()).Contains(file));
+                Assert.IsTrue(ContainsFile(dir, file));
 
                 dir.DeleteFile("foo.txt");
-                Assert.IsFalse(Arrays.AsList(dir.ListAll()).Contains(file));
+                Assert.IsFalse(ContainsFile(dir, file));
 
                 Assert.ThrowsAnyOf<DirectoryNotFoundException, FileNotFoundException>(() => {
                     dir.DeleteFile("foo.txt");
@@ -640,7 +646,7 @@ namespace Lucene.Net.Store
                 string name = "file";
                 using (dir.CreateOutput(name, NewIOContext(Random))) { }
                 assertTrue(SlowFileExists(dir, name));
-                assertTrue(Arrays.AsList(dir.ListAll()).Contains(name));
+                assertTrue(ContainsFile(dir, name));
             }
         }
 
@@ -1495,7 +1501,7 @@ namespace Lucene.Net.Store
         //        }
 
         //        // Make sure listAll does NOT include the file:
-        //        Assert.IsFalse(Arrays.AsList(fsDir.ListAll()).Contains(fileName));
+        //        Assert.IsFalse(ContainsFile(fsDir, fileName));
 
         //        // Make sure fileLength claims it's deleted:
         //        Assert.Throws<FileNotFoundException>(() => {
