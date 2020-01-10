@@ -1,48 +1,52 @@
-﻿using System.Collections.Generic;
+﻿using J2N.Text;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Support
 {
     /*
-	 * Licensed to the Apache Software Foundation (ASF) under one or more
-	 * contributor license agreements.  See the NOTICE file distributed with
-	 * this work for additional information regarding copyright ownership.
-	 * The ASF licenses this file to You under the Apache License, Version 2.0
-	 * (the "License"); you may not use this file except in compliance with
-	 * the License.  You may obtain a copy of the License at
-	 *
-	 *     http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 */
+     * Licensed to the Apache Software Foundation (ASF) under one or more
+     * contributor license agreements.  See the NOTICE file distributed with
+     * this work for additional information regarding copyright ownership.
+     * The ASF licenses this file to You under the Apache License, Version 2.0
+     * (the "License"); you may not use this file except in compliance with
+     * the License.  You may obtain a copy of the License at
+     *
+     *     http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
 
-    public sealed class ConcurrentHashSet<T> : ISet<T>
+    public sealed class ConcurrentHashSet<T> : ISet<T>, IStructuralEquatable, IFormattable
     {
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
-        private readonly ISet<T> _set;
+        private readonly JCG.HashSet<T> _set;
 
         public ConcurrentHashSet()
         {
-            _set = new HashSet<T>();
+            _set = new JCG.HashSet<T>();
         }
 
         public ConcurrentHashSet(IEnumerable<T> collection)
         {
-            _set = new HashSet<T>(collection);
+            _set = new JCG.HashSet<T>(collection);
         }
 
         public ConcurrentHashSet(IEqualityComparer<T> comparer)
         {
-            _set = new HashSet<T>(comparer);
+            _set = new JCG.HashSet<T>(comparer);
         }
 
         public ConcurrentHashSet(IEnumerable<T> collection, IEqualityComparer<T> comparer)
         {
-            _set = new HashSet<T>(collection, comparer);
+            _set = new JCG.HashSet<T>(collection, comparer);
         }
 
         public bool Add(T item)
@@ -256,13 +260,7 @@ namespace Lucene.Net.Support
             }
         }
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return _set.IsReadOnly;
-            }
-        }
+        public bool IsReadOnly => ((ISet<T>)_set).IsReadOnly;
 
         public bool Remove(T item)
         {
@@ -297,5 +295,143 @@ namespace Lucene.Net.Support
         {
             return GetEnumerator();
         }
+
+        #region Structural Equality
+
+        /// <summary>
+        /// Determines whether the specified object is structurally equal to the current set
+        /// using rules provided by the specified <paramref name="comparer"/>.
+        /// </summary>
+        /// <param name="other">The object to compare with the current object.</param>
+        /// <param name="comparer">The <see cref="IEqualityComparer"/> implementation to use to determine
+        /// whether the current object and <paramref name="other"/> are structurally equal.</param>
+        /// <returns><c>true</c> if <paramref name="other"/> is structurally equal to the current set;
+        /// otherwise, <c>false</c>.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="comparer"/> is <c>null</c>.</exception>
+        public bool Equals(object other, IEqualityComparer comparer)
+        {
+            _lock.EnterReadLock();
+            try
+            {
+                
+                return _set.Equals(other, comparer);
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Gets the hash code representing the current set using rules specified by the
+        /// provided <paramref name="comparer"/>.
+        /// </summary>
+        /// <param name="comparer">The <see cref="IEqualityComparer"/> implementation to use to generate
+        /// the hash code.</param>
+        /// <returns>A hash code representing the current set.</returns>
+        public int GetHashCode(IEqualityComparer comparer)
+        {
+            _lock.EnterReadLock();
+            try
+            {
+                return _set.GetHashCode(comparer);
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is structurally equal to the current set
+        /// using rules similar to those in the JDK's AbstactSet class. Two sets are considered
+        /// equal when they both contain the same objects (in any order).
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns><c>true</c> if the specified object implements <see cref="ISet{T}"/>
+        /// and it contains the same elements; otherwise, <c>false</c>.</returns>
+        /// <seealso cref="Equals(object, IEqualityComparer)"/>
+        public override bool Equals(object obj)
+            => Equals(obj, JCG.SetEqualityComparer<T>.Default);
+
+        /// <summary>
+        /// Gets the hash code for the current list. The hash code is calculated 
+        /// by taking each nested element's hash code into account.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        /// <seealso cref="GetHashCode(IEqualityComparer)"/>
+        public override int GetHashCode()
+            => GetHashCode(JCG.SetEqualityComparer<T>.Default);
+
+        #endregion
+
+        #region ToString
+
+        /// <summary>
+        /// Returns a string that represents the current set using the specified
+        /// <paramref name="format"/> and <paramref name="formatProvider"/>.
+        /// </summary>
+        /// <returns>A string that represents the current set.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="format"/> is <c>null</c>.</exception>
+        /// <exception cref="FormatException">
+        /// <paramref name="format"/> is invalid.
+        /// <para/>
+        /// -or-
+        /// <para/>
+        /// The index of a format item is not zero.
+        /// </exception>
+        public string ToString(string format, IFormatProvider formatProvider)
+        {
+            _lock.EnterReadLock();
+            try
+            {
+                return _set.ToString(format, formatProvider);
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Returns a string that represents the current set using
+        /// <see cref="StringFormatter.CurrentCulture"/>.
+        /// <para/>
+        /// The presentation has a specific format. It is enclosed by square
+        /// brackets ("[]"). Elements are separated by ', ' (comma and space).
+        /// </summary>
+        /// <returns>A string that represents the current set.</returns>
+        public override string ToString()
+            => ToString("{0}", StringFormatter.CurrentCulture);
+
+        /// <summary>
+        /// Returns a string that represents the current set using the specified
+        /// <paramref name="formatProvider"/>.
+        /// </summary>
+        /// <returns>A string that represents the current set.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="formatProvider"/> is <c>null</c>.</exception>
+        public string ToString(IFormatProvider formatProvider)
+            => ToString("{0}", formatProvider);
+
+        /// <summary>
+        /// Returns a string that represents the current set using the specified
+        /// <paramref name="format"/> and <see cref="StringFormatter.CurrentCulture"/>.
+        /// <para/>
+        /// The presentation has a specific format. It is enclosed by square
+        /// brackets ("[]"). Elements are separated by ', ' (comma and space).
+        /// </summary>
+        /// <returns>A string that represents the current set.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="format"/> is <c>null</c>.</exception>
+        /// <exception cref="FormatException">
+        /// <paramref name="format"/> is invalid.
+        /// <para/>
+        /// -or-
+        /// <para/>
+        /// The index of a format item is not zero.
+        /// </exception>
+        public string ToString(string format)
+            => ToString(format, StringFormatter.CurrentCulture);
+
+        #endregion
     }
 }
