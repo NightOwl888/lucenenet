@@ -1,6 +1,6 @@
 ﻿// LUCENENET TODO: Use HTML Agility pack instead of SAX ?
 
-using J2N.Collections;
+using J2N.Collections.Generic.Extensions;
 using Sax;
 using Sax.Helpers;
 using System;
