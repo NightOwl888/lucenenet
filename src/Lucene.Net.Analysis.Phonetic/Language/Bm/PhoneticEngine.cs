@@ -1,4 +1,5 @@
 ﻿// commons-codec version compatibility level: 1.9
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using JCG = J2N.Collections.Generic;
-using J2N.Collections;
+
 
 namespace Lucene.Net.Analysis.Phonetic.Language.Bm
 {
