@@ -1,4 +1,4 @@
-using Lucene.Net.Support;
+using J2N.Collections;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -450,15 +450,15 @@ namespace Lucene.Net.Util.Fst
 
                     // LUCENENET NOTE: In .NET, IEnumerable will not equal another identical IEnumerable
                     // because it checks for reference equality, not that the list contents
-                    // are the same. Collections.Equals() will make that check.
+                    // are the same. StructuralEqualityComparer.Default.Equals() will make that check.
                     Debug.Assert(typeof(T).GetTypeInfo().IsValueType 
                         ? root.NextFinalOutput.Equals(asserting.NextFinalOutput) 
-                        : Collections.Equals(root.NextFinalOutput, asserting.NextFinalOutput));
+                        : StructuralEqualityComparer.Default.Equals(root.NextFinalOutput, asserting.NextFinalOutput));
                     Debug.Assert(root.Node == asserting.Node);
                     Debug.Assert(root.NumArcs == asserting.NumArcs);
                     Debug.Assert(typeof(T).GetTypeInfo().IsValueType
                         ? root.Output.Equals(asserting.Output)
-                        : Collections.Equals(root.Output, asserting.Output));
+                        : StructuralEqualityComparer.Default.Equals(root.Output, asserting.Output));
                     Debug.Assert(root.PosArcsStart == asserting.PosArcsStart);
                     Debug.Assert(root.Target == asserting.Target);
                 }

@@ -1,5 +1,4 @@
 using J2N.Collections;
-using Lucene.Net.Support;
 using System.Diagnostics;
 using System.Reflection;
 using JCG = J2N.Collections.Generic;
@@ -39,7 +38,7 @@ namespace Lucene.Net.Util.Fst
         private readonly FST.BytesReader input;
 
         // LUCENENET specific - optimize the Hash methods
-        // by only calling Collections.GetHashCode() if the value is a reference type
+        // by only calling StructuralEqualityComparer.GetHashCode() if the value is a reference type
         private readonly static bool tIsValueType = typeof(T).GetTypeInfo().IsValueType;
 
         public NodeHash(FST<T> fst, FST.BytesReader input)
@@ -105,7 +104,7 @@ namespace Lucene.Net.Util.Fst
                 h = PRIME * h + (int)(n ^ (n >> 32));
 
                 // LUCENENET specific - optimize the Hash methods
-                // by only calling Collections.GetHashCode() if the value is a reference type
+                // by only calling StructuralEqualityComparer.GetHashCode() if the value is a reference type
                 h = PRIME * h + (tIsValueType ? JCG.EqualityComparer<T>.Default.GetHashCode(arc.Output) : StructuralEqualityComparer.Default.GetHashCode(arc.Output));
                 h = PRIME * h + (tIsValueType ? JCG.EqualityComparer<T>.Default.GetHashCode(arc.NextFinalOutput) : StructuralEqualityComparer.Default.GetHashCode(arc.NextFinalOutput));
                 if (arc.IsFinal)
