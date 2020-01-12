@@ -343,12 +343,12 @@ namespace Lucene.Net.Index
                 {
                     if (!positionToTerms.TryGetValue(positions[i], out ISet<int?> positionTerms))
                     {
-                        positionToTerms[positions[i]] = positionTerms = NewHashSet<int?>(1);
+                        positionToTerms[positions[i]] = positionTerms = new JCG.HashSet<int?>(1);
                     }
                     positionTerms.Add(i);
                     if (!startOffsetToTerms.TryGetValue(startOffsets[i], out ISet<int?> startOffsetTerms))
                     {
-                        startOffsetToTerms[startOffsets[i]] = startOffsetTerms = NewHashSet<int?>(1);
+                        startOffsetToTerms[startOffsets[i]] = startOffsetTerms = new JCG.HashSet<int?>(1);
                     }
                     startOffsetTerms.Add(i);
                 }
@@ -372,17 +372,6 @@ namespace Lucene.Net.Index
                 piAtt = AddAttribute<IPositionIncrementAttribute>();
                 oAtt = AddAttribute<IOffsetAttribute>();
                 pAtt = AddAttribute<IPayloadAttribute>();
-            }
-
-            // LUCENENET: Since capacity wasn't added until .NET Standard 2.1,
-            // this wrapper ensures we can pass it even if it is ignored
-            private ISet<T> NewHashSet<T>(int capacity)
-            {
-#if FEATURE_HASHSET_CAPACITY
-                return new JCG.HashSet<T>(capacity);
-#else
-                return new JCG.HashSet<T>();
-#endif
             }
 
             public virtual bool HasPayloads()
