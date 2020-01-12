@@ -1,3 +1,4 @@
+using J2N.Collections;
 using Lucene.Net.Store;
 using Lucene.Net.Support;
 using Lucene.Net.Util.Packed;
@@ -412,7 +413,7 @@ namespace Lucene.Net.Util.Fst
             // their values are equal, so we need to do that manually.
             // Note that we are testing the values without regard to whether
             // the enumerable type is nullable.
-            return Collections.Equals(a, b);
+            return StructuralEqualityComparer.Default.Equals(a, b);
         }
 
         // FST is complete
