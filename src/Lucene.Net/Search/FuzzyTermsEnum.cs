@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search
 {
@@ -487,8 +488,8 @@ namespace Lucene.Net.Search
         /// </summary>
         public sealed class LevenshteinAutomataAttribute : Attribute, ILevenshteinAutomataAttribute
         {
-            // LUCENENET NOTE: Must use EquatableList for Equals and GetHashCode()
-            private readonly IList<CompiledAutomaton> automata = new EquatableList<CompiledAutomaton>();
+            // LUCENENET NOTE: Must use JCG.List for Equals and GetHashCode()
+            private readonly IList<CompiledAutomaton> automata = new JCG.List<CompiledAutomaton>();
 
             public IList<CompiledAutomaton> Automata
             {

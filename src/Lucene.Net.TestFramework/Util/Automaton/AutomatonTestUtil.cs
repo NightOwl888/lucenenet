@@ -285,7 +285,7 @@ namespace Lucene.Net.Util.Automaton
             {
                 return;
             }
-            ISet<State> initialset = new EquatableSet<State>();
+            ISet<State> initialset = new JCG.HashSet<State>();
             initialset.Add(a.initial);
             DeterminizeSimple(a, initialset);
         }
@@ -320,7 +320,7 @@ namespace Lucene.Net.Util.Automaton
                 }
                 for (int n = 0; n < points.Length; n++)
                 {
-                    ISet<State> p = new EquatableSet<State>();
+                    ISet<State> p = new JCG.HashSet<State>();
                     foreach (State q in s)
                     {
                         foreach (Transition t in q.GetTransitions())
