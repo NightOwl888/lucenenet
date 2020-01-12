@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 
 /*
  * dk.brics.automaton
@@ -761,7 +762,7 @@ namespace Lucene.Net.Util.Automaton
         /// </summary>
         public virtual ISet<string> GetIdentifiers()
         {
-            ISet<string> set = new EquatableSet<string>();
+            ISet<string> set = new JCG.HashSet<string>();
             GetIdentifiers(set);
             return set;
         }

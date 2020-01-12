@@ -652,7 +652,7 @@ namespace Lucene.Net.Analysis.Util
             var charArraySetCopy = new CharArraySet(TEST_VERSION_CURRENT, values, false);
             values.Reverse();
             var charArraySetReverse = new CharArraySet(TEST_VERSION_CURRENT, values, false);
-            var equatableSetReverse = new EquatableSet<string>(values);
+            var equatableSetReverse = new JCG.HashSet<string>(values);
 
             assertTrue(charArraySet.GetHashCode().Equals(charArraySetCopy.GetHashCode()));
             assertTrue(charArraySet.Equals(charArraySetCopy));

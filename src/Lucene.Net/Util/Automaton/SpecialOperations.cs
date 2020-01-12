@@ -230,7 +230,7 @@ namespace Lucene.Net.Util.Automaton
             // reverse all edges
             Dictionary<State, ISet<Transition>> m = new Dictionary<State, ISet<Transition>>();
             State[] states = a.GetNumberedStates();
-            ISet<State> accept = new EquatableSet<State>();
+            ISet<State> accept = new JCG.HashSet<State>();
             foreach (State s in states)
             {
                 if (s.Accept)
@@ -240,7 +240,7 @@ namespace Lucene.Net.Util.Automaton
             }
             foreach (State r in states)
             {
-                m[r] = new EquatableSet<Transition>();
+                m[r] = new JCG.HashSet<Transition>();
                 r.accept = false;
             }
             foreach (State r in states)
