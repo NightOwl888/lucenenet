@@ -307,12 +307,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             else
             {
                 SomeLanguages sl = (SomeLanguages)other;
-                ISet<string> ls =
-#if FEATURE_HASHSET_CAPACITY
-                    new JCG.HashSet<string>(Math.Min(languages.Count, sl.languages.Count));
-#else
-                    new JCG.HashSet<string>();
-#endif
+                ISet<string> ls = new JCG.HashSet<string>(Math.Min(languages.Count, sl.languages.Count));
                 foreach (string lang in languages)
                 {
                     if (sl.languages.Contains(lang))

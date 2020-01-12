@@ -329,12 +329,7 @@ namespace Lucene.Net.Benchmarks.ByTask.Tasks
         protected virtual ICollection<string> GetFieldsToHighlight(Document document)
         {
             IList<IIndexableField> fields = document.Fields;
-            ISet<string> result =
-#if FEATURE_HASHSET_CAPACITY
-                new JCG.HashSet<string>(fields.Count);
-#else
-                new JCG.HashSet<string>();
-#endif
+            ISet<string> result = new JCG.HashSet<string>(fields.Count);
             foreach (IIndexableField f in fields)
             {
                 result.Add(f.Name);

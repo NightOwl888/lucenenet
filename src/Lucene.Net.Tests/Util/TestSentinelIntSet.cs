@@ -55,12 +55,7 @@ namespace Lucene.Net.Util
                 int num = Random.Next(30);
                 int maxVal = (Random.NextBoolean() ? Random.Next(50) : Random.Next(int.MaxValue)) + 1;
 
-                ISet<int> a =
-#if FEATURE_HASHSET_CAPACITY
-                    new JCG.HashSet<int>(initSz);
-#else
-                    new JCG.HashSet<int>();
-#endif
+                ISet<int> a = new JCG.HashSet<int>(initSz);
                 SentinelInt32Set b = new SentinelInt32Set(initSz, -1);
 
                 for (int j = 0; j < num; j++)
