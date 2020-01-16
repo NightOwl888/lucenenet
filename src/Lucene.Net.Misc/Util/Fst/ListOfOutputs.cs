@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Util.Fst
 {
@@ -94,7 +95,7 @@ namespace Lucene.Net.Util.Fst
             else
             {
                 IList outputList = (IList)output;
-                IList<T> addedList = new List<T>(outputList.Count);
+                IList<T> addedList = new JCG.List<T>(outputList.Count);
                 foreach (object _output in outputList)
                 {
                     addedList.Add(outputs.Add((T)prefix, (T)_output));
@@ -141,7 +142,7 @@ namespace Lucene.Net.Util.Fst
             }
             else
             {
-                IList<T> outputList = new List<T>(count);
+                IList<T> outputList = new JCG.List<T>(count);
                 for (int i = 0; i < count; i++)
                 {
                     outputList.Add(outputs.Read(@in));
@@ -187,7 +188,7 @@ namespace Lucene.Net.Util.Fst
         [MethodImpl(MethodImplOptions.NoInlining)]
         public override object Merge(object first, object second)
         {
-            List<T> outputList = new List<T>();
+            IList<T> outputList = new JCG.List<T>();
             if (!(first is IList<T> firstList))
             {
                 outputList.Add((T)first);
@@ -224,9 +225,7 @@ namespace Lucene.Net.Util.Fst
         {
             if (!(output is IList<T> outputList))
             {
-                IList<T> result = new List<T>(1);
-                result.Add((T)output);
-                return result;
+                return new JCG.List<T>(1) { (T)output };
             }
             else
             {
