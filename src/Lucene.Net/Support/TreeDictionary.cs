@@ -609,10 +609,10 @@ namespace Lucene.Net.Support
         /// <returns><c>true</c> if the specified object's values are equal to this dictionary.</returns>
         public override bool Equals(object obj)
         {
-            if (!(obj is SCG.IDictionary<TKey, TValue>))
-                return false;
+            if (obj is SCG.IDictionary<TKey, TValue> other)
+                return JCG.DictionaryEqualityComparer<TKey, TValue>.Aggressive.Equals(this, other);
 
-            return Collections.Equals(this, obj as SCG.IDictionary<TKey, TValue>);
+            return false;
         }
 
         /// <summary>
@@ -623,7 +623,7 @@ namespace Lucene.Net.Support
         /// <returns>The hash code value for this dictionary.</returns>
         public override int GetHashCode()
         {
-            return Collections.GetHashCode(this);
+            return JCG.DictionaryEqualityComparer<TKey, TValue>.Aggressive.GetHashCode(this);
         }
 
         /// <summary>
