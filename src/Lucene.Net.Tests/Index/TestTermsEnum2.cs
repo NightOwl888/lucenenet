@@ -1,3 +1,4 @@
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Documents;
 using Lucene.Net.Index.Extensions;
 using Lucene.Net.Support;
@@ -128,7 +129,7 @@ namespace Lucene.Net.Index
                 Automaton automaton = (new RegExp(reg, RegExpSyntax.NONE)).ToAutomaton();
                 TermsEnum te = MultiFields.GetTerms(Reader, "field").GetIterator(null);
                 IList<BytesRef> unsortedTerms = new List<BytesRef>(Terms);
-                Collections.Shuffle(unsortedTerms);
+                unsortedTerms.Shuffle();
 
                 foreach (BytesRef term in unsortedTerms)
                 {

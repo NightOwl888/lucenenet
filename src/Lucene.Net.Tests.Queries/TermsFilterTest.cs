@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Queries;
@@ -258,7 +259,7 @@ namespace Lucene.Net.Tests.Queries
             int numQueries = AtLeast(10);
             for (int i = 0; i < numQueries; i++)
             {
-                Collections.Shuffle(terms);
+                terms.Shuffle();
                 int numTerms = 1 + Random.Next(Math.Min(BooleanQuery.MaxClauseCount, terms.Count));
                 BooleanQuery bq = new BooleanQuery();
                 for (int j = 0; j < numTerms; j++)
@@ -324,7 +325,7 @@ namespace Lucene.Net.Tests.Queries
                 terms.Add(new Term(field, @string));
                 uniqueTerms.Add(new Term(field, @string));
                 TermsFilter left = TermsFilter(singleField && Random.NextBoolean(), uniqueTerms);
-                Collections.Shuffle(terms);
+                terms.Shuffle();
                 TermsFilter right = TermsFilter(singleField && Random.NextBoolean(), terms);
                 assertEquals(right, left);
                 assertEquals(right.GetHashCode(), left.GetHashCode());

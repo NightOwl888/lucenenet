@@ -1,3 +1,4 @@
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Analysis;
 using Lucene.Net.Attributes;
 using Lucene.Net.Documents;
@@ -273,7 +274,7 @@ namespace Lucene.Net.Codecs.Lucene41
             }
 
             List<BytesRef> shuffledTests = new List<BytesRef>(tests);
-            Collections.Shuffle(shuffledTests);
+            shuffledTests.Shuffle();
 
             foreach (BytesRef b in shuffledTests)
             {

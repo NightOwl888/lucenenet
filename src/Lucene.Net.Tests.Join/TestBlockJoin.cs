@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Console = Lucene.Net.Support.SystemConsole;
+using J2N.Collections.Generic.Extensions;
 
 namespace Lucene.Net.Tests.Join
 {
@@ -296,13 +297,13 @@ namespace Lucene.Net.Tests.Join
             IList<Document> docs = new List<Document>();
             docs.Add(MakeJob("java", 2007));
             docs.Add(MakeJob("python", 2010));
-            Collections.Shuffle(docs);
+            docs.Shuffle();
             docs.Add(MakeResume("Lisa", "United Kingdom"));
 
             IList<Document> docs2 = new List<Document>();
             docs2.Add(MakeJob("ruby", 2005));
             docs2.Add(MakeJob("java", 2006));
-            Collections.Shuffle(docs2);
+            docs2.Shuffle();
             docs2.Add(MakeResume("Frank", "United States"));
 
             AddSkillless(w);
@@ -1319,7 +1320,7 @@ namespace Lucene.Net.Tests.Join
             docs.Add(MakeJob("java", 2006));
             docs.Add(MakeJob("java", 2010));
             docs.Add(MakeJob("java", 2012));
-            Collections.Shuffle(docs);
+            docs.Shuffle();
             docs.Add(MakeResume("Frank", "United States"));
 
             AddSkillless(w);

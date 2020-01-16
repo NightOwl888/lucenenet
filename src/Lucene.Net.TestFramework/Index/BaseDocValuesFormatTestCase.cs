@@ -15,6 +15,7 @@ using JCG = J2N.Collections.Generic;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
 using Assert = Lucene.Net.TestFramework.Assert;
 using static Lucene.Net.Index.TermsEnum;
+using J2N.Collections.Generic.Extensions;
 
 #if TESTFRAMEWORK_MSTEST
 using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
@@ -2607,7 +2608,7 @@ namespace Lucene.Net.Index
 
                         // add in any order to the dv field
                         IList<string> unordered = new List<string>(values);
-                        Collections.Shuffle(unordered, Random);
+                        unordered.Shuffle(Random);
                         foreach (string v in unordered)
                         {
                             doc.Add(new SortedSetDocValuesField("dv", new BytesRef(v)));
@@ -2864,7 +2865,7 @@ namespace Lucene.Net.Index
 
                         // add in any order to the indexed field
                         IList<string> unordered = new List<string>(values);
-                        Collections.Shuffle(unordered, Random);
+                        unordered.Shuffle(Random);
                         foreach (string v in unordered)
                         {
                             doc.Add(NewStringField("indexed", v, Field.Store.NO));
@@ -2872,7 +2873,7 @@ namespace Lucene.Net.Index
 
                         // add in any order to the dv field
                         IList<string> unordered2 = new List<string>(values);
-                        Collections.Shuffle(unordered2, Random);
+                        unordered2.Shuffle(Random);
                         foreach (string v in unordered2)
                         {
                             doc.Add(new SortedSetDocValuesField("dv", new BytesRef(v)));

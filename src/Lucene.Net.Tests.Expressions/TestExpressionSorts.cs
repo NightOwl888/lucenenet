@@ -1,3 +1,4 @@
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Documents;
 using Lucene.Net.Expressions.JS;
 using Lucene.Net.Index;
@@ -125,7 +126,7 @@ namespace Lucene.Net.Expressions
                     new SortField("floatdocvalues", SortFieldType.SINGLE, reversed),
                     new SortField("score", SortFieldType.SCORE)
                 };
-                Collections.Shuffle(fields, Random);
+                fields.Shuffle(Random);
                 int numSorts = TestUtil.NextInt32(Random, 1, fields.Length);
                 AssertQuery(query, filter, new Sort(Arrays.CopyOfRange(fields, 0, numSorts)));
             }

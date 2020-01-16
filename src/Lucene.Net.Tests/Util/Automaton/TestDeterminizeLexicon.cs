@@ -1,3 +1,4 @@
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Index;
 using Lucene.Net.Support;
 using NUnit.Framework;
@@ -53,7 +54,7 @@ namespace Lucene.Net.Util.Automaton
 
         public void AssertLexicon()
         {
-            Collections.Shuffle(automata, Random);
+            automata.Shuffle(Random);
             var lex = BasicOperations.Union(automata);
             lex.Determinize();
             Assert.IsTrue(SpecialOperations.IsFinite(lex));

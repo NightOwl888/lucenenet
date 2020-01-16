@@ -6,6 +6,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Diagnostics;
 using JCG = J2N.Collections.Generic;
+using J2N.Collections.Generic.Extensions;
 
 namespace Lucene.Net.Search
 {
@@ -133,7 +134,7 @@ namespace Lucene.Net.Search
         private static void AddSome(Document doc, string[] values)
         {
             IList<string> list = values.ToArray();
-            Collections.Shuffle(list);
+            list.Shuffle();
             int howMany = TestUtil.NextInt32(Random, 1, list.Count);
             for (int i = 0; i < howMany; i++)
             {
@@ -294,7 +295,7 @@ namespace Lucene.Net.Search
             termsList.AddRange(CommonTerms);
             termsList.AddRange(MediumTerms);
             termsList.AddRange(RareTerms);
-            Collections.Shuffle(termsList);
+            termsList.Shuffle();
 
             for (int numTerms = 2; numTerms <= termsList.Count; numTerms++)
             {
@@ -317,7 +318,7 @@ namespace Lucene.Net.Search
             termsList.AddRange(CommonTerms);
             termsList.AddRange(MediumTerms);
             termsList.AddRange(RareTerms);
-            Collections.Shuffle(termsList);
+            termsList.Shuffle();
 
             for (int amount = 25; amount < 200; amount += 25)
             {

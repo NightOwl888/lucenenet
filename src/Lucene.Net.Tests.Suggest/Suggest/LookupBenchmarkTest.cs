@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Analysis;
+﻿using J2N.Collections.Generic.Extensions;
+using Lucene.Net.Analysis;
 using Lucene.Net.Search.Suggest.Analyzing;
 using Lucene.Net.Search.Suggest.Fst;
 using Lucene.Net.Search.Suggest.Jaspell;
@@ -75,9 +76,9 @@ namespace Lucene.Net.Search.Suggest
         {
             Debug.Assert(false, "disable assertions before running benchmarks!");
             IList<Input> input = ReadTop50KWiki();
-            Collections.Shuffle(input);
+            input.Shuffle();
             dictionaryInput = input.ToArray();
-            Collections.Shuffle(input);
+            input.Shuffle();
             benchmarkInput = input;
         }
 
