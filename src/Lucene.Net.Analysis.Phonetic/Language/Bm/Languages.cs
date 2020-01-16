@@ -1,4 +1,5 @@
 ﻿// commons-codec version compatibility level: 1.9
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
@@ -126,7 +127,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
                 }
             }
 
-            return new Languages(Collections.UnmodifiableSet(ls));
+            return new Languages(ls.AsReadOnly());
         }
 
         private static string LangResourceName(NameType nameType)
@@ -266,7 +267,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
 
         internal SomeLanguages(ISet<string> languages)
         {
-            this.languages = Collections.UnmodifiableSet(languages);
+            this.languages = languages.AsReadOnly();
         }
 
         public override bool Contains(string language)

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using JCG = J2N.Collections.Generic;
+using J2N.Collections.Generic.Extensions;
 
 #if NETSTANDARD
 using System.IO;
@@ -637,7 +638,7 @@ namespace Lucene.Net.Expressions.JS
             {
                 throw new Exception("Cannot resolve function", e);
             }
-            return Collections.UnmodifiableMap(map);
+            return map.AsReadOnly();
         }
 
         private static Type GetType(string typeName)

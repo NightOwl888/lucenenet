@@ -1,4 +1,5 @@
 ﻿// commons-codec version compatibility level: 1.9
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
@@ -147,10 +148,10 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
                         rs["common"] = ParseRules(CreateScanner(s, rt, "common"), CreateResourceName(s, rt, "common"));
                     }
 
-                    rts[rt] = Collections.UnmodifiableMap(rs);
+                    rts[rt] = rs.AsReadOnly();
                 }
 
-                rules[s] = Collections.UnmodifiableMap(rts);
+                rules[s] = rts.AsReadOnly();
             }
             return rules;
         }

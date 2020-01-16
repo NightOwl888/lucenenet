@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Analysis.Core;
+﻿using J2N.Collections.Generic.Extensions;
+using Lucene.Net.Analysis.Core;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
 using System;
@@ -60,7 +61,7 @@ namespace Lucene.Net.Analysis.Util
         protected AbstractAnalysisFactory(IDictionary<string, string> args)
         {
             IsExplicitLuceneMatchVersion = false;
-            originalArgs = Collections.UnmodifiableMap(args);
+            originalArgs = args.AsReadOnly();
             string version = Get(args, LUCENE_MATCH_VERSION_PARAM);
             // LUCENENET TODO: What should we do if the version is null?
             //luceneMatchVersion = version == null ? (LuceneVersion?)null : LuceneVersionHelpers.ParseLeniently(version);
