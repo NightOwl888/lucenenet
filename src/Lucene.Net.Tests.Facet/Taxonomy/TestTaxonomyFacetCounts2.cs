@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Randomized.Generators;
 using Lucene.Net.Support;
 using NUnit.Framework;
@@ -102,8 +103,8 @@ namespace Lucene.Net.Facet.Taxonomy
             categories_a.AddRange(CATEGORIES_A);
             List<FacetField> categories_b = new List<FacetField>();
             categories_b.AddRange(CATEGORIES_B);
-            Collections.Shuffle(categories_a);
-            Collections.Shuffle(categories_b);
+            categories_a.Shuffle();
+            categories_b.Shuffle();
 
             List<FacetField> categories = new List<FacetField>();
             categories.AddRange(categories_a.SubList(0, numFacetsA));

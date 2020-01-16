@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
+using J2N.Collections.Generic.Extensions;
 
 namespace Lucene.Net.Util.Fst
 {
@@ -1233,7 +1234,7 @@ namespace Lucene.Net.Util.Fst
             w.Dispose();
 
             IList<string> allTermsList = new List<string>(allTerms);
-            Collections.Shuffle(allTermsList);
+            allTermsList.Shuffle();
 
             // verify exact lookup
             foreach (string term in allTermsList)

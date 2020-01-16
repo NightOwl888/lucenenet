@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
+using J2N.Collections.Generic.Extensions;
 
 namespace Lucene.Net.Index
 {
@@ -78,7 +79,7 @@ namespace Lucene.Net.Index
                     postingsList.Add(term);
                 }
             }
-            Collections.Shuffle(postingsList);
+            postingsList.Shuffle();
 
             ConcurrentQueue<string> postings = new ConcurrentQueue<string>(postingsList);
 

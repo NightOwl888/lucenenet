@@ -32,6 +32,7 @@ using Directory = Lucene.Net.Store.Directory;
 using FieldInfo = Lucene.Net.Index.FieldInfo;
 using static Lucene.Net.Search.FieldCache;
 using static Lucene.Net.Util.FieldCacheSanityChecker;
+using J2N.Collections.Generic.Extensions;
 
 #if TESTFRAMEWORK_MSTEST
 using Before = Microsoft.VisualStudio.TestTools.UnitTesting.TestInitializeAttribute;
@@ -1834,7 +1835,7 @@ namespace Lucene.Net.Util
                             {
                                 allFields.Add(fi.Name);
                             }
-                            Collections.Shuffle(allFields);
+                            allFields.Shuffle();
                             int end = allFields.Count == 0 ? 0 : random.Next(allFields.Count);
                             ISet<string> fields = new JCG.HashSet<string>(allFields.SubList(0, end));
                             // will create no FC insanity as ParallelAtomicReader has own cache key:
@@ -2621,7 +2622,7 @@ namespace Lucene.Net.Util
             rightEnum = rightTerms.GetIterator(rightEnum);
 
             IList<BytesRef> shuffledTests = new List<BytesRef>(tests);
-            Collections.Shuffle(shuffledTests);
+            shuffledTests.Shuffle();
 
             foreach (BytesRef b in shuffledTests)
             {

@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using Console = Lucene.Net.Support.SystemConsole;
 using Assert = Lucene.Net.TestFramework.Assert;
+using J2N.Collections.Generic.Extensions;
 
 #if TESTFRAMEWORK_MSTEST
 using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
@@ -135,7 +136,7 @@ namespace Lucene.Net.Index
                         if (rand.Next(50) == 17)
                         {
                             // mixup binding of field name -> Number every so often
-                            Collections.Shuffle(fieldIDs);
+                            fieldIDs.Shuffle();
                         }
                         if (rand.Next(5) == 3 && i > 0)
                         {

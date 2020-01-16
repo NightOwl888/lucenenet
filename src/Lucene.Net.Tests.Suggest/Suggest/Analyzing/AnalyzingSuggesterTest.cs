@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
+using J2N.Collections.Generic.Extensions;
 
 namespace Lucene.Net.Search.Suggest.Analyzing
 {
@@ -1501,7 +1502,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
             {
                 asList.Add(value);
             }
-            Collections.Shuffle(asList);
+            asList.Shuffle();
             return asList;
         }
     }

@@ -13,6 +13,7 @@ using Console = Lucene.Net.Support.SystemConsole;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
 using Assert = Lucene.Net.TestFramework.Assert;
 using Directory = Lucene.Net.Store.Directory;
+using J2N.Collections.Generic.Extensions;
 
 #if TESTFRAMEWORK_MSTEST
 using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
@@ -1173,7 +1174,7 @@ namespace Lucene.Net.Index
             IList<TermState> termStates = new List<TermState>();
             IList<FieldAndTerm> termStateTerms = new List<FieldAndTerm>();
 
-            Collections.Shuffle(allTerms, Random);
+            allTerms.Shuffle(Random);
             int upto = 0;
             while (upto < allTerms.Count)
             {

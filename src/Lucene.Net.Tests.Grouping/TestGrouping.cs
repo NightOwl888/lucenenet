@@ -41,6 +41,7 @@ using System.Reflection;
 using System.Text;
 using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
+using J2N.Collections.Generic.Extensions;
 
 namespace Lucene.Net.Search.Grouping
 {
@@ -680,7 +681,7 @@ namespace Lucene.Net.Search.Grouping
         private DirectoryReader GetDocBlockReader(Directory dir, GroupDoc[] groupDocs)
         {
             // Coalesce by group, but in random order:
-            Collections.Shuffle(groupDocs, Random);
+            groupDocs.Shuffle(Random);
             IDictionary<BytesRef, List<GroupDoc>> groupMap = new JCG.Dictionary<BytesRef, List<GroupDoc>>();
             List<BytesRef> groupValues = new List<BytesRef>();
 
