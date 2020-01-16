@@ -56,7 +56,7 @@ namespace Lucene.Net.Index
         private CompositeReaderContext(CompositeReaderContext parent, CompositeReader reader, int ordInParent, int docbaseInParent, IList<IndexReaderContext> children, IList<AtomicReaderContext> leaves)
             : base(parent, ordInParent, docbaseInParent)
         {
-            this.children = children.ToUnmodifiableList();
+            this.children = children.AsReadOnly();
             this.leaves = leaves;
             this.reader = reader;
         }

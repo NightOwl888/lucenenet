@@ -157,7 +157,7 @@ namespace Lucene.Net.Index
         /// Opaque <see cref="T:IDictionary{string, string}"/> that user can specify during <see cref="IndexWriter.Commit()"/> </summary>
         private IDictionary<string, string> userData = Collections.EmptyMap<string, string>();
 
-        private List<SegmentCommitInfo> segments = new List<SegmentCommitInfo>();
+        private IList<SegmentCommitInfo> segments = new JCG.List<SegmentCommitInfo>();
 
         /// <summary>
         /// If non-null, information about loading segments_N files 
@@ -1429,7 +1429,7 @@ namespace Lucene.Net.Index
         /// Returns all contained segments as an <b>unmodifiable</b> <see cref="T:IList{SegmentCommitInfo}"/> view. </summary>
         public IList<SegmentCommitInfo> AsList()
         {
-            return segments.ToUnmodifiableList();
+            return segments.AsReadOnly();
         }
 
         /// <summary>

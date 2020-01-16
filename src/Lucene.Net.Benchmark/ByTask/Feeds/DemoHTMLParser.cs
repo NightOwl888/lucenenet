@@ -205,7 +205,7 @@ namespace Lucene.Net.Benchmarks.ByTask.Feeds
 
             private static ISet<string> CreateElementNameSet(params string[] names)
             {
-                return new JCG.HashSet<string>(names).ToUnmodifiableSet();
+                return new JCG.HashSet<string>(names).AsReadOnly();
             }
 
             /// <summary>HTML elements that cause a line break (they are block-elements).</summary>
