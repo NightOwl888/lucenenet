@@ -188,26 +188,26 @@ namespace Lucene.Net.Util.Fst
         public override object Merge(object first, object second)
         {
             List<T> outputList = new List<T>();
-            if (!(first is IList))
+            if (!(first is IList<T> firstList))
             {
                 outputList.Add((T)first);
             }
             else
             {
-                foreach (object value in first as IList)
+                foreach (T value in firstList)
                 {
-                    outputList.Add((T)value);
+                    outputList.Add(value);
                 }
             }
-            if (!(second is IList))
+            if (!(second is IList<T> secondList))
             {
                 outputList.Add((T)second);
             }
             else
             {
-                foreach (object value in second as IList)
+                foreach (T value in secondList)
                 {
-                    outputList.Add((T)value);
+                    outputList.Add(value);
                 }
             }
             //System.out.println("MERGE: now " + outputList.size() + " first=" + outputToString(first) + " second=" + outputToString(second));
@@ -222,7 +222,7 @@ namespace Lucene.Net.Util.Fst
 
         public IList<T> AsList(object output)
         {
-            if (!(output is IList))
+            if (!(output is IList<T> outputList))
             {
                 IList<T> result = new List<T>(1);
                 result.Add((T)output);
@@ -230,7 +230,7 @@ namespace Lucene.Net.Util.Fst
             }
             else
             {
-                return (IList<T>)output;
+                return outputList;
             }
         }
     }
