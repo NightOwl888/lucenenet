@@ -1,3 +1,4 @@
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Support;
 using System.Collections.Generic;
 using JCG = J2N.Collections.Generic;
@@ -101,7 +102,7 @@ namespace Lucene.Net.Index
         {
             get
             {
-                return Collections.UnmodifiableMap(genUpdatesFiles);
+                return genUpdatesFiles.AsReadOnly();
             }
         }
 

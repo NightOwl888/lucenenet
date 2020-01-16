@@ -1,4 +1,5 @@
 ﻿// commons-codec version compatibility level: 1.9
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
@@ -218,7 +219,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
 
         private Lang(IList<LangRule> rules, Languages languages)
         {
-            this.rules = Collections.UnmodifiableList(rules);
+            this.rules = rules.AsReadOnly();
             this.languages = languages;
         }
 

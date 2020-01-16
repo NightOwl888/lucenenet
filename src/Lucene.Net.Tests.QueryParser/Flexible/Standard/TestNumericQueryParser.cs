@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Analysis;
+﻿using J2N.Collections.Generic.Extensions;
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Index.Extensions;
@@ -184,7 +185,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard
             randomNumberMap.Put(NumericType.DOUBLE.ToString(), randomDouble);
             randomNumberMap.Put(DATE_FIELD_NAME, randomDate);
 
-            RANDOM_NUMBER_MAP = Collections.UnmodifiableMap(randomNumberMap);
+            RANDOM_NUMBER_MAP = randomNumberMap.AsReadOnly();
 
             directory = NewDirectory();
             RandomIndexWriter writer = new RandomIndexWriter(Random, directory,

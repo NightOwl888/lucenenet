@@ -1,4 +1,4 @@
-using Lucene.Net.Support;
+using J2N.Collections.Generic.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -287,7 +287,7 @@ namespace Lucene.Net.Codecs.Lucene3x
                 }
             }
 
-            SegmentInfo info = new SegmentInfo(dir, version, name, docCount, isCompoundFile, null, diagnostics, Collections.UnmodifiableMap(attributes));
+            SegmentInfo info = new SegmentInfo(dir, version, name, docCount, isCompoundFile, null, diagnostics, attributes.AsReadOnly());
             info.SetFiles(files);
 
             SegmentCommitInfo infoPerCommit = new SegmentCommitInfo(info, delCount, delGen, -1);
@@ -309,7 +309,7 @@ namespace Lucene.Net.Codecs.Lucene3x
 
             ISet<string> files = input.ReadStringSet();
 
-            SegmentInfo info = new SegmentInfo(dir, version, name, docCount, isCompoundFile, null, diagnostics, Collections.UnmodifiableMap(attributes));
+            SegmentInfo info = new SegmentInfo(dir, version, name, docCount, isCompoundFile, null, diagnostics, attributes.AsReadOnly());
             info.SetFiles(files);
             return info;
         }
