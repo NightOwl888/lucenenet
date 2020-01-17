@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Index;
+﻿using J2N.Runtime.CompilerServices;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Support;
 using System;
@@ -65,9 +66,10 @@ namespace Lucene.Net.Queries.Function
         /// </summary>
         public static IDictionary NewContext(IndexSearcher searcher)
         {
-            var context = new Hashtable(IdentityComparer.Default);
-            context["searcher"] = searcher;
-            return context;
+            return new Hashtable(IdentityEqualityComparer<object>.Default)
+            {
+                ["searcher"] = searcher
+            };
         }
 
 

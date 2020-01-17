@@ -32,6 +32,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
+using J2N.Runtime.CompilerServices;
 
 namespace Lucene.Net.Analysis.Core
 {
@@ -145,19 +146,19 @@ namespace Lucene.Net.Analysis.Core
                 throw new Exception(e.Message, e);
             }
 
-            allowedTokenizerArgs = new IdentityHashSet<Type>(); // Collections.NewSetFromMap(new IdentityHashMap<Type, bool?>());
+            allowedTokenizerArgs = new JCG.HashSet<Type>(IdentityEqualityComparer<Type>.Default);
             allowedTokenizerArgs.addAll(argProducers.Keys);
             allowedTokenizerArgs.Add(typeof(TextReader));
             allowedTokenizerArgs.Add(typeof(AttributeSource.AttributeFactory));
             allowedTokenizerArgs.Add(typeof(AttributeSource));
 
-            allowedTokenFilterArgs = new IdentityHashSet<Type>();  //Collections.newSetFromMap(new IdentityHashMap<Type, bool?>());
+            allowedTokenFilterArgs = new JCG.HashSet<Type>(IdentityEqualityComparer<Type>.Default);
             allowedTokenFilterArgs.addAll(argProducers.Keys);
             allowedTokenFilterArgs.Add(typeof(TokenStream));
             // TODO: fix this one, thats broken:
             allowedTokenFilterArgs.Add(typeof(CommonGramsFilter));
 
-            allowedCharFilterArgs = new IdentityHashSet<Type>(); //Collections.newSetFromMap(new IdentityHashMap<Type, bool?>());
+            allowedCharFilterArgs = new JCG.HashSet<Type>(IdentityEqualityComparer<Type>.Default);
             allowedCharFilterArgs.addAll(argProducers.Keys);
             allowedCharFilterArgs.Add(typeof(TextReader));
         }
@@ -281,7 +282,7 @@ namespace Lucene.Net.Analysis.Core
             object Create(Random random);
         }
 
-        private static readonly IDictionary<Type, IArgProducer> argProducers = new IdentityHashMap<Type, IArgProducer>()
+        private static readonly IDictionary<Type, IArgProducer> argProducers = new JCG.Dictionary<Type, IArgProducer>(IdentityEqualityComparer<Type>.Default)
         {
             { typeof(int), new IntArgProducer() },
             { typeof(char), new CharArgProducer() },

@@ -14,6 +14,7 @@ using JCG = J2N.Collections.Generic;
 using AssertionError = Lucene.Net.Diagnostics.AssertionException;
 using Console = Lucene.Net.Support.SystemConsole;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
+using J2N.Runtime.CompilerServices;
 #if FEATURE_SERIALIZABLE_EXCEPTIONS
 using System.Runtime.Serialization;
 #endif
@@ -120,7 +121,7 @@ namespace Lucene.Net.Store
 
         // use this for tracking files for crash.
         // additionally: provides debugging information in case you leave one open
-        private readonly ConcurrentDictionary<IDisposable, Exception> openFileHandles = new ConcurrentDictionary<IDisposable, Exception>(IdentityComparer<IDisposable>.Default);
+        private readonly ConcurrentDictionary<IDisposable, Exception> openFileHandles = new ConcurrentDictionary<IDisposable, Exception>(IdentityEqualityComparer<IDisposable>.Default);
 
         // NOTE: we cannot initialize the Map here due to the
         // order in which our constructor actually does this
@@ -297,7 +298,7 @@ namespace Lucene.Net.Store
                     unSyncedFiles = new JCG.HashSet<string>(StringComparer.Ordinal);
                     // first force-close all files, so we can corrupt on windows etc.
                     // clone the file map, as these guys want to remove themselves on close.
-                    var m = new IdentityHashMap<IDisposable, Exception>(openFileHandles);
+                    var m = new JCG.Dictionary<IDisposable, Exception>(openFileHandles, IdentityEqualityComparer<IDisposable>.Default);
                     foreach (IDisposable f in m.Keys)
                     {
                         try

@@ -1,3 +1,4 @@
+using J2N.Runtime.CompilerServices;
 using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
@@ -291,7 +292,7 @@ namespace Lucene.Net.Codecs.PerField
             {
                 this.outerInstance = outerInstance;
 
-                IDictionary<DocValuesProducer, DocValuesProducer> oldToNew = new IdentityHashMap<DocValuesProducer, DocValuesProducer>();
+                IDictionary<DocValuesProducer, DocValuesProducer> oldToNew = new JCG.Dictionary<DocValuesProducer, DocValuesProducer>(IdentityEqualityComparer<DocValuesProducer>.Default);
                 // First clone all formats
                 foreach (KeyValuePair<string, DocValuesProducer> ent in other.formats)
                 {

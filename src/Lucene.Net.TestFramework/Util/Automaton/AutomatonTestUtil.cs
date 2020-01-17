@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using JCG = J2N.Collections.Generic;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
+using J2N.Runtime.CompilerServices;
 
 namespace Lucene.Net.Util.Automaton
 {
@@ -438,7 +439,7 @@ namespace Lucene.Net.Util.Automaton
 
             // must use IdentityHashmap because two Transitions w/
             // different start nodes can be considered the same
-            leadsToAccept = new IdentityHashMap<Transition, bool?>();
+            leadsToAccept = new JCG.Dictionary<Transition, bool?>(IdentityEqualityComparer<Transition>.Default);
             IDictionary<State, IList<ArrivingTransition>> allArriving = new Dictionary<State, IList<ArrivingTransition>>();
 
             LinkedList<State> q = new LinkedList<State>();

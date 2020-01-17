@@ -1,3 +1,4 @@
+using J2N.Runtime.CompilerServices;
 using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
@@ -55,7 +56,7 @@ namespace Lucene.Net.Index
         private readonly FieldInfos fieldInfos;
         private ParallelFields fields;
         private readonly AtomicReader[] parallelReaders, storedFieldsReaders;
-        private readonly ISet<AtomicReader> completeReaderSet = new IdentityHashSet<AtomicReader>();
+        private readonly ISet<AtomicReader> completeReaderSet = new JCG.HashSet<AtomicReader>(IdentityEqualityComparer<AtomicReader>.Default);
         private readonly bool closeSubReaders;
         private readonly int maxDoc, numDocs;
         private readonly bool hasDeletions;

@@ -1,3 +1,4 @@
+using J2N.Runtime.CompilerServices;
 using J2N.Threading.Atomic;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
@@ -112,7 +113,7 @@ namespace Lucene.Net.Index
             }
         }
 
-        private readonly ISet<ICoreDisposedListener> coreClosedListeners = new ConcurrentHashSet<ICoreDisposedListener>(IdentityComparer<ICoreDisposedListener>.Default);
+        private readonly ISet<ICoreDisposedListener> coreClosedListeners = new ConcurrentHashSet<ICoreDisposedListener>(IdentityEqualityComparer<ICoreDisposedListener>.Default);
 
         internal SegmentCoreReaders(SegmentReader owner, Directory dir, SegmentCommitInfo si, IOContext context, int termsIndexDivisor)
         {
