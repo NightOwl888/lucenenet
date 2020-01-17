@@ -1,3 +1,4 @@
+using J2N.Runtime.CompilerServices;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Lucene.Net.Support;
@@ -706,7 +707,7 @@ namespace Lucene.Net.Codecs.Pulsing
             // you don't reuse? and maybe pulsingPostingsReader should throw an exc if it wraps
             // another pulsing, because this is just stupid and wasteful. 
             // we still have to be careful in case someone does Pulsing(Stomping(Pulsing(...
-            private readonly IDictionary<PulsingPostingsReader, DocsEnum> _enums = new IdentityHashMap<PulsingPostingsReader, DocsEnum>();
+            private readonly IDictionary<PulsingPostingsReader, DocsEnum> _enums = new JCG.Dictionary<PulsingPostingsReader, DocsEnum>(IdentityEqualityComparer<PulsingPostingsReader>.Default);
 
             public IDictionary<PulsingPostingsReader, DocsEnum> Enums
             {
