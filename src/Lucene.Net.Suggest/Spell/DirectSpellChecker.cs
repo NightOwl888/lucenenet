@@ -115,17 +115,14 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual int MaxEdits
         {
-            get
-            {
-                return maxEdits;
-            }
+            get => maxEdits;
             set
             {
                 if (value < 1 || value > LevenshteinAutomata.MAXIMUM_SUPPORTED_DISTANCE)
                 {
                     throw new NotSupportedException("Invalid maxEdits");
                 }
-                this.maxEdits = value;
+                maxEdits = value;
             }
         }
 
@@ -138,14 +135,8 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual int MinPrefix
         {
-            get
-            {
-                return minPrefix;
-            }
-            set
-            {
-                this.minPrefix = value;
-            }
+            get => minPrefix;
+            set => minPrefix = value;
         }
 
 
@@ -157,14 +148,8 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual int MaxInspections
         {
-            get
-            {
-                return maxInspections;
-            }
-            set
-            {
-                this.maxInspections = value;
-            }
+            get => maxInspections;
+            set => maxInspections = value;
         }
 
 
@@ -174,14 +159,8 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual float Accuracy
         {
-            get
-            {
-                return accuracy;
-            }
-            set
-            {
-                this.accuracy = value;
-            }
+            get => accuracy;
+            set => accuracy = value;
         }
 
 
@@ -199,17 +178,14 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual float ThresholdFrequency
         {
-            get
-            {
-                return thresholdFrequency;
-            }
+            get => thresholdFrequency;
             set
             {
                 if (value >= 1f && value != (int)value)
                 {
                     throw new System.ArgumentException("Fractional absolute document frequencies are not allowed");
                 }
-                this.thresholdFrequency = value;
+                thresholdFrequency = value;
             }
         }
 
@@ -222,14 +198,8 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual int MinQueryLength
         {
-            get
-            {
-                return minQueryLength;
-            }
-            set
-            {
-                this.minQueryLength = value;
-            }
+            get => minQueryLength;
+            set => minQueryLength = value;
         }
 
 
@@ -247,17 +217,14 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual float MaxQueryFrequency
         {
-            get
-            {
-                return maxQueryFrequency;
-            }
+            get => maxQueryFrequency;
             set
             {
                 if (value >= 1f && value != (int)value)
                 {
                     throw new System.ArgumentException("Fractional absolute document frequencies are not allowed");
                 }
-                this.maxQueryFrequency = value;
+                maxQueryFrequency = value;
             }
         }
 
@@ -274,14 +241,8 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual bool LowerCaseTerms
         {
-            get
-            {
-                return lowerCaseTerms;
-            }
-            set
-            {
-                this.lowerCaseTerms = value;
-            }
+            get => lowerCaseTerms;
+            set => lowerCaseTerms = value;
         }
 
         /// <summary>
@@ -290,14 +251,8 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual CultureInfo LowerCaseTermsCulture // LUCENENET specific
         {
-            get
-            {
-                return lowerCaseTermsCulture ?? CultureInfo.CurrentCulture;
-            }
-            set
-            {
-                lowerCaseTermsCulture = value;
-            }
+            get => lowerCaseTermsCulture ?? CultureInfo.CurrentCulture;
+            set => lowerCaseTermsCulture = value;
         }
 
         /// <summary>
@@ -306,14 +261,8 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual IComparer<SuggestWord> Comparer
         {
-            get
-            {
-                return comparer;
-            }
-            set
-            {
-                this.comparer = value;
-            }
+            get => comparer;
+            set => comparer = value;
         }
 
 
@@ -329,14 +278,8 @@ namespace Lucene.Net.Search.Spell
         /// </summary>
         public virtual IStringDistance Distance
         {
-            get
-            {
-                return distance;
-            }
-            set
-            {
-                this.distance = value;
-            }
+            get => distance;
+            set => distance = value;
         }
 
 
@@ -487,7 +430,7 @@ namespace Lucene.Net.Search.Spell
             }
             FuzzyTermsEnum e = new FuzzyTermsEnum(terms, atts, term, editDistance, Math.Max(minPrefix, editDistance - 1), true);
 
-            var stQueue = new Support.PriorityQueue<ScoreTerm>();
+            var stQueue = new JCG.PriorityQueue<ScoreTerm>();
 
             BytesRef queryTerm = new BytesRef(term.Text());
             BytesRef candidateTerm;
@@ -543,9 +486,9 @@ namespace Lucene.Net.Search.Spell
                 st.Docfreq = df;
                 st.TermAsString = termAsString;
                 st.Score = score;
-                stQueue.Offer(st);
+                stQueue.Enqueue(st);
                 // possibly drop entries from queue
-                st = (stQueue.Count > numSug) ? stQueue.Poll() : new ScoreTerm();
+                st = (stQueue.Count > numSug) ? stQueue.Dequeue() : new ScoreTerm();
                 maxBoostAtt.MaxNonCompetitiveBoost = (stQueue.Count >= numSug) ? stQueue.Peek().Boost : float.NegativeInfinity;
             }
 
