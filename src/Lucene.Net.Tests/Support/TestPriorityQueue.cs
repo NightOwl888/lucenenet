@@ -10,6 +10,7 @@ using System.Linq;
 #if FEATURE_SERIALIZABLE
 using System.Runtime.Serialization.Formatters.Binary;
 #endif
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Support
 {
@@ -343,10 +344,10 @@ namespace Lucene.Net.Support
         }
 
         [Test, LuceneNetSpecific]
-        public void Test_ConstructorLCollection_from_treeset()
+        public void Test_ConstructorLCollection_from_JCG_sortedset()
         {
             int[] array = { 3, 5, 79, -17, 5 };
-            TreeSet<Integer> treeSet = new TreeSet<Integer>(new MockComparer<Integer>());
+            JCG.SortedSet<Integer> treeSet = new JCG.SortedSet<Integer>(new MockComparer<Integer>());
             for (int i = 0; i < array.Length; i++)
             {
                 treeSet.Add(array[i]);
@@ -420,7 +421,7 @@ namespace Lucene.Net.Support
         public void Test_ConstructorLTreeSet()
         {
             int[] array = { 3, 5, 79, -17, 5 };
-            TreeSet<Integer> treeSet = new TreeSet<Integer>();
+            JCG.SortedSet<Integer> treeSet = new JCG.SortedSet<Integer>();
             for (int i = 0; i < array.Length; i++)
             {
                 treeSet.Add(array[i]);
@@ -454,7 +455,7 @@ namespace Lucene.Net.Support
         {
             try
             {
-                new PriorityQueue<Integer>((TreeSet<Integer>)null);
+                new PriorityQueue<Integer>((JCG.SortedSet<Integer>)null);
                 fail("should throw ArgumentNullException");
             }
 #pragma warning disable 168
@@ -903,7 +904,7 @@ namespace Lucene.Net.Support
             return ss.Add(new TestPriorityQueue.Integer(value));
         }
 
-        public static bool Add(this TreeSet<TestPriorityQueue.Integer> ss, int value)
+        public static bool Add(this JCG.SortedSet<TestPriorityQueue.Integer> ss, int value)
         {
             return ss.Add(new TestPriorityQueue.Integer(value));
         }
