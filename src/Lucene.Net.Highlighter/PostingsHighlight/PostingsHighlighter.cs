@@ -12,6 +12,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.PostingsHighlight
 {
