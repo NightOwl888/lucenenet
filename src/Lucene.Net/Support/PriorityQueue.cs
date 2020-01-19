@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Support
 {
@@ -108,7 +109,7 @@ namespace Lucene.Net.Support
         /// <summary>
         /// Creates a <see cref="PriorityQueue{T}"/> containing the elements in the
         /// specified collection.  If the specified collection is an instance of
-        /// a <see cref="SortedSet{T}"/>, <see cref="TreeSet{T}"/>,
+        /// a <see cref="SortedSet{T}"/>,
         /// or is another <see cref="PriorityQueue{T}"/>, this
         /// priority queue will be ordered according to the same ordering.
         /// Otherwise, this priority queue will be ordered according to the
@@ -126,103 +127,25 @@ namespace Lucene.Net.Support
         {
             if (collection == null)
             {
-                throw new ArgumentNullException("collection");
+                throw new ArgumentNullException(nameof(collection));
             }
 
-            if (collection is PriorityQueue<T>)
+            if (collection is PriorityQueue<T> pq)
             {
-                InitFrom((PriorityQueue<T>)collection);
+                InitFrom(pq);
             }
-            else if (collection is SortedSet<T>)
+            else if (collection is SortedSet<T> ss)
             {
-                InitFrom((SortedSet<T>)collection);
+                InitFrom(ss);
             }
-            else if (collection is TreeSet<T>)
+            else if (collection is JCG.SortedSet<T> ss2)
             {
-                InitFrom((TreeSet<T>)collection);
+                InitFrom(ss2);
             }
             else
             {
                 InitFrom(collection);
             }
-        }
-
-        /// <summary>
-        /// Creates a <see cref="PriorityQueue{T}"/> containing the elements in the
-        /// specified priority queue.  This priority queue will be
-        /// ordered according to the same ordering as the given priority
-        /// queue.
-        /// </summary>
-        /// <param name="collection">the priority queue whose elements are to be placed
-        /// into this priority queue</param>
-        /// <exception cref="InvalidCastException">
-        /// if elements of <paramref name="collection"/>
-        /// cannot be compared to one another according to <paramref name="collection"/>'s
-        /// ordering
-        /// </exception>
-        /// <see cref="NullReferenceException">if the specified collection or any
-        /// of its elements are null</see>
-        public PriorityQueue(PriorityQueue<T> collection)
-        {
-            if (collection == null)
-            {
-                throw new ArgumentNullException("collection");
-            }
-            InitFrom(collection);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="PriorityQueue{T}"/> containing the elements in the
-        /// specified <see cref="SortedSet{T}"/>.  This priority queue will be
-        /// ordered according to the same ordering as the given <see cref="SortedSet{T}"/>.
-        /// <para/>
-        /// The constructed priority queue has the initial capacity of 110% of the
-        /// size of the sorted set. The priority queue will have the same comparator
-        /// as the sorted set.
-        /// </summary>
-        /// <param name="collection">the sorted set whose elements are to be placed
-        /// into this priority queue</param>
-        /// <exception cref="InvalidCastException">
-        /// if elements of <paramref name="collection"/>
-        /// cannot be compared to one another according to <paramref name="collection"/>'s
-        /// ordering
-        /// </exception>
-        /// <exception cref="ArgumentNullException">if the specified collection or any
-        /// of its elements are null</exception>
-        public PriorityQueue(SortedSet<T> collection)
-        {
-            if (collection == null)
-            {
-                throw new ArgumentNullException("collection");
-            }
-            InitFrom(collection);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="PriorityQueue{T}"/> containing the elements in the
-        /// specified <see cref="TreeSet{T}"/>.  This priority queue will be
-        /// ordered according to the same ordering as the given <see cref="TreeSet{T}"/>.
-        /// <para/>
-        /// The constructed priority queue has the initial capacity of 110% of the
-        /// size of the sorted set. The priority queue will have the same comparator
-        /// as the sorted set.
-        /// </summary>
-        /// <param name="collection">the sorted set whose elements are to be placed
-        /// into this priority queue</param>
-        /// <exception cref="InvalidCastException">
-        /// if elements of <paramref name="collection"/>
-        /// cannot be compared to one another according to <paramref name="collection"/>'s
-        /// ordering
-        /// </exception>
-        /// <exception cref="ArgumentNullException">if the specified collection or any
-        /// of its elements are null</exception>
-        public PriorityQueue(TreeSet<T> collection)
-        {
-            if (collection == null)
-            {
-                throw new ArgumentNullException("collection");
-            }
-            InitFrom(collection);
         }
 
         #endregion Constructors
@@ -247,7 +170,7 @@ namespace Lucene.Net.Support
             }
         }
 
-        private void InitFrom(TreeSet<T> collection)
+        private void InitFrom(JCG.SortedSet<T> collection)
         {
             InitSize(collection);
             comparer = collection.Comparer;
