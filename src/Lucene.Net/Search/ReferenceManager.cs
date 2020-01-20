@@ -1,7 +1,6 @@
-using Lucene.Net.Support;
 using Lucene.Net.Support.Threading;
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -56,7 +55,7 @@ namespace Lucene.Net.Search
 
         private readonly ReentrantLock refreshLock = new ReentrantLock();
 
-        private readonly ISet<ReferenceManager.IRefreshListener> refreshListeners = new ConcurrentHashSet<ReferenceManager.IRefreshListener>();
+        private readonly ImmutableList<ReferenceManager.IRefreshListener> refreshListeners = ImmutableList.Create<ReferenceManager.IRefreshListener>();
 
         private void EnsureOpen()
         {
