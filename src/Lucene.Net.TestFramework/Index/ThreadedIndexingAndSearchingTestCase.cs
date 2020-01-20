@@ -16,6 +16,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
 using Directory = Lucene.Net.Store.Directory;
@@ -610,8 +611,8 @@ namespace Lucene.Net.Index
 
             int RUN_TIME_SEC = LuceneTestCase.TEST_NIGHTLY ? 300 : RANDOM_MULTIPLIER;
 
-            ISet<string> delIDs = new ConcurrentHashSet<string>();
-            ISet<string> delPackIDs = new ConcurrentHashSet<string>();
+            ISet<string> delIDs = new JCG.HashSet<string>().AsConcurrent();
+            ISet<string> delPackIDs = new JCG.HashSet<string>().AsConcurrent();
             ConcurrentQueue<SubDocs> allSubDocs = new ConcurrentQueue<SubDocs>();
 
             long stopTime = Environment.TickCount + (RUN_TIME_SEC * 1000);

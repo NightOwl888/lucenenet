@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Support
@@ -24,223 +23,156 @@ namespace Lucene.Net.Support
      * limitations under the License.
      */
 
-    public sealed class ConcurrentHashSet<T> : ISet<T>, IStructuralEquatable, IFormattable
+#if FEATURE_SERIALIZABLE
+    [Serializable]
+#endif
+    internal sealed class ConcurrentSet<T> : ISet<T>, ICollection, IStructuralEquatable, IFormattable
     {
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
-        private readonly JCG.HashSet<T> _set;
+#if FEATURE_SERIALIZABLE
+        [NonSerialized]
+#endif
+        private object syncRoot;
+        private readonly ISet<T> set;
 
-        public ConcurrentHashSet()
+        public ConcurrentSet(ISet<T> set)
         {
-            _set = new JCG.HashSet<T>();
-        }
-
-        public ConcurrentHashSet(IEnumerable<T> collection)
-        {
-            _set = new JCG.HashSet<T>(collection);
-        }
-
-        public ConcurrentHashSet(IEqualityComparer<T> comparer)
-        {
-            _set = new JCG.HashSet<T>(comparer);
-        }
-
-        public ConcurrentHashSet(IEnumerable<T> collection, IEqualityComparer<T> comparer)
-        {
-            _set = new JCG.HashSet<T>(collection, comparer);
+            this.set = set ?? throw new ArgumentNullException(nameof(set));
         }
 
         public bool Add(T item)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                return _set.Add(item);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            lock (SyncRoot)
+                return set.Add(item);
         }
 
         public void ExceptWith(IEnumerable<T> other)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                _set.ExceptWith(other);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            lock (SyncRoot)
+                set.ExceptWith(other);
         }
 
         public void IntersectWith(IEnumerable<T> other)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                _set.IntersectWith(other);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            lock (SyncRoot)
+                set.IntersectWith(other);
         }
 
         public bool IsProperSubsetOf(IEnumerable<T> other)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                return _set.IsProperSubsetOf(other);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            lock (SyncRoot)
+                return set.IsProperSubsetOf(other);
         }
 
         public bool IsProperSupersetOf(IEnumerable<T> other)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                return _set.IsProperSupersetOf(other);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            lock (SyncRoot)
+                return set.IsProperSupersetOf(other);
         }
 
         public bool IsSubsetOf(IEnumerable<T> other)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                return _set.IsSubsetOf(other); ;
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            lock (SyncRoot)
+                return set.IsSubsetOf(other);
         }
 
         public bool IsSupersetOf(IEnumerable<T> other)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                return _set.IsSupersetOf(other);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            lock (SyncRoot)
+                return set.IsSupersetOf(other);
         }
 
         public bool Overlaps(IEnumerable<T> other)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                return _set.Overlaps(other);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            lock (SyncRoot)
+                return set.Overlaps(other);
         }
 
         public bool SetEquals(IEnumerable<T> other)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                return _set.SetEquals(other);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            lock (SyncRoot)
+                return set.SetEquals(other);
         }
 
         public void SymmetricExceptWith(IEnumerable<T> other)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                _set.SymmetricExceptWith(other);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            lock (SyncRoot)
+                set.SymmetricExceptWith(other);
         }
 
         public void UnionWith(IEnumerable<T> other)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                _set.UnionWith(other);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            lock (SyncRoot)
+                set.UnionWith(other);
         }
 
         void ICollection<T>.Add(T item)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                _set.Add(item);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            lock (SyncRoot)
+                set.Add(item);
         }
 
         public void Clear()
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                _set.Clear();
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            lock (SyncRoot)
+                set.Clear();
         }
 
         public bool Contains(T item)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                return _set.Contains(item);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            lock (SyncRoot)
+                return set.Contains(item);
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            _lock.EnterReadLock();
-            try
+            lock (SyncRoot)
+                set.CopyTo(array, arrayIndex);
+        }
+
+        void ICollection.CopyTo(Array array, int index)
+        {
+            if (array == null)
+                throw new ArgumentNullException(nameof(array));
+            if (array.Rank != 1)
+                throw new ArgumentException("Only single dimensional arrays are supported for the requested action.", nameof(array));
+                //throw new ArgumentException(SR.Arg_RankMultiDimNotSupported, nameof(array));
+            if (array.GetLowerBound(0) != 0)
+                throw new ArgumentException("The lower bound of target array must be zero.", nameof(array));
+                //throw new ArgumentException(SR.Arg_NonZeroLowerBound, nameof(array));
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Non-negative number required.");
+                //throw new ArgumentOutOfRangeException(nameof(index), index, SR.ArgumentOutOfRange_NeedNonNegNum);
+            if (array.Length - index < Count)
+                throw new ArgumentException("Destination array is not long enough to copy all the items in the collection. Check array index and length.");
+                //throw new ArgumentException(SR.Arg_ArrayPlusOffTooSmall);
+
+            T[]/*?*/ tarray = array as T[];
+            if (tarray != null)
             {
-                _set.CopyTo(array, arrayIndex);
+                CopyTo(tarray, index);
             }
-            finally
+            else
             {
-                _lock.ExitReadLock();
+                object/*?*/[]/*?*/ objects = array as object[];
+                if (objects == null)
+                {
+                    throw new ArgumentException("Target array type is not compatible with the type of items in the collection.", nameof(array));
+                    //throw new ArgumentException(SR.Argument_InvalidArrayType, nameof(array));
+                }
+
+                try
+                {
+                    lock (SyncRoot)
+                    {
+                        foreach (var item in set)
+                            objects[index++] = item;
+                    }
+                }
+                catch (ArrayTypeMismatchException)
+                {
+                    throw new ArgumentException("Target array type is not compatible with the type of items in the collection.", nameof(array));
+                    //throw new ArgumentException(SR.Argument_InvalidArrayType, nameof(array));
+                }
             }
         }
 
@@ -248,50 +180,47 @@ namespace Lucene.Net.Support
         {
             get
             {
-                _lock.EnterReadLock();
-                try
-                {
-                    return _set.Count;
-                }
-                finally
-                {
-                    _lock.ExitReadLock();
-                }
+                lock (SyncRoot)
+                    return set.Count;
             }
         }
 
-        public bool IsReadOnly => ((ISet<T>)_set).IsReadOnly;
+        public bool IsReadOnly => set.IsReadOnly;
+
+        public bool IsSynchronized => true;
+
+        public object SyncRoot
+        {
+            get
+            {
+                if (syncRoot == null)
+                {
+                    if (set is ICollection col)
+                        syncRoot = col.SyncRoot;
+                    System.Threading.Interlocked.CompareExchange<object/*?*/>(ref syncRoot, new object(), null);
+                }
+                return syncRoot;
+            }
+        }
 
         public bool Remove(T item)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                return _set.Remove(item);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            lock (SyncRoot)
+                return set.Remove(item);
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            _lock.EnterReadLock();
-            try
+            // Make a copy of the contents since enumeration is lazy and not thread-safe
+            T[] array = new T[set.Count];
+            lock (SyncRoot)
             {
-                // Make a copy of the contents since enumeration is lazy and not thread-safe
-                T[] array = new T[_set.Count];
-                _set.CopyTo(array, 0);
-                return ((IEnumerable<T>)array).GetEnumerator();
+                set.CopyTo(array, 0);
             }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            return ((IEnumerable<T>)array).GetEnumerator();
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
@@ -310,16 +239,8 @@ namespace Lucene.Net.Support
         /// <exception cref="ArgumentNullException">If <paramref name="comparer"/> is <c>null</c>.</exception>
         public bool Equals(object other, IEqualityComparer comparer)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                
-                return _set.Equals(other, comparer);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            lock (SyncRoot)
+                return JCG.SetEqualityComparer<T>.Equals(set, other, comparer);
         }
 
         /// <summary>
@@ -331,15 +252,8 @@ namespace Lucene.Net.Support
         /// <returns>A hash code representing the current set.</returns>
         public int GetHashCode(IEqualityComparer comparer)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                return _set.GetHashCode(comparer);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            lock (SyncRoot)
+                return JCG.SetEqualityComparer<T>.GetHashCode(set, comparer);
         }
 
         /// <summary>
@@ -382,14 +296,12 @@ namespace Lucene.Net.Support
         /// </exception>
         public string ToString(string format, IFormatProvider formatProvider)
         {
-            _lock.EnterReadLock();
-            try
+            lock (SyncRoot)
             {
-                return _set.ToString(format, formatProvider);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
+                if (set is IFormattable formattable)
+                    return formattable.ToString(format, formatProvider);
+
+                return string.Format(formatProvider, format, set);
             }
         }
 
@@ -431,6 +343,8 @@ namespace Lucene.Net.Support
         /// </exception>
         public string ToString(string format)
             => ToString(format, StringFormatter.CurrentCulture);
+
+        
 
         #endregion
     }

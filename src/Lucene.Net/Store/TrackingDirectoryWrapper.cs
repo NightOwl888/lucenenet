@@ -1,5 +1,6 @@
 using Lucene.Net.Support;
 using System.Collections.Generic;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Store
 {
@@ -26,7 +27,7 @@ namespace Lucene.Net.Store
     /// </summary>
     public sealed class TrackingDirectoryWrapper : FilterDirectory
     {
-        private readonly ISet<string> createdFileNames = new ConcurrentHashSet<string>();
+        private readonly ISet<string> createdFileNames = new JCG.HashSet<string>().AsConcurrent();
 
         public TrackingDirectoryWrapper(Directory @in)
             : base(@in)
