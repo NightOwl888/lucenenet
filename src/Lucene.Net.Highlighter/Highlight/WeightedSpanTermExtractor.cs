@@ -1,9 +1,9 @@
-﻿using Lucene.Net.Analysis;
+﻿using J2N.Text;
+using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Index.Memory;
 using Lucene.Net.Queries;
 using Lucene.Net.Search.Spans;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 using System;
 using System.Collections;

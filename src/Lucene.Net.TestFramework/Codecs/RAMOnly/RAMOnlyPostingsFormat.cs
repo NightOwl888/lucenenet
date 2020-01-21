@@ -1,7 +1,7 @@
+using J2N.Text;
 using J2N.Threading.Atomic;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;

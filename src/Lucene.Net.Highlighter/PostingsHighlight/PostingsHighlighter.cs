@@ -1,4 +1,5 @@
 ﻿#if FEATURE_BREAKITERATOR
+using J2N.Text;
 using ICU4N.Text;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;

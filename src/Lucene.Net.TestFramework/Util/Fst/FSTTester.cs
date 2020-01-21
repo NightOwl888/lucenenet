@@ -1,3 +1,4 @@
+using J2N;
 using J2N.Collections;
 using Lucene.Net.Store;
 using Lucene.Net.Support;

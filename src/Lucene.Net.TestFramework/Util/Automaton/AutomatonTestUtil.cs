@@ -1,9 +1,9 @@
-using Lucene.Net.Support;
+using J2N;
+using J2N.Runtime.CompilerServices;
 using System;
 using System.Collections.Generic;
 using JCG = J2N.Collections.Generic;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
-using J2N.Runtime.CompilerServices;
 
 namespace Lucene.Net.Util.Automaton
 {
@@ -347,7 +347,7 @@ namespace Lucene.Net.Util.Automaton
                     }
                     else
                     {
-                        max = Character.MAX_CODE_POINT;
+                        max = Character.MaxCodePoint;
                     }
                     r.AddTransition(new Transition(min, max, q_));
                 }

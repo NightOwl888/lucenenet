@@ -1,4 +1,5 @@
-﻿using Lucene.Net.QueryParsers.Flexible.Core.Messages;
+﻿using J2N.Text;
+using Lucene.Net.QueryParsers.Flexible.Core.Messages;
 using Lucene.Net.QueryParsers.Flexible.Core.Parser;
 using Lucene.Net.QueryParsers.Flexible.Core.Util;
 using Lucene.Net.QueryParsers.Flexible.Messages;
@@ -65,8 +66,8 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard.Parser
             {
                 if (buffer[0] == escapableTermExtraFirstChars[i][0])
                 {
-                    buffer = new StringCharSequenceWrapper("\\" + buffer[0]
-                        + buffer.SubSequence(1, buffer.Length).ToString());
+                    buffer = new StringCharSequence("\\" + buffer[0]
+                        + buffer.Subsequence(1, buffer.Length - 1).ToString()); // LUCENENET: Corrected 2nd Subsequence parameter
                     break;
                 }
             }
@@ -102,7 +103,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard.Parser
             for (int i = 0; i < escapableWordTokens.Length; i++)
             {
                 if (escapableWordTokens[i].Equals(term.ToString(), StringComparison.OrdinalIgnoreCase))
-                    return new StringCharSequenceWrapper("\\" + term);
+                    return new StringCharSequence("\\" + term);
             }
             return term;
         }

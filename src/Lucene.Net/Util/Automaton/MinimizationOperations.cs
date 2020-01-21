@@ -1,4 +1,4 @@
-using Lucene.Net.Support;
+using J2N;
 using System.Collections;
 using System.Collections.Generic;
 using JCG = J2N.Collections.Generic;
@@ -66,7 +66,7 @@ namespace Lucene.Net.Util.Automaton
             if (a.initial.numTransitions == 1)
             {
                 Transition t = a.initial.TransitionsArray[0];
-                if (t.to == a.initial && t.min == Character.MIN_CODE_POINT && t.max == Character.MAX_CODE_POINT)
+                if (t.to == a.initial && t.min == Character.MinCodePoint && t.max == Character.MaxCodePoint)
                 {
                     return;
                 }

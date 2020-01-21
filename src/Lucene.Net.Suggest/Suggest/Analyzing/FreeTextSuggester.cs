@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Analysis;
+﻿using J2N.Text;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Shingle;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Codecs;

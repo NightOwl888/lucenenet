@@ -1,4 +1,4 @@
-using Lucene.Net.Support;
+using J2N.Text;
 using Lucene.Net.Util;
 using System;
 using System.Text;
@@ -112,7 +112,7 @@ namespace Lucene.Net.Analysis.TokenAttributes
         /// <param name="csq">The index of the first character in the subsequence.</param>
         /// <param name="start">The start index of the <see cref="ICharSequence"/> to begin copying characters.</param>
         /// <param name="end">The index of the character following the last character in the subsequence.</param>
-        ICharTermAttribute Append(ICharSequence csq, int start, int end);
+        ICharTermAttribute Append(ICharSequence csq, int start, int end); // LUCENENET TODO: API - change to startIndex/length to match .NET
 
         /// <summary>
         /// Appends the supplied <see cref="char"/> to this character sequence.
@@ -151,7 +151,7 @@ namespace Lucene.Net.Analysis.TokenAttributes
         /// the <see cref="CopyBuffer(char[], int, int)"/> method provides similar functionality, except for
         /// the last argument of this method is an index of the array rather than the length of characters to copy.
         /// </remarks>
-        ICharTermAttribute Append(char[] csq, int start, int end);
+        ICharTermAttribute Append(char[] csq, int start, int end); // LUCENENET TODO: API - change to startIndex/length to match .NET
 
         /// <summary>
         /// Appends the specified <see cref="string"/> to this character sequence.
@@ -183,7 +183,7 @@ namespace Lucene.Net.Analysis.TokenAttributes
         /// LUCENENET specific method, added because the .NET <see cref="string"/> data type 
         /// doesn't implement <see cref="ICharSequence"/>. 
         /// </remarks>
-        ICharTermAttribute Append(string csq, int start, int end);
+        ICharTermAttribute Append(string csq, int start, int end); // LUCENENET TODO: API - change to startIndex/length to match .NET
 
 
         /// <summary>

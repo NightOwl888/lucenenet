@@ -1,4 +1,5 @@
 using J2N.Collections.Generic.Extensions;
+using J2N.Text;
 using J2N.Threading;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Documents;

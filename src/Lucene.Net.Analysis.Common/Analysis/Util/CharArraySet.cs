@@ -1,5 +1,5 @@
 ﻿using J2N.Globalization;
-using Lucene.Net.Support;
+using J2N.Text;
 using Lucene.Net.Util;
 using System;
 using System.Collections;

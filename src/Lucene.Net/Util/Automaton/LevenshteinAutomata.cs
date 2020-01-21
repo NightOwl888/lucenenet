@@ -1,4 +1,4 @@
-using Lucene.Net.Support;
+using J2N;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -56,13 +56,13 @@ namespace Lucene.Net.Util.Automaton
         /// Optionally count transpositions as a primitive edit.
         /// </summary>
         public LevenshteinAutomata(string input, bool withTranspositions)
-            : this(CodePoints(input), Character.MAX_CODE_POINT, withTranspositions)
+            : this(CodePoints(input), Character.MaxCodePoint, withTranspositions)
         {
         }
 
         /// <summary>
         /// Expert: specify a custom maximum possible symbol
-        /// (alphaMax); default is <see cref="Character.MAX_CODE_POINT"/>.
+        /// (alphaMax); default is <see cref="Character.MaxCodePoint"/>.
         /// </summary>
         public LevenshteinAutomata(int[] word, int alphaMax, bool withTranspositions)
         {

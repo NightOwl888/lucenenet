@@ -1,5 +1,6 @@
 ﻿// commons-codec version compatibility level: 1.9
 using J2N.Collections.Generic.Extensions;
+using J2N.Text;
 using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
@@ -860,15 +861,15 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
 
             // evaluate the pattern, left context and right context
             // fail early if any of the evaluations is not successful
-            if (!input.SubSequence(i, ipl).Equals(this.pattern))
+            if (!input.Subsequence(i, ipl - i).Equals(this.pattern)) // LUCENENET: Corrected 2nd Subseqence parameter
             {
                 return false;
             }
-            else if (!this.rContext.IsMatch(input.SubSequence(ipl, input.Length)))
+            else if (!this.rContext.IsMatch(input.Subsequence(ipl, input.Length - ipl))) // LUCENENET: Corrected 2nd Subseqence parameter
             {
                 return false;
             }
-            return this.lContext.IsMatch(input.SubSequence(0, i));
+            return this.lContext.IsMatch(input.Subsequence(0, i - 0)); // LUCENENET: Corrected 2nd Subseqence parameter
         }
 
         /// <summary>

@@ -1,5 +1,5 @@
-﻿using Lucene.Net.Attributes;
-using Lucene.Net.Support;
+﻿using J2N.Text;
+using Lucene.Net.Attributes;
 using NUnit.Framework;
 using System;
 using System.Text;
@@ -92,6 +92,9 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
                 this.cache = cache;
                 this.cached = cached;
             }
+
+            bool ICharSequence.HasValue => true; // LUCENENET specific
+
             public char this[int index]
             {
                 get
@@ -108,7 +111,11 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
                 }
             }
 
-            public ICharSequence SubSequence(int start, int end)
+            // LUCENENET: Convert the startIndex/length to start/end
+            public ICharSequence Subsequence(int startIndex, int length)
+                => SubSequence(startIndex, startIndex + length);
+
+            private ICharSequence SubSequence(int start, int end)
             {
                 if (start == end)
                 {

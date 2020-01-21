@@ -1,3 +1,5 @@
+using J2N.Collections.Generic.Extensions;
+using J2N.Text;
 using J2N.Threading;
 using J2N.Threading.Atomic;
 using Lucene.Net.Analysis;
@@ -19,7 +21,6 @@ using System.Linq;
 using System.Text;
 using Console = Lucene.Net.Support.SystemConsole;
 using Assert = Lucene.Net.TestFramework.Assert;
-using J2N.Collections.Generic.Extensions;
 
 #if TESTFRAMEWORK_MSTEST
 using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;

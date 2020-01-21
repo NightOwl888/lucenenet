@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Analysis.CharFilters;
+﻿using J2N.Text;
+using Lucene.Net.Analysis.CharFilters;
 using Lucene.Net.Analysis.Cjk;
 using Lucene.Net.Analysis.CommonGrams;
 using Lucene.Net.Analysis.Compound;

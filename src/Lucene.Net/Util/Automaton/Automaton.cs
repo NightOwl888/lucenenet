@@ -1,4 +1,4 @@
-using Lucene.Net.Support;
+using J2N;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -198,13 +198,7 @@ namespace Lucene.Net.Util.Automaton
             }
         }
 
-        internal bool IsSingleton
-        {
-            get
-            {
-                return singleton != null;
-            }
-        }
+        internal bool IsSingleton => singleton != null;
 
         /// <summary>
         /// Returns the singleton string for this automaton. An automaton that accepts
@@ -212,13 +206,7 @@ namespace Lucene.Net.Util.Automaton
         /// case, this method may be used to obtain the string.
         /// </summary>
         /// <returns> String, <c>null</c> if this automaton is not in singleton mode. </returns>
-        public virtual string Singleton
-        {
-            get
-            {
-                return singleton;
-            }
-        }
+        public virtual string Singleton => singleton;
 
         ///// <summary>
         ///// Sets initial state.
@@ -248,14 +236,8 @@ namespace Lucene.Net.Util.Automaton
         ///         automaton may be nondeterministic </returns>
         public virtual bool IsDeterministic
         {
-            get
-            {
-                return deterministic;
-            }
-            set
-            {
-                this.deterministic = value;
-            }
+            get => deterministic;
+            set => deterministic = value;
         }
 
         /// <summary>
@@ -264,14 +246,8 @@ namespace Lucene.Net.Util.Automaton
         /// <param name="value"> extra information </param>
         public virtual object Info
         {
-            set
-            {
-                this.info = value;
-            }
-            get
-            {
-                return info;
-            }
+            get => info;
+            set => info = value;
         }
 
         // cached
@@ -391,10 +367,10 @@ namespace Lucene.Net.Util.Automaton
         internal virtual void Totalize()
         {
             State s = new State();
-            s.AddTransition(new Transition(Character.MIN_CODE_POINT, Character.MAX_CODE_POINT, s));
+            s.AddTransition(new Transition(Character.MinCodePoint, Character.MaxCodePoint, s));
             foreach (State p in GetNumberedStates())
             {
-                int maxi = Character.MIN_CODE_POINT;
+                int maxi = Character.MinCodePoint;
                 p.SortTransitions(Transition.COMPARE_BY_MIN_MAX_THEN_DEST);
                 foreach (Transition t in p.GetTransitions())
                 {
@@ -407,9 +383,9 @@ namespace Lucene.Net.Util.Automaton
                         maxi = t.max + 1;
                     }
                 }
-                if (maxi <= Character.MAX_CODE_POINT)
+                if (maxi <= Character.MaxCodePoint)
                 {
-                    p.AddTransition(new Transition(maxi, Character.MAX_CODE_POINT, s));
+                    p.AddTransition(new Transition(maxi, Character.MaxCodePoint, s));
                 }
             }
             ClearNumberedStates();
@@ -450,13 +426,13 @@ namespace Lucene.Net.Util.Automaton
         {
             State[] states = GetNumberedStates();
             JCG.HashSet<int> pointset = new JCG.HashSet<int>();
-            pointset.Add(Character.MIN_CODE_POINT);
+            pointset.Add(Character.MinCodePoint);
             foreach (State s in states)
             {
                 foreach (Transition t in s.GetTransitions())
                 {
                     pointset.Add(t.min);
-                    if (t.max < Character.MAX_CODE_POINT)
+                    if (t.max < Character.MaxCodePoint)
                     {
                         pointset.Add((t.max + 1));
                     }

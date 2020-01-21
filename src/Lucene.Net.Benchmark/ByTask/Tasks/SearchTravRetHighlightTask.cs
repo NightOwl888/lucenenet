@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Analysis;
+﻿using J2N.Text;
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;

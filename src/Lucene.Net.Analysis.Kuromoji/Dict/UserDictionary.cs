@@ -1,5 +1,5 @@
-﻿using Lucene.Net.Analysis.Ja.Util;
-using Lucene.Net.Support;
+﻿using J2N.Text;
+using Lucene.Net.Analysis.Ja.Util;
 using Lucene.Net.Util;
 using Lucene.Net.Util.Fst;
 using System;

@@ -1,8 +1,9 @@
-﻿using System;
+﻿using J2N.Text;
+using Lucene.Net.Support;
+using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
-using Lucene.Net.Support;
 using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 

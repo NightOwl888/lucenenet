@@ -1,8 +1,9 @@
-using Lucene.Net.Support;
+using J2N.Text;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using WritableArrayAttribute = Lucene.Net.Support.WritableArrayAttribute;
 
 namespace Lucene.Net.Analysis.TokenAttributes
 {
@@ -48,6 +49,9 @@ namespace Lucene.Net.Analysis.TokenAttributes
         public CharTermAttribute()
         {
         }
+
+        // LUCENENET specific - ICharSequence member from J2N
+        bool ICharSequence.HasValue => termBuffer != null;
 
         public void CopyBuffer(char[] buffer, int offset, int length)
         {
@@ -116,13 +120,7 @@ namespace Lucene.Net.Analysis.TokenAttributes
             UnicodeUtil.UTF16toUTF8(termBuffer, 0, termLength, bytes);
         }
 
-        public virtual BytesRef BytesRef
-        {
-            get
-            {
-                return bytes;
-            }
-        }
+        public virtual BytesRef BytesRef => bytes;
 
         // *** CharSequence interface ***
 
@@ -141,31 +139,43 @@ namespace Lucene.Net.Analysis.TokenAttributes
         {
             get
             {
-                if (index >= termLength)
+                if (index < 0 || index >= termLength) // LUCENENET: Added better bounds checking
                 {
-                    throw new IndexOutOfRangeException("index");
+                    throw new ArgumentOutOfRangeException(nameof(index));
                 }
 
                 return termBuffer[index];
             }
             set
             {
-                if (index >= termLength)
+                if (index < 0 || index >= termLength)
                 {
-                    throw new IndexOutOfRangeException("index");
+                    throw new ArgumentOutOfRangeException(nameof(index)); // LUCENENET: Added better bounds checking
                 }
 
                 termBuffer[index] = value;
             }
         }
 
-        public ICharSequence SubSequence(int start, int end)
+        public ICharSequence Subsequence(int startIndex, int length)
         {
-            if (start > termLength || end > termLength)
+            // From Apache Harmony String class
+            if (termBuffer == null || (startIndex == 0 && length == termBuffer.Length))
             {
-                throw new IndexOutOfRangeException();
+                return new CharArrayCharSequence(termBuffer);
             }
-            return new StringCharSequenceWrapper(new string(termBuffer, start, end - start));
+            if (startIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length));
+            if (startIndex + length > termBuffer.Length)
+                throw new ArgumentOutOfRangeException("", $"{nameof(startIndex)} + {nameof(length)} > {nameof(Length)}");
+
+            char[] result = new char[length];
+            for (int i = 0, j = startIndex; i < length; i++, j++)
+                result[i] = termBuffer[j];
+
+            return new CharArrayCharSequence(result);
         }
 
         // *** Appendable interface ***
@@ -276,7 +286,7 @@ namespace Lucene.Net.Analysis.TokenAttributes
         public ICharTermAttribute Append(ICharSequence csq, int start, int end)
         {
             if (csq == null)
-                csq = new StringCharSequenceWrapper("null");
+                csq = new StringCharSequence("null");
 
             int len = end - start, csqlen = csq.Length;
 

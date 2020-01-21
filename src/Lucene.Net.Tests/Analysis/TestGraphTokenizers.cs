@@ -1,6 +1,6 @@
+using J2N.Text;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Attributes;
-using Lucene.Net.Support;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
