@@ -1,4 +1,4 @@
-using Lucene.Net.Support;
+using J2N;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -522,14 +522,14 @@ namespace Lucene.Net.Util.Automaton
                         {
                             return false;
                         }
-                        if (t2[n2].max < Character.MAX_CODE_POINT)
+                        if (t2[n2].max < Character.MaxCodePoint)
                         {
                             min1 = t2[n2].max + 1;
                         }
                         else
                         {
-                            min1 = Character.MAX_CODE_POINT;
-                            max1 = Character.MIN_CODE_POINT;
+                            min1 = Character.MaxCodePoint;
+                            max1 = Character.MinCodePoint;
                         }
                         StatePair q = new StatePair(t1[n1].to, t2[n2].to);
                         if (!visited.Contains(q))
@@ -1036,7 +1036,7 @@ namespace Lucene.Net.Util.Automaton
             if (a.initial.accept && a.initial.NumTransitions == 1)
             {
                 Transition t = a.initial.GetTransitions().First();
-                return t.to == a.initial && t.min == Character.MIN_CODE_POINT && t.max == Character.MAX_CODE_POINT;
+                return t.to == a.initial && t.min == Character.MinCodePoint && t.max == Character.MaxCodePoint;
             }
             return false;
         }

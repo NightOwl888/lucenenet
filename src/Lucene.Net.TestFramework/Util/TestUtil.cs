@@ -1,3 +1,4 @@
+using J2N.Text;
 using Lucene.Net.Codecs;
 using Lucene.Net.Codecs.Lucene46;
 using Lucene.Net.Codecs.PerField;
@@ -5,7 +6,6 @@ using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Randomized.Generators;
 using Lucene.Net.Search;
-using Lucene.Net.Support;
 using Lucene.Net.Support.IO;
 using System;
 using System.Collections;
@@ -1227,7 +1227,7 @@ namespace Lucene.Net.Util
                 //case 3: // LUCENENET: Not ported
                 //    return CharBuffer.Wrap(@ref.Utf8ToString());
                 default:
-                    return new StringCharSequenceWrapper(@ref.Utf8ToString());
+                    return new StringCharSequence(@ref.Utf8ToString());
             }
         }
 

@@ -1,3 +1,4 @@
+using J2N.Text;
 using J2N.Threading.Atomic;
 using Lucene.Net.Support;
 using System;

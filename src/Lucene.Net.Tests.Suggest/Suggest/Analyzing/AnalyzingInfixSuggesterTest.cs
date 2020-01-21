@@ -1,23 +1,22 @@
-﻿using J2N.Threading;
+﻿using J2N.Text;
+using J2N.Threading;
 using J2N.Threading.Atomic;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Analysis.Util;
 using Lucene.Net.Attributes;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Suggest.Analyzing
 {

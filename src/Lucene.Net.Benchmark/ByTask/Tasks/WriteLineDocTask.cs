@@ -1,8 +1,8 @@
-﻿using Lucene.Net.Benchmarks.ByTask.Feeds;
+﻿using J2N.Text;
+using Lucene.Net.Benchmarks.ByTask.Feeds;
 using Lucene.Net.Benchmarks.ByTask.Utils;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

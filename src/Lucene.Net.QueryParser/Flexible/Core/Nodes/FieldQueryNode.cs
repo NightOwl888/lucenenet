@@ -1,5 +1,5 @@
-﻿using Lucene.Net.QueryParsers.Flexible.Core.Parser;
-using Lucene.Net.Support;
+﻿using J2N.Text;
+using Lucene.Net.QueryParsers.Flexible.Core.Parser;
 using System.Globalization;
 using System.Text;
 

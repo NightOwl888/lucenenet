@@ -1,4 +1,5 @@
-﻿using Lucene.Net.Attributes;
+﻿using J2N.Text;
+using Lucene.Net.Attributes;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
 using NUnit.Framework;
@@ -684,7 +685,7 @@ namespace Lucene.Net.Analysis.Util
             CharArraySet target = new CharArraySet(TEST_VERSION_CURRENT, originalValues, false);
             var existingValuesAsObject = new List<object> { "seashells", "sea", "shore" };
             var mixedExistingNonExistingValuesAsObject = new List<object> { "true", "set", "of", "unique", "values", "except", "sells" };
-            var nonExistingMixedTypes = new object[] { true, (byte)55, (short)44, (int)33, (sbyte)22, (long)11, (char)'\n', "hurray", (uint)99, (ulong)89, (ushort)79, new char[] { 't', 'w', 'o' }, new StringCharSequenceWrapper("testing") };
+            var nonExistingMixedTypes = new object[] { true, (byte)55, (short)44, (int)33, (sbyte)22, (long)11, (char)'\n', "hurray", (uint)99, (ulong)89, (ushort)79, new char[] { 't', 'w', 'o' }, new StringCharSequence("testing") };
 
             // Add existing values
             assertFalse(target.UnionWith(existingValuesAsObject));
@@ -717,7 +718,7 @@ namespace Lucene.Net.Analysis.Util
             assertTrue(target.Contains((ulong)89));
             assertTrue(target.Contains((ushort)79));
             assertTrue(target.Contains(new char[] { 't', 'w', 'o' }));
-            assertTrue(target.Contains(new StringCharSequenceWrapper("testing")));
+            assertTrue(target.Contains(new StringCharSequence("testing")));
         }
 
         [Test, LuceneNetSpecific]
@@ -767,8 +768,8 @@ namespace Lucene.Net.Analysis.Util
         {
             var originalValues = new string[] { "sally", "sells", "seashells", "by", "the", "sea", "shore" };
             CharArraySet target = new CharArraySet(TEST_VERSION_CURRENT, originalValues, false);
-            var existingValues = new List<ICharSequence> { new StringCharSequenceWrapper("seashells"), new StringCharSequenceWrapper("sea"), new StringCharSequenceWrapper("shore") };
-            var mixedExistingNonExistingValues = new List<ICharSequence> { new StringCharSequenceWrapper("true"), new StringCharSequenceWrapper("set"), new StringCharSequenceWrapper("of"), new StringCharSequenceWrapper("unique"), new StringCharSequenceWrapper("values"), new StringCharSequenceWrapper("except"), new StringCharSequenceWrapper("sells") };
+            var existingValues = new List<ICharSequence> { new StringCharSequence("seashells"), new StringCharSequence("sea"), new StringCharSequence("shore") };
+            var mixedExistingNonExistingValues = new List<ICharSequence> { new StringCharSequence("true"), new StringCharSequence("set"), new StringCharSequence("of"), new StringCharSequence("unique"), new StringCharSequence("values"), new StringCharSequence("except"), new StringCharSequence("sells") };
 
             // Add existing values
             assertFalse(target.UnionWith(existingValues));

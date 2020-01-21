@@ -1,9 +1,10 @@
-﻿using Lucene.Net.Index;
-using Lucene.Net.Support;
+﻿using J2N;
+using Lucene.Net.Index;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using JCG = J2N.Collections.Generic;
+using WritableArrayAttribute = Lucene.Net.Support.WritableArrayAttribute;
 
 namespace Lucene.Net.Search.Spell
 {

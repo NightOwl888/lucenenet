@@ -1,5 +1,5 @@
-﻿using Lucene.Net.QueryParsers.Flexible.Core.Nodes;
-using Lucene.Net.Support;
+﻿using J2N.Text;
+using Lucene.Net.QueryParsers.Flexible.Core.Nodes;
 using System.Text;
 
 namespace Lucene.Net.QueryParsers.Flexible.Standard.Nodes

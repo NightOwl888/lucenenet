@@ -1,9 +1,11 @@
+using J2N;
+using J2N.Text;
 using J2N.Runtime.CompilerServices;
-using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using JCG = J2N.Collections.Generic;
+using Arrays = Lucene.Net.Support.Arrays;
 
 namespace Lucene.Net.Util.Automaton
 {
@@ -121,10 +123,7 @@ namespace Lucene.Net.Util.Automaton
             /// Return <c>true</c> if this state has any children (outgoing
             /// transitions).
             /// </summary>
-            internal bool HasChildren
-            {
-                get { return labels.Length > 0; }
-            }
+            internal bool HasChildren => labels.Length > 0;
 
             /// <summary>
             /// Create a new outgoing transition labeled <paramref name="label"/> and return

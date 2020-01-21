@@ -1,5 +1,5 @@
-﻿using Lucene.Net.Analysis;
-using Lucene.Net.Support;
+﻿using J2N;
+using Lucene.Net.Analysis;
 using Lucene.Net.Util;
 using Lucene.Net.Util.Automaton;
 using Lucene.Net.Util.Fst;
@@ -240,7 +240,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                     // to allow the trailing dedup bytes to be
                     // edited... but then 0 byte is "in general" allowed
                     // on input (but not in UTF8).
-                    LevenshteinAutomata lev = new LevenshteinAutomata(ints, unicodeAware ? Character.MAX_CODE_POINT : 255, transpositions);
+                    LevenshteinAutomata lev = new LevenshteinAutomata(ints, unicodeAware ? Character.MaxCodePoint : 255, transpositions);
                     Automaton levAutomaton = lev.ToAutomaton(maxEdits);
                     Automaton combined = BasicOperations.Concatenate(prefix, levAutomaton);
                     combined.IsDeterministic = true; // its like the special case in concatenate itself, except we cloneExpanded already

@@ -1,8 +1,8 @@
-﻿using Lucene.Net.Analysis;
+﻿using J2N.Text;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Queries.Mlt;
 using Lucene.Net.Search;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;

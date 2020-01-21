@@ -1,9 +1,9 @@
+using J2N.Text;
 using J2N.Threading;
 using Lucene.Net.Codecs.MockSep;
 using Lucene.Net.Documents;
 using Lucene.Net.Index.Extensions;
 using Lucene.Net.Search;
-using Lucene.Net.Support;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

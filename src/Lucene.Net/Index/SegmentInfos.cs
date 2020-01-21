@@ -1,9 +1,9 @@
-using J2N.Collections;
 using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Support;
 using Lucene.Net.Support.IO;
 using System;
 using System.Collections;
+using J2N;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -269,7 +269,7 @@ namespace Lucene.Net.Index
             }
             else if (fileName.StartsWith(IndexFileNames.SEGMENTS, StringComparison.Ordinal))
             {
-                return Number.Parse(fileName.Substring(1 + IndexFileNames.SEGMENTS.Length), Character.MAX_RADIX);
+                return Number.Parse(fileName.Substring(1 + IndexFileNames.SEGMENTS.Length), Character.MaxRadix);
             }
             else
             {
