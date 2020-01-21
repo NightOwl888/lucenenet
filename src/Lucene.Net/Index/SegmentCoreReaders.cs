@@ -3,6 +3,7 @@ using J2N.Threading.Atomic;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -114,6 +115,8 @@ namespace Lucene.Net.Index
             }
         }
 
+        // LUCENENET: Since these listeners can be registered in a certain order, it makes sense to call them back in the same order.
+        // Therefore, we keep the orginal LinkedHashSet implementation (at additional performance cost due to locking)
         private readonly ISet<ICoreDisposedListener> coreClosedListeners = new JCG.LinkedHashSet<ICoreDisposedListener>().AsConcurrent();
 
         internal SegmentCoreReaders(SegmentReader owner, Directory dir, SegmentCommitInfo si, IOContext context, int termsIndexDivisor)
@@ -242,6 +245,8 @@ namespace Lucene.Net.Index
 
         private void NotifyCoreClosedListeners(Exception th)
         {
+            // LUCENENET: This does not sync on the SyncRoot of coreClosedListeners, but since we are enumerating a copy that doesn't matter.
+            // We still need the lock to ensure notify events are not entered simultaneously, though.
             lock (coreClosedListeners)
             {
                 foreach (ICoreDisposedListener listener in coreClosedListeners)

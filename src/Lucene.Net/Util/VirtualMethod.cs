@@ -1,13 +1,11 @@
-using Lucene.Net.Support;
+using ConcurrentCollections;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 #if NETSTANDARD1_6
 using System.Linq;
 #endif
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Util
 {
@@ -66,7 +64,7 @@ namespace Lucene.Net.Util
     // is not generic).
     public sealed class VirtualMethod
     {
-        private static readonly ISet<MethodInfo> singletonSet = new JCG.HashSet<MethodInfo>().AsConcurrent();
+        private static readonly ConcurrentHashSet<MethodInfo> singletonSet = new ConcurrentHashSet<MethodInfo>();
 
         private readonly Type baseClass;
         private readonly string method;
@@ -133,16 +131,16 @@ namespace Lucene.Net.Util
                 MethodInfo mi = GetMethod(baseClass, method, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, parameters);
                 if (mi == null)
                 {
-                    throw new System.ArgumentException(baseClass.Name + " has no such method.");
+                    throw new ArgumentException(baseClass.Name + " has no such method.");
                 }
                 else if (!singletonSet.Add(mi))
                 {
-                    throw new System.NotSupportedException("VirtualMethod instances must be singletons and therefore " + "assigned to static final members in the same class, they use as baseClass ctor param.");
+                    throw new NotSupportedException("VirtualMethod instances must be singletons and therefore " + "assigned to static final members in the same class, they use as baseClass ctor param.");
                 }
             }
             catch (NotSupportedException nsme)
             {
-                throw new System.ArgumentException(baseClass.Name + " has no such method: " + nsme.Message);
+                throw new ArgumentException(baseClass.Name + " has no such method: " + nsme.Message);
             }
         }
 
@@ -171,7 +169,7 @@ namespace Lucene.Net.Util
         {
             if (!baseClass.GetTypeInfo().IsAssignableFrom(subclazz))
             {
-                throw new System.ArgumentException(subclazz.Name + " is not a subclass of " + baseClass.Name);
+                throw new ArgumentException(subclazz.Name + " is not a subclass of " + baseClass.Name);
             }
             bool overridden = false;
             int distance = 0;

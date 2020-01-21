@@ -20,6 +20,7 @@ using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 using Debug = Lucene.Net.Diagnostics.Debug; // LUCENENET NOTE: We cannot use System.Diagnostics.Debug because those calls will be optimized out of the release!
 using Directory = Lucene.Net.Store.Directory;
+using ConcurrentCollections;
 
 namespace Lucene.Net.Index
 {
@@ -129,8 +130,8 @@ namespace Lucene.Net.Index
         private ThreadJob[] LaunchIndexingThreads(LineFileDocs docs, 
                                                     int numThreads, 
                                                     long stopTime, 
-                                                    ISet<string> delIDs, 
-                                                    ISet<string> delPackIDs, 
+                                                    ISet<string> delIDs,
+                                                    ConcurrentHashSet<string> delPackIDs, 
                                                     IList<SubDocs> allSubDocs)
         {
             ThreadJob[] threads = new ThreadJob[numThreads];
@@ -151,10 +152,10 @@ namespace Lucene.Net.Index
             private LineFileDocs docs;
             private long stopTime;
             private ISet<string> delIDs;
-            private ISet<string> delPackIDs;
+            private ConcurrentHashSet<string> delPackIDs;
             private IList<SubDocs> allSubDocs;
 
-            public ThreadAnonymousInnerClassHelper(ThreadedIndexingAndSearchingTestCase outerInstance, LineFileDocs docs, long stopTime, ISet<string> delIDs, ISet<string> delPackIDs, IList<SubDocs> allSubDocs)
+            public ThreadAnonymousInnerClassHelper(ThreadedIndexingAndSearchingTestCase outerInstance, LineFileDocs docs, long stopTime, ISet<string> delIDs, ConcurrentHashSet<string> delPackIDs, IList<SubDocs> allSubDocs)
             {
                 this.outerInstance = outerInstance;
                 this.docs = docs;
@@ -611,8 +612,8 @@ namespace Lucene.Net.Index
 
             int RUN_TIME_SEC = LuceneTestCase.TEST_NIGHTLY ? 300 : RANDOM_MULTIPLIER;
 
-            ISet<string> delIDs = new JCG.HashSet<string>().AsConcurrent();
-            ISet<string> delPackIDs = new JCG.HashSet<string>().AsConcurrent();
+            ISet<string> delIDs = new JCG.HashSet<string>().AsConcurrent(); // LUCENENET TODO: ConcurrentHashSet doesn't support UnionWith - need to make a PR to get that to happen
+            ConcurrentHashSet<string> delPackIDs = new ConcurrentHashSet<string>();
             ConcurrentQueue<SubDocs> allSubDocs = new ConcurrentQueue<SubDocs>();
 
             long stopTime = Environment.TickCount + (RUN_TIME_SEC * 1000);
