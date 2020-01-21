@@ -21,7 +21,6 @@
 <Project> 
   <PropertyGroup Label="NuGet Package Reference Versions">
     <Antlr3RuntimePackageVersion>3.5.1</Antlr3RuntimePackageVersion>
-    <ConcurrentHashSetPackageVersion>1.1.0</ConcurrentHashSetPackageVersion>
     <!-- LUCENENET TODO: When ICU4N is released to production,
         be sure to lock down the version range below. The resource
         files in Lucene.Net.ICU are not compatible with any other

@@ -1,4 +1,3 @@
-using ConcurrentCollections;
 using J2N.Threading.Atomic;
 using Lucene.Net.Documents;
 using Lucene.Net.Support;
@@ -98,11 +97,9 @@ namespace Lucene.Net.Index
             void OnClose(IndexReader reader);
         }
 
-        // LUCENENET: Since these listeners can be registered in a certain order, it makes sense to call them back in the same order.
-        // Therefore, we keep the orginal LinkedHashSet implementation, but remove the locking since we are enumerating a copy anyway.
         private readonly ISet<IReaderClosedListener> readerClosedListeners = new JCG.LinkedHashSet<IReaderClosedListener>().AsConcurrent();
 
-        private readonly ConcurrentHashSet<IdentityWeakReference<IndexReader>> parentReaders = new ConcurrentHashSet<IdentityWeakReference<IndexReader>>();
+        private readonly ISet<IdentityWeakReference<IndexReader>> parentReaders = new JCG.HashSet<IdentityWeakReference<IndexReader>>().AsConcurrent();
 
         /// <summary>
         /// Expert: adds a <see cref="IReaderClosedListener"/>.  The
@@ -143,9 +140,7 @@ namespace Lucene.Net.Index
 
         private void NotifyReaderClosedListeners(Exception th)
         {
-            // LUCENENET: This does not sync on the SyncRoot of readerClosedListeners, but since we are enumerating a copy that doesn't matter.
-            // We still need the lock to ensure notify events are not entered simultaneously, though.
-            lock (readerClosedListeners)
+            lock (((ICollection)readerClosedListeners).SyncRoot) // LUCENENET: Ensure we sync on the SyncRoot of ConcurrentSet<T>
             {
                 foreach (IReaderClosedListener listener in readerClosedListeners)
                 {
@@ -171,20 +166,21 @@ namespace Lucene.Net.Index
 
         private void ReportCloseToParentReaders()
         {
-            // LUCENENET: No neeed to lock on ConcurrentHashSet<T>, as the enumerator is volatile
-
-            foreach (IdentityWeakReference<IndexReader> parent in parentReaders)
+            lock (((ICollection)parentReaders).SyncRoot) // LUCENENET: Ensure we sync on the SyncRoot of ConcurrentSet<T>
             {
-                //Using weak references
-                IndexReader target = parent.Target;
-
-                if (target != null)
+                foreach (IdentityWeakReference<IndexReader> parent in parentReaders)
                 {
-                    target.closedByChild = true;
-                    // cross memory barrier by a fake write:
-                    target.refCount.AddAndGet(0);
-                    // recurse:
-                    target.ReportCloseToParentReaders();
+                    //Using weak references
+                    IndexReader target = parent.Target;
+
+                    if (target != null)
+                    {
+                        target.closedByChild = true;
+                        // cross memory barrier by a fake write:
+                        target.refCount.AddAndGet(0);
+                        // recurse:
+                        target.ReportCloseToParentReaders();
+                    }
                 }
             }
         }

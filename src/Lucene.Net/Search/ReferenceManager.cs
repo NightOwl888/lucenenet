@@ -1,8 +1,10 @@
-using ConcurrentCollections;
+using Lucene.Net.Support;
 using Lucene.Net.Support.Threading;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search
 {
@@ -55,7 +57,7 @@ namespace Lucene.Net.Search
 
         private readonly ReentrantLock refreshLock = new ReentrantLock();
 
-        private readonly ConcurrentHashSet<ReferenceManager.IRefreshListener> refreshListeners = new ConcurrentHashSet<ReferenceManager.IRefreshListener>();
+        private readonly ISet<ReferenceManager.IRefreshListener> refreshListeners = new JCG.HashSet<ReferenceManager.IRefreshListener>().AsConcurrent();
 
         private void EnsureOpen()
         {
@@ -351,7 +353,7 @@ namespace Lucene.Net.Search
             {
                 throw new ArgumentNullException("Listener cannot be null");
             }
-            refreshListeners.TryRemove(listener);
+            refreshListeners.Remove(listener);
         }
     }
 
