@@ -1,4 +1,5 @@
-﻿using J2N.Collections.Generic.Extensions;
+﻿using J2N;
+using J2N.Collections.Generic.Extensions;
 using J2N.Globalization;
 using System;
 using System.Collections;
@@ -80,15 +81,6 @@ namespace Lucene.Net.Support
         public static IDictionary<TKey, TValue> SingletonMap<TKey, TValue>(TKey key, TValue value)
         {
             return new Dictionary<TKey, TValue> { { key, value } };
-        }
-
-
-        // LUCENENET TODO: Move to a new TypeExtensions class
-        private static bool ImplementsGenericInterface(this Type target, Type interfaceType)
-        {
-            return target.GetTypeInfo().IsGenericType && target.GetGenericTypeDefinition().GetInterfaces().Any(
-                x => x.GetTypeInfo().IsGenericType && interfaceType.IsAssignableFrom(x.GetGenericTypeDefinition())
-            );
         }
 
 
