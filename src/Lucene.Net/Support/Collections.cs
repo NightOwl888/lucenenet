@@ -6,30 +6,27 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text;
-using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Support
 {
     /*
-	 * Licensed to the Apache Software Foundation (ASF) under one or more
-	 * contributor license agreements.  See the NOTICE file distributed with
-	 * this work for additional information regarding copyright ownership.
-	 * The ASF licenses this file to You under the Apache License, Version 2.0
-	 * (the "License"); you may not use this file except in compliance with
-	 * the License.  You may obtain a copy of the License at
-	 *
-	 *     http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 */
+     * Licensed to the Apache Software Foundation (ASF) under one or more
+     * contributor license agreements.  See the NOTICE file distributed with
+     * this work for additional information regarding copyright ownership.
+     * The ASF licenses this file to You under the Apache License, Version 2.0
+     * (the "License"); you may not use this file except in compliance with
+     * the License.  You may obtain a copy of the License at
+     *
+     *     http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
 
     public static class Collections
     {
@@ -41,11 +38,6 @@ namespace Lucene.Net.Support
         public static IDictionary<TKey, TValue> EmptyMap<TKey, TValue>()
         {
             return new Dictionary<TKey, TValue>();
-        }
-
-        public static ISet<T> NewSetFromMap<T, S>(IDictionary<T, bool?> map)
-        {
-            return new SetFromMap<T>(map);
         }
 
         public static void Reverse<T>(IList<T> list)
@@ -205,200 +197,6 @@ namespace Lucene.Net.Support
         }
 
         #region Nested Types
-
-        #region SetFromMap
-        internal class SetFromMap<T> : ICollection<T>, IEnumerable<T>, IEnumerable, ISet<T>, IReadOnlyCollection<T>
-#if FEATURE_SERIALIZABLE
-            , ISerializable, IDeserializationCallback
-#endif
-        {
-            private readonly IDictionary<T, bool?> m; // The backing map
-#if FEATURE_SERIALIZABLE
-            [NonSerialized]
-#endif
-            private ICollection<T> s;
-
-            internal SetFromMap(IDictionary<T, bool?> map)
-            {
-                if (map.Any())
-                    throw new ArgumentException("Map is not empty");
-                m = map;
-                s = map.Keys;
-            }
-
-            public void Clear()
-            {
-                m.Clear();
-            }
-
-            public int Count
-            {
-                get
-                {
-                    return m.Count;
-                }
-            }
-
-            // LUCENENET: IsEmpty doesn't exist here
-
-            public bool Contains(T item)
-            {
-                return m.ContainsKey(item);
-            }
-
-            public bool Remove(T item)
-            {
-                return m.Remove(item);
-            }
-
-            public bool Add(T item)
-            {
-                m.Add(item, true);
-                return m.ContainsKey(item);
-            }
-
-            void ICollection<T>.Add(T item)
-            {
-                m.Add(item, true);
-            }
-
-            public IEnumerator<T> GetEnumerator()
-            {
-                return s.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return s.GetEnumerator();
-            }
-
-            // LUCENENET: ToArray() is part of LINQ
-
-            public override string ToString()
-            {
-                return s.ToString();
-            }
-
-            public override int GetHashCode()
-            {
-                return s.GetHashCode();
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj == this || s.Equals(obj);
-            }
-
-            public virtual bool ContainsAll(IEnumerable<T> other)
-            {
-                // we don't care about order, so sort both sequences before comparing
-                return this.OrderBy(x => x).SequenceEqual(other.OrderBy(x => x));
-            }
-
-            public void CopyTo(T[] array, int arrayIndex)
-            {
-                m.Keys.CopyTo(array, arrayIndex);
-            }
-
-
-            public bool IsReadOnly
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            public bool SetEquals(IEnumerable<T> other)
-            {
-                if (other == null)
-                {
-                    throw new ArgumentNullException("other");
-                }
-                SetFromMap<T> set = other as SetFromMap<T>;
-                if (set != null)
-                {
-                    if (this.m.Count != set.Count)
-                    {
-                        return false;
-                    }
-                    return this.ContainsAll(set);
-                }
-                ICollection<T> is2 = other as ICollection<T>;
-                if (((is2 != null) && (this.m.Count == 0)) && (is2.Count > 0))
-                {
-                    return false;
-                }
-                foreach (var item in this)
-                {
-                    if (!is2.Contains(item))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            #region Not Implemented Members
-            public void ExceptWith(IEnumerable<T> other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void IntersectWith(IEnumerable<T> other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool IsProperSubsetOf(IEnumerable<T> other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool IsProperSupersetOf(IEnumerable<T> other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool IsSubsetOf(IEnumerable<T> other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool IsSupersetOf(IEnumerable<T> other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool Overlaps(IEnumerable<T> other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void SymmetricExceptWith(IEnumerable<T> other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void UnionWith(IEnumerable<T> other)
-            {
-                throw new NotImplementedException();
-            }
-
-#if FEATURE_SERIALIZABLE
-            public void GetObjectData(SerializationInfo info, StreamingContext context)
-            {
-                throw new NotImplementedException();
-            }
-#endif
-
-            public void OnDeserialization(object sender)
-            {
-                throw new NotImplementedException();
-            }
-            #endregion
-        }
-        #endregion SetFromMap
 
         #region ReverseComparer
 
