@@ -19,6 +19,7 @@
  *
 */
 
+using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
@@ -37,11 +38,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
-using J2N.Collections.Generic.Extensions;
+using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Search.Grouping
 {

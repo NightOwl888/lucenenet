@@ -1,10 +1,8 @@
-﻿using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Core;
+﻿using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.Snowball;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Analysis.Util;
-using Lucene.Net.Support;
 using Lucene.Net.Tartarus.Snowball.Ext;
 using Lucene.Net.Util;
 using System;

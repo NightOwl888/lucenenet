@@ -6,7 +6,6 @@ using Lucene.Net.Queries.Function.ValueSources;
 using Lucene.Net.Search.Grouping.Function;
 using Lucene.Net.Search.Grouping.Terms;
 using Lucene.Net.Store;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 using Lucene.Net.Util.Mutable;
 using NUnit.Framework;
@@ -15,7 +14,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using Console = Lucene.Net.Support.SystemConsole;
 using JCG = J2N.Collections.Generic;
 

@@ -1,10 +1,8 @@
 ﻿using Lucene.Net.Index;
 using Lucene.Net.Queries.Function.DocValues;
 using Lucene.Net.Search;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 using Lucene.Net.Util.Mutable;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
