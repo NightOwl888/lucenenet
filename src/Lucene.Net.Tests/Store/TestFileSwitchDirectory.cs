@@ -156,7 +156,7 @@ namespace Lucene.Net.Store
         [Test]
         public virtual void TestCompoundFileAppendTwice()
         {
-            Directory newDir = NewFSSwitchDirectory(Collections.Singleton("cfs"));
+            Directory newDir = NewFSSwitchDirectory(new JCG.HashSet<string> { "cfs" });
             var csw = new CompoundFileDirectory(newDir, "d.cfs", NewIOContext(Random), true);
             CreateSequenceFile(newDir, "d1", (sbyte)0, 15);
             IndexOutput @out = csw.CreateOutput("d.xyz", NewIOContext(Random));

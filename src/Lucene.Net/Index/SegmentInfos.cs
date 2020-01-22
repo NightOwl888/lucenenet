@@ -302,7 +302,7 @@ namespace Lucene.Net.Index
                 finally
                 {
                     genOutput.Dispose();
-                    dir.Sync(Collections.Singleton(IndexFileNames.SEGMENTS_GEN));
+                    dir.Sync(new JCG.HashSet<string> { IndexFileNames.SEGMENTS_GEN });
                 }
             }
             catch (Exception)
@@ -1247,7 +1247,7 @@ namespace Lucene.Net.Index
             success = false;
             try
             {
-                dir.Sync(Collections.Singleton(fileName));
+                dir.Sync(new JCG.HashSet<string> { fileName });
                 success = true;
             }
             finally

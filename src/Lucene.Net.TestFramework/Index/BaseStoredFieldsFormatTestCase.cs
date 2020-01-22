@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 using Assert = Lucene.Net.TestFramework.Assert;
 
@@ -450,7 +451,7 @@ namespace Lucene.Net.Index
                         foreach (Field fld in fields)
                         {
                             string fldName = fld.Name;
-                            Document sDoc = reader.Document(docID, Collections.Singleton(fldName));
+                            Document sDoc = reader.Document(docID, new JCG.HashSet<string> { fldName });
                             IIndexableField sField = sDoc.GetField(fldName);
                             if (typeof(Field) == fld.GetType())
                             {
