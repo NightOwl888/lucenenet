@@ -1,6 +1,5 @@
 ﻿using J2N.Text;
 using Lucene.Net.Attributes;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 using NUnit.Framework;
 using System;
@@ -629,13 +628,13 @@ namespace Lucene.Net.Analysis.Util
         [Test]
         public virtual void TestToString()
         {
-            CharArraySet set = CharArraySet.Copy(TEST_VERSION_CURRENT, Collections.Singleton("test"));
+            CharArraySet set = CharArraySet.Copy(TEST_VERSION_CURRENT, new JCG.List<string> { "test" });
             assertEquals("[test]", set.ToString());
             set.add("test2");
             assertTrue(set.ToString().Contains(", "));
 
 #pragma warning disable 612, 618
-            set = CharArraySet.Copy(Version.LUCENE_30, Collections.Singleton("test"));
+            set = CharArraySet.Copy(Version.LUCENE_30, new JCG.List<string> { "test" });
 #pragma warning restore 612, 618
             assertEquals("[test]", set.ToString());
             set.add("test2");

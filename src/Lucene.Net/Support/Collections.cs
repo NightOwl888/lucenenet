@@ -73,11 +73,6 @@ namespace Lucene.Net.Support
             return new ReverseComparer2<T>(cmp);
         }
 
-        public static ISet<T> Singleton<T>(T o)
-        {
-            return new JCG.HashSet<T>(new T[] { o });
-        }
-
         public static IDictionary<TKey, TValue> SingletonMap<TKey, TValue>(TKey key, TValue value)
         {
             return new Dictionary<TKey, TValue> { { key, value } };

@@ -1,11 +1,11 @@
 ﻿using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Analysis.TokenAttributes;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using JCG = J2N.Collections.Generic;
 using Console = Lucene.Net.Support.SystemConsole;
 
 namespace Lucene.Net.Analysis.Core
@@ -102,7 +102,7 @@ namespace Lucene.Net.Analysis.Core
         public virtual void TestTypeFilterWhitelist()
         {
             StringReader reader = new StringReader("121 is palindrome, while 123 is not");
-            ISet<string> stopTypes = Collections.Singleton("<NUM>");
+            ISet<string> stopTypes = new JCG.HashSet<string> { "<NUM>" };
             TokenStream stream = new TypeTokenFilter(TEST_VERSION_CURRENT, new StandardTokenizer(TEST_VERSION_CURRENT, reader), stopTypes, true);
             AssertTokenStreamContents(stream, new string[] { "121", "123" });
         }
