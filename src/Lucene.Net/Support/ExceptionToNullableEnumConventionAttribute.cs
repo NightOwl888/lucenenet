@@ -24,7 +24,7 @@ namespace Lucene.Net.Support
     /// Some of these cannot be avoided.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Constructor, AllowMultiple = false)]
-    public class ExceptionToNullableEnumConvention : Attribute
+    public class ExceptionToNullableEnumConventionAttribute : Attribute
     {
     }
 }
