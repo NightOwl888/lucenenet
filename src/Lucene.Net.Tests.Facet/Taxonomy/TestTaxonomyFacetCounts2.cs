@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using J2N.Collections.Generic.Extensions;
-using Lucene.Net.Randomized.Generators;
+﻿using J2N.Collections.Generic.Extensions;
 using Lucene.Net.Support;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 
 namespace Lucene.Net.Facet.Taxonomy
 {
@@ -27,22 +25,20 @@ namespace Lucene.Net.Facet.Taxonomy
      */
 
 
-    using MockAnalyzer = Lucene.Net.Analysis.MockAnalyzer;
-    using Document = Lucene.Net.Documents.Document;
-    using Store = Lucene.Net.Documents.Field.Store;
-    using StringField = Lucene.Net.Documents.StringField;
+    using DirectoryReader = Lucene.Net.Index.DirectoryReader;
     using DirectoryTaxonomyReader = Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyReader;
     using DirectoryTaxonomyWriter = Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter;
-    using DirectoryReader = Lucene.Net.Index.DirectoryReader;
+    using Document = Lucene.Net.Documents.Document;
+    using IndexSearcher = Lucene.Net.Search.IndexSearcher;
     using IndexWriter = Lucene.Net.Index.IndexWriter;
     using IndexWriterConfig = Lucene.Net.Index.IndexWriterConfig;
-    using NoMergePolicy = Lucene.Net.Index.NoMergePolicy;
-    using Term = Lucene.Net.Index.Term;
-    using IndexSearcher = Lucene.Net.Search.IndexSearcher;
-    using MatchAllDocsQuery = Lucene.Net.Search.MatchAllDocsQuery;
-    using TermQuery = Lucene.Net.Search.TermQuery;
-    using Directory = Lucene.Net.Store.Directory;
     using IOUtils = Lucene.Net.Util.IOUtils;
+    using MatchAllDocsQuery = Lucene.Net.Search.MatchAllDocsQuery;
+    using MockAnalyzer = Lucene.Net.Analysis.MockAnalyzer;
+    using Store = Lucene.Net.Documents.Field.Store;
+    using StringField = Lucene.Net.Documents.StringField;
+    using Term = Lucene.Net.Index.Term;
+    using TermQuery = Lucene.Net.Search.TermQuery;
     [TestFixture]
     public class TestTaxonomyFacetCounts2 : FacetTestCase
     {

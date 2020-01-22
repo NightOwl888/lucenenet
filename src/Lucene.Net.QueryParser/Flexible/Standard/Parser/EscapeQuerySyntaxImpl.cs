@@ -3,7 +3,6 @@ using Lucene.Net.QueryParsers.Flexible.Core.Messages;
 using Lucene.Net.QueryParsers.Flexible.Core.Parser;
 using Lucene.Net.QueryParsers.Flexible.Core.Util;
 using Lucene.Net.QueryParsers.Flexible.Messages;
-using Lucene.Net.Support;
 using System;
 using System.Globalization;
 using System.Text;

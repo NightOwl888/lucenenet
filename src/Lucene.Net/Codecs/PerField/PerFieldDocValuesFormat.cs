@@ -1,5 +1,4 @@
 using J2N.Runtime.CompilerServices;
-using Lucene.Net.Support;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,9 +25,9 @@ namespace Lucene.Net.Codecs.PerField
      */
 
     using BinaryDocValues = Lucene.Net.Index.BinaryDocValues;
-    using IBits = Lucene.Net.Util.IBits;
     using BytesRef = Lucene.Net.Util.BytesRef;
     using FieldInfo = Lucene.Net.Index.FieldInfo;
+    using IBits = Lucene.Net.Util.IBits;
     using IOUtils = Lucene.Net.Util.IOUtils;
     using NumericDocValues = Lucene.Net.Index.NumericDocValues;
     using RamUsageEstimator = Lucene.Net.Util.RamUsageEstimator;

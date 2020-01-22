@@ -1,7 +1,6 @@
 ﻿using J2N.Runtime.CompilerServices;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
-using Lucene.Net.Support;
 using System;
 using System.Collections;
 
@@ -23,7 +22,7 @@ namespace Lucene.Net.Queries.Function
      * See the License for the specific language governing permissions and
      * limitations under the License.
      */
-    
+
     /// <summary>
     /// Instantiates <see cref="FunctionValues"/> for a particular reader.
     /// <para/>

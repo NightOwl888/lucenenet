@@ -1,7 +1,6 @@
 ﻿using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Analysis.Util;
-using Lucene.Net.Support;
 using NUnit.Framework;
 using System.IO;
 

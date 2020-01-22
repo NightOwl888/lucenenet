@@ -4,7 +4,6 @@ using Lucene.Net.QueryParsers.Flexible.Core.Processors;
 using Lucene.Net.QueryParsers.Flexible.Core.Util;
 using Lucene.Net.QueryParsers.Flexible.Standard.Config;
 using Lucene.Net.QueryParsers.Flexible.Standard.Nodes;
-using Lucene.Net.Support;
 using System.Collections.Generic;
 using System.Globalization;
 
