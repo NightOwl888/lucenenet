@@ -190,7 +190,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard.Processors
                         // safe to ignore, because we know the number of tokens
                     }
 
-                    fieldNode.Text = term.ToCharSequence();
+                    fieldNode.Text = term.AsCharSequence();
 
                     return fieldNode;
                 }

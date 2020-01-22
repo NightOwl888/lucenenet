@@ -119,7 +119,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
             {
                 if (start == end)
                 {
-                    return "".ToCharSequence();
+                    return "".AsCharSequence();
                 }
                 string res = cache[start][end - 1];
                 if (res == null)
@@ -127,7 +127,7 @@ namespace Lucene.Net.Analysis.Phonetic.Language.Bm
                     res = cached.Substring(start, end - start);
                     cache[start][end - 1] = res;
                 }
-                return res.ToCharSequence();
+                return res.AsCharSequence();
             }
         }
 
