@@ -62,7 +62,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Core.Nodes
          // LUCENENET specific overload for passing text as string
         public FieldQueryNode(string field, string text, int begin,
             int end)
-            : this(field, text.ToCharSequence(), begin, end)
+            : this(field, text.AsCharSequence(), begin, end)
         {
         }
 
@@ -76,7 +76,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Core.Nodes
          // LUCENENET specific overload for passing text as StringBuilder
         public FieldQueryNode(string field, StringBuilder text, int begin,
             int end)
-            : this(field, text.ToCharSequence(), begin, end)
+            : this(field, text.AsCharSequence(), begin, end)
         {
         }
 
@@ -202,7 +202,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Core.Nodes
         public virtual string Value
         {
             get { return Text.ToString(); }
-            set { Text = value.ToCharSequence(); }
+            set { Text = value.AsCharSequence(); }
         }
     }
 }

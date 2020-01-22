@@ -41,7 +41,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard.Nodes
         // LUCENENET specific overload for passing text as string
         public RegexpQueryNode(string field, string text, int begin,
             int end)
-            : this(field, text.ToCharSequence(), begin, end)
+            : this(field, text.AsCharSequence(), begin, end)
         {
         }
 
@@ -55,7 +55,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard.Nodes
         // LUCENENET specific overload for passing text as StringBuilder
         public RegexpQueryNode(string field, StringBuilder text, int begin,
             int end)
-            : this(field, text.ToCharSequence(), begin, end)
+            : this(field, text.AsCharSequence(), begin, end)
         {
         }
 
