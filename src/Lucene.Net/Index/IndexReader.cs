@@ -99,7 +99,7 @@ namespace Lucene.Net.Index
 
         private readonly ISet<IReaderClosedListener> readerClosedListeners = new JCG.LinkedHashSet<IReaderClosedListener>().AsConcurrent();
 
-        private readonly ISet<IdentityWeakReference<IndexReader>> parentReaders = new JCG.HashSet<IdentityWeakReference<IndexReader>>().AsConcurrent();
+        private readonly ISet<IdentityWeakReference<IndexReader>> parentReaders = new ConcurrentHashSet<IdentityWeakReference<IndexReader>>();
 
         /// <summary>
         /// Expert: adds a <see cref="IReaderClosedListener"/>.  The
@@ -166,7 +166,7 @@ namespace Lucene.Net.Index
 
         private void ReportCloseToParentReaders()
         {
-            lock (((ICollection)parentReaders).SyncRoot) // LUCENENET: Ensure we sync on the SyncRoot of ConcurrentSet<T>
+            lock (parentReaders) // LUCENENET: This does not actually synchronize the set, it only ensures this method can only be entered by 1 thread
             {
                 foreach (IdentityWeakReference<IndexReader> parent in parentReaders)
                 {
