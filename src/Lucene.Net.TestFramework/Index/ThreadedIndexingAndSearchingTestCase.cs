@@ -130,8 +130,8 @@ namespace Lucene.Net.Index
                                                     int numThreads, 
                                                     long stopTime, 
                                                     ISet<string> delIDs, 
-                                                    ISet<string> delPackIDs, 
-                                                    IList<SubDocs> allSubDocs)
+                                                    ISet<string> delPackIDs,
+                                                    ConcurrentQueue<SubDocs> allSubDocs)
         {
             ThreadJob[] threads = new ThreadJob[numThreads];
             for (int thread = 0; thread < numThreads; thread++)
@@ -148,13 +148,13 @@ namespace Lucene.Net.Index
         {
             private readonly ThreadedIndexingAndSearchingTestCase outerInstance;
 
-            private LineFileDocs docs;
-            private long stopTime;
-            private ISet<string> delIDs;
-            private ISet<string> delPackIDs;
-            private IList<SubDocs> allSubDocs;
+            private readonly LineFileDocs docs;
+            private readonly long stopTime;
+            private readonly ISet<string> delIDs;
+            private readonly ISet<string> delPackIDs;
+            private readonly ConcurrentQueue<SubDocs> allSubDocs;
 
-            public ThreadAnonymousInnerClassHelper(ThreadedIndexingAndSearchingTestCase outerInstance, LineFileDocs docs, long stopTime, ISet<string> delIDs, ISet<string> delPackIDs, IList<SubDocs> allSubDocs)
+            public ThreadAnonymousInnerClassHelper(ThreadedIndexingAndSearchingTestCase outerInstance, LineFileDocs docs, long stopTime, ISet<string> delIDs, ISet<string> delPackIDs, ConcurrentQueue<SubDocs> allSubDocs)
             {
                 this.outerInstance = outerInstance;
                 this.docs = docs;
@@ -239,7 +239,7 @@ namespace Lucene.Net.Index
                                 SubDocs subDocs = new SubDocs(packID, docIDs);
                                 IList<Document> docsList = new List<Document>();
 
-                                allSubDocs.Add(subDocs);
+                                allSubDocs.Enqueue(subDocs);
                                 doc.Add(packIDField);
                                 docsList.Add(TestUtil.CloneDocument(doc));
                                 docIDs.Add(doc.Get("docid"));
@@ -611,13 +611,13 @@ namespace Lucene.Net.Index
 
             int RUN_TIME_SEC = LuceneTestCase.TEST_NIGHTLY ? 300 : RANDOM_MULTIPLIER;
 
-            ISet<string> delIDs = new JCG.HashSet<string>().AsConcurrent();
-            ISet<string> delPackIDs = new JCG.HashSet<string>().AsConcurrent();
+            ISet<string> delIDs = new ConcurrentHashSet<string>();
+            ISet<string> delPackIDs = new ConcurrentHashSet<string>();
             ConcurrentQueue<SubDocs> allSubDocs = new ConcurrentQueue<SubDocs>();
 
             long stopTime = Environment.TickCount + (RUN_TIME_SEC * 1000);
 
-            ThreadJob[] indexThreads = LaunchIndexingThreads(docs, NUM_INDEX_THREADS, stopTime, delIDs, delPackIDs, allSubDocs.ToList());
+            ThreadJob[] indexThreads = LaunchIndexingThreads(docs, NUM_INDEX_THREADS, stopTime, delIDs, delPackIDs, allSubDocs);
 
             if (VERBOSE)
             {
@@ -677,7 +677,7 @@ namespace Lucene.Net.Index
             }
 
             // Verify: make sure each group of sub-docs are still in docID order:
-            foreach (SubDocs subDocs in allSubDocs.ToList())
+            foreach (SubDocs subDocs in allSubDocs)
             {
                 TopDocs hits = s.Search(new TermQuery(new Term("packID", subDocs.PackID)), 20);
                 if (!subDocs.Deleted)
