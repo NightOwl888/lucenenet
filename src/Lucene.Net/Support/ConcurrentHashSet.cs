@@ -28,7 +28,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Threading;
 
 namespace Lucene.Net.Support
@@ -42,7 +41,7 @@ namespace Lucene.Net.Support
     /// concurrently from multiple threads.
     /// </remarks>
     [DebuggerDisplay("Count = {Count}")]
-    internal class ConcurrentHashSet<T> : IReadOnlyCollection<T>, ICollection<T>
+    internal class ConcurrentHashSet<T> : ISet<T>, IReadOnlyCollection<T>, ICollection<T>
     {
         private const int DefaultCapacity = 31;
         private const int MaxLockNumber = 1024;
@@ -742,6 +741,70 @@ namespace Lucene.Net.Support
                     array[index] = current.Item;
                     index++; //this should never flow, CopyToItems is only called when there's no overflow risk
                 }
+            }
+        }
+
+        public void ExceptWith(IEnumerable<T> other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void IntersectWith(IEnumerable<T> other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsProperSubsetOf(IEnumerable<T> other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsProperSupersetOf(IEnumerable<T> other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsSubsetOf(IEnumerable<T> other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsSupersetOf(IEnumerable<T> other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Overlaps(IEnumerable<T> other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SetEquals(IEnumerable<T> other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SymmetricExceptWith(IEnumerable<T> other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UnionWith(IEnumerable<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            var locksAcquired = 0;
+            try
+            {
+                AcquireAllLocks(ref locksAcquired);
+
+                foreach (var item in other)
+                    AddInternal(item, _comparer.GetHashCode(item), acquireLock: false);
+            }
+            finally
+            {
+                ReleaseLocks(0, locksAcquired);
             }
         }
 
