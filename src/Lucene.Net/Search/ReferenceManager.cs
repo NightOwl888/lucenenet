@@ -57,7 +57,7 @@ namespace Lucene.Net.Search
 
         private readonly ReentrantLock refreshLock = new ReentrantLock();
 
-        private readonly ISet<ReferenceManager.IRefreshListener> refreshListeners = new JCG.HashSet<ReferenceManager.IRefreshListener>().AsConcurrent();
+        private readonly ISet<ReferenceManager.IRefreshListener> refreshListeners = new ConcurrentHashSet<ReferenceManager.IRefreshListener>();
 
         private void EnsureOpen()
         {
