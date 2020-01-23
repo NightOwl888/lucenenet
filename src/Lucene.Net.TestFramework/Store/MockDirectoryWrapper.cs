@@ -111,7 +111,7 @@ namespace Lucene.Net.Store
         private ISet<string> unSyncedFiles;
         private ISet<string> createdFiles;
         private ISet<string> openFilesForWrite = new JCG.HashSet<string>(StringComparer.Ordinal);
-        internal ISet<string> openLocks = new JCG.HashSet<string>(StringComparer.Ordinal).AsConcurrent();
+        internal ISet<string> openLocks = new ConcurrentHashSet<string>(StringComparer.Ordinal);
         internal volatile bool crashed;
         private ThrottledIndexOutput throttledOutput;
         private Throttling throttling = Throttling.SOMETIMES;
