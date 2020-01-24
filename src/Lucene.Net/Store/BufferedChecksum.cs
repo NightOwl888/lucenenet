@@ -1,5 +1,7 @@
 using Lucene.Net.Support;
+using System;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 
 namespace Lucene.Net.Store
 {
@@ -19,6 +21,78 @@ namespace Lucene.Net.Store
      * See the License for the specific language governing permissions and
      * limitations under the License.
      */
+
+    public class BufferedHashAlgorithm : HashAlgorithm
+    {
+        private readonly HashAlgorithm input;
+        private readonly byte[] buffer;
+        private int upto;
+
+        /// <summary>
+        /// Default buffer size: 256 </summary>
+        public const int DEFAULT_BUFFERSIZE = 256;
+
+        /// <summary>
+        /// Initializes a new <see cref="BufferedHashAlgorithm"/> with <see cref="DEFAULT_BUFFERSIZE"/>.
+        /// </summary>
+        /// <param name="input">The <see cref="HashAlgorithm"/> to wrap.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="input"/> is <c>null</c>.</exception>
+        public BufferedHashAlgorithm(HashAlgorithm input)
+            : this(input, DEFAULT_BUFFERSIZE)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="BufferedHashAlgorithm"/> with the specified <paramref name="bufferSize"/>.
+        /// </summary>
+        /// <param name="input">The <see cref="HashAlgorithm"/> to wrap.</param>
+        /// <param name="bufferSize">The buffer size.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="input"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="bufferSize"/> is less than 0.</exception>
+        public BufferedHashAlgorithm(HashAlgorithm input, int bufferSize)
+        {
+            this.input = input ?? throw new ArgumentNullException(nameof(input));
+
+            if (bufferSize < 0)
+                throw new ArgumentOutOfRangeException(nameof(bufferSize));
+            this.buffer = new byte[bufferSize];
+        }
+
+        public override bool CanReuseTransform => input.CanReuseTransform;
+
+        public override bool CanTransformMultipleBlocks => input.CanTransformMultipleBlocks;
+
+        public override byte[] Hash => base.Hash;
+
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override byte[] HashFinal()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Initialize()
+        {
+            throw new NotImplementedException();
+        }
+
+
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Flush()
+        {
+            if (upto > 0)
+            {
+                input.ComputeHash(buffer, 0, upto);
+            }
+            upto = 0;
+        }
+
+        
+    }
 
     /// <summary>
     /// Wraps another <see cref="IChecksum"/> with an internal buffer

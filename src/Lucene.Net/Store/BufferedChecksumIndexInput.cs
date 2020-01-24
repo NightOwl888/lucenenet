@@ -27,7 +27,7 @@ namespace Lucene.Net.Store
     public class BufferedChecksumIndexInput : ChecksumIndexInput
     {
         internal readonly IndexInput main;
-        internal readonly IChecksum digest;
+        internal readonly BufferedCrc32Algorithm digest;
 
         /// <summary>
         /// Creates a new <see cref="BufferedChecksumIndexInput"/> </summary>
@@ -35,7 +35,7 @@ namespace Lucene.Net.Store
             : base("BufferedChecksumIndexInput(" + main + ")")
         {
             this.main = main;
-            this.digest = new BufferedChecksum(new CRC32());
+            this.digest = new BufferedCrc32Algorithm(); // new BufferedChecksum(new CRC32());
         }
 
         public override byte ReadByte()
@@ -63,6 +63,7 @@ namespace Lucene.Net.Store
         {
             if (disposing)
             {
+                digest.Initialize();
                 main.Dispose();
             }
         }
@@ -82,4 +83,69 @@ namespace Lucene.Net.Store
             throw new NotSupportedException();
         }
     }
+
+
+
+    ///// <summary>
+    ///// Simple implementation of <see cref="ChecksumIndexInput"/> that wraps
+    ///// another input and delegates calls.
+    ///// </summary>
+    //public class BufferedChecksumIndexInput : ChecksumIndexInput
+    //{
+    //    internal readonly IndexInput main;
+    //    internal readonly IChecksum digest;
+
+    //    /// <summary>
+    //    /// Creates a new <see cref="BufferedChecksumIndexInput"/> </summary>
+    //    public BufferedChecksumIndexInput(IndexInput main)
+    //        : base("BufferedChecksumIndexInput(" + main + ")")
+    //    {
+    //        this.main = main;
+    //        this.digest = new BufferedChecksum(new CRC32());
+    //    }
+
+    //    public override byte ReadByte()
+    //    {
+    //        byte b = main.ReadByte();
+    //        digest.Update(b);
+    //        return b;
+    //    }
+
+    //    public override void ReadBytes(byte[] b, int offset, int len)
+    //    {
+    //        main.ReadBytes(b, offset, len);
+    //        digest.Update(b, offset, len);
+    //    }
+
+    //    public override long Checksum
+    //    {
+    //        get
+    //        {
+    //            return digest.Value;
+    //        }
+    //    }
+
+    //    protected override void Dispose(bool disposing)
+    //    {
+    //        if (disposing)
+    //        {
+    //            main.Dispose();
+    //        }
+    //    }
+
+    //    public override long GetFilePointer()
+    //    {
+    //        return main.GetFilePointer();
+    //    }
+
+    //    public override long Length
+    //    {
+    //        get { return main.Length; }
+    //    }
+
+    //    public override object Clone()
+    //    {
+    //        throw new NotSupportedException();
+    //    }
+    //}
 }
