@@ -1,6 +1,8 @@
+using Force.Crc32;
 using Lucene.Net.Attributes;
 using NUnit.Framework;
 using System;
+using System.Security.Cryptography;
 
 namespace Lucene.Net.Support
 {
@@ -38,6 +40,22 @@ namespace Lucene.Net.Support
 
             Int64 expected = 688229491;
             Assert.AreEqual(expected, digest.Value);
+        }
+
+        /// <summary></summary>
+        /// <throws></throws>
+        [Test, LuceneNetSpecific]
+        public virtual void TestCRC32_2()
+        {
+            byte[] b = new byte[256];
+            for (int i = 0; i < b.Length; i++)
+                b[i] = (byte)i;
+
+            HashAlgorithm digest = new Crc32Algorithm(isBigEndian: false);
+            digest.ComputeHash(b, 0, b.Length);
+
+            int expected = 688229491;
+            Assert.AreEqual(expected, BitConverter.ToInt32(digest.Hash));
         }
     }
 }

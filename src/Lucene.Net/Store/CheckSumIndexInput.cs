@@ -19,6 +19,7 @@ namespace Lucene.Net.Store
      * limitations under the License.
      */
 
+
     /// <summary>
     /// Extension of <see cref="IndexInput"/>, computing checksum as it goes.
     /// Callers can retrieve the checksum via <see cref="Checksum"/>.

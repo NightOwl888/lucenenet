@@ -19,10 +19,72 @@
  *
 */
 
+using Force.Crc32;
 using System;
 
 namespace Lucene.Net.Support
 {
+    public class BufferedCrc32Algorithm : Crc32Algorithm
+    {
+        private bool isComputed = false;
+
+        public BufferedCrc32Algorithm()
+            : base(isBigEndian: false)
+        { }
+
+        public long Value
+        {
+            get
+            {
+                if (!isComputed)
+                {
+                    base.HashValue = base.HashFinal();
+                    isComputed = true;
+                }
+
+                int size = base.HashSizeValue;
+                switch (size)
+                {
+                    case 32:
+                        return BitConverter.ToInt32(base.HashValue, 0);
+                    case 64:
+                        return BitConverter.ToInt64(base.HashValue, 0);
+                    default:
+                        throw new InvalidOperationException($"Hash value size not supported: {size}");
+                }
+            }
+        }
+
+        //public void Reset()
+        //{
+        //    base.Initialize();
+        //}
+
+        public void Update(byte value)
+        {
+            base.HashCore(new byte[] { value }, 0, 1);
+            isComputed = false;
+        }
+
+        public void Update(byte[] buffer, int offset, int length)
+        {
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+
+            base.HashCore(buffer, offset, length);
+            isComputed = false;
+        }
+
+        public void Update(byte[] buffer)
+        {
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+
+            Update(buffer, 0, buffer.Length);
+            isComputed = false;
+        }
+    }
+
     internal class CRC32 : IChecksum
     {
         private static readonly UInt32[] crcTable = InitializeCRCTable();
