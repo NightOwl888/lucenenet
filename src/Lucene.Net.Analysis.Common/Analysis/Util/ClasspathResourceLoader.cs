@@ -1,4 +1,4 @@
-﻿using Lucene.Net.Support;
+﻿using J2N;
 using System;
 using System.IO;
 using System.Reflection;
@@ -44,7 +44,7 @@ namespace Lucene.Net.Analysis.Util
 
         public Stream OpenResource(string resource)
         {
-            Stream stream = this.clazz.GetTypeInfo().Assembly.FindAndGetManifestResourceStream(clazz, resource);
+            Stream stream = this.clazz.FindAndGetManifestResourceStream(resource);
             if (stream == null)
             {
                 throw new IOException("Resource not found: " + resource);
