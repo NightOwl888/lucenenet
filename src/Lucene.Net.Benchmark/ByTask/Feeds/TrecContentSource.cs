@@ -1,11 +1,11 @@
 ﻿using J2N.Text;
 using Lucene.Net.Benchmarks.ByTask.Utils;
+using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Threading;
 using Console = Lucene.Net.Util.SystemConsole;
 
 namespace Lucene.Net.Benchmarks.ByTask.Feeds
@@ -84,7 +84,7 @@ namespace Lucene.Net.Benchmarks.ByTask.Feeds
             "hhmm K.K.K. MMMM dd, yyyy",     // 0901 u.t.c. April 28, 1994
         };
 
-        private ThreadLocal<StringBuilder> trecDocBuffer = new ThreadLocal<StringBuilder>();
+        private LightWeightThreadLocal<StringBuilder> trecDocBuffer = new LightWeightThreadLocal<StringBuilder>();
         private DirectoryInfo dataDir = null;
         private List<FileInfo> inputFiles = new List<FileInfo>();
         private int nextFile = 0;

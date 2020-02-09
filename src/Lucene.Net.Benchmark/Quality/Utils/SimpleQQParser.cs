@@ -2,7 +2,6 @@
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
-using System.Threading;
 
 namespace Lucene.Net.Benchmarks.Quality.Utils
 {
@@ -32,7 +31,7 @@ namespace Lucene.Net.Benchmarks.Quality.Utils
     {
         private string[] qqNames;
         private string indexField;
-        ThreadLocal<QueryParser> queryParser = new ThreadLocal<QueryParser>();
+        LightWeightThreadLocal<QueryParser> queryParser = new LightWeightThreadLocal<QueryParser>();
 
         /// <summary>
         /// Constructor of a simple qq parser.

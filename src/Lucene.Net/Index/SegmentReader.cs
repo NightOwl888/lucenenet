@@ -1,5 +1,4 @@
 using J2N.Runtime.CompilerServices;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,12 +24,12 @@ namespace Lucene.Net.Index
      * limitations under the License.
      */
 
-    using IBits = Lucene.Net.Util.IBits;
     using Codec = Lucene.Net.Codecs.Codec;
     using CompoundFileDirectory = Lucene.Net.Store.CompoundFileDirectory;
     using Directory = Lucene.Net.Store.Directory;
     using DocValuesFormat = Lucene.Net.Codecs.DocValuesFormat;
     using DocValuesProducer = Lucene.Net.Codecs.DocValuesProducer;
+    using IBits = Lucene.Net.Util.IBits;
     using IOContext = Lucene.Net.Store.IOContext;
     using IOUtils = Lucene.Net.Util.IOUtils;
     using StoredFieldsReader = Lucene.Net.Codecs.StoredFieldsReader;
@@ -57,34 +56,10 @@ namespace Lucene.Net.Index
         internal readonly SegmentCoreReaders core;
         internal readonly SegmentDocValues segDocValues;
 
-        internal readonly DisposableThreadLocal<IDictionary<string, object>> docValuesLocal = new DisposableThreadLocalAnonymousInnerClassHelper();
-
-        private class DisposableThreadLocalAnonymousInnerClassHelper : DisposableThreadLocal<IDictionary<string, object>>
-        {
-            public DisposableThreadLocalAnonymousInnerClassHelper()
-            {
-            }
-
-            protected internal override IDictionary<string, object> InitialValue()
-            {
-                return new Dictionary<string, object>();
-            }
-        }
-
-        internal readonly DisposableThreadLocal<IDictionary<string, IBits>> docsWithFieldLocal = new DisposableThreadLocalAnonymousInnerClassHelper2();
-
-        private class DisposableThreadLocalAnonymousInnerClassHelper2 : DisposableThreadLocal<IDictionary<string, IBits>>
-        {
-            public DisposableThreadLocalAnonymousInnerClassHelper2()
-            {
-            }
-
-            protected internal override IDictionary<string, IBits> InitialValue()
-            {
-                return new Dictionary<string, IBits>();
-            }
-        }
-
+        internal readonly LightWeightThreadLocal<IDictionary<string, object>> docValuesLocal = 
+            new LightWeightThreadLocal<IDictionary<string, object>>(() => new Dictionary<string, object>());
+        internal readonly LightWeightThreadLocal<IDictionary<string, IBits>> docsWithFieldLocal = 
+            new LightWeightThreadLocal<IDictionary<string, IBits>>(() => new Dictionary<string, IBits>());
         internal readonly IDictionary<string, DocValuesProducer> dvProducersByField = new Dictionary<string, DocValuesProducer>();
         internal readonly ISet<DocValuesProducer> dvProducers = new JCG.HashSet<DocValuesProducer>(IdentityEqualityComparer<DocValuesProducer>.Default);
 
@@ -338,7 +313,7 @@ namespace Lucene.Net.Index
             get
             {
                 EnsureOpen();
-                return core.fieldsReaderLocal.Get();
+                return core.fieldsReaderLocal.Value;
             }
         }
 
@@ -386,7 +361,7 @@ namespace Lucene.Net.Index
             get
             {
                 EnsureOpen();
-                return core.termVectorsLocal.Get();
+                return core.termVectorsLocal.Value;
             }
         }
 
@@ -519,7 +494,7 @@ namespace Lucene.Net.Index
                 return null;
             }
 
-            IDictionary<string, object> dvFields = docValuesLocal.Get();
+            IDictionary<string, object> dvFields = docValuesLocal.Value;
 
             NumericDocValues dvs;
             object dvsDummy;
@@ -552,10 +527,9 @@ namespace Lucene.Net.Index
                 return null;
             }
 
-            IDictionary<string, IBits> dvFields = docsWithFieldLocal.Get();
+            IDictionary<string, IBits> dvFields = docsWithFieldLocal.Value;
 
-            IBits dvs;
-            dvFields.TryGetValue(field, out dvs);
+            dvFields.TryGetValue(field, out IBits dvs);
             if (dvs == null)
             {
                 DocValuesProducer dvProducer;
@@ -577,7 +551,7 @@ namespace Lucene.Net.Index
                 return null;
             }
 
-            IDictionary<string, object> dvFields = docValuesLocal.Get();
+            IDictionary<string, object> dvFields = docValuesLocal.Value;
 
             object ret;
             BinaryDocValues dvs;
@@ -604,7 +578,7 @@ namespace Lucene.Net.Index
                 return null;
             }
 
-            IDictionary<string, object> dvFields = docValuesLocal.Get();
+            IDictionary<string, object> dvFields = docValuesLocal.Value;
 
             SortedDocValues dvs;
             object ret;
@@ -631,7 +605,7 @@ namespace Lucene.Net.Index
                 return null;
             }
 
-            IDictionary<string, object> dvFields = docValuesLocal.Get();
+            IDictionary<string, object> dvFields = docValuesLocal.Value;
 
             object ret;
             SortedSetDocValues dvs;

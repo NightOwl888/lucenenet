@@ -3,13 +3,13 @@ using Lucene.Net.Benchmarks.ByTask.Feeds;
 using Lucene.Net.Benchmarks.ByTask.Utils;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Benchmarks.ByTask.Tasks
@@ -83,8 +83,8 @@ namespace Lucene.Net.Benchmarks.ByTask.Tasks
         protected readonly string m_fname;
         private readonly TextWriter lineFileOut;
         private readonly DocMaker docMaker;
-        private readonly ThreadLocal<StringBuilder> threadBuffer = new ThreadLocal<StringBuilder>();
-        private readonly ThreadLocal<Regex> threadNormalizer = new ThreadLocal<Regex>();
+        private readonly LightWeightThreadLocal<StringBuilder> threadBuffer = new LightWeightThreadLocal<StringBuilder>();
+        private readonly LightWeightThreadLocal<Regex> threadNormalizer = new LightWeightThreadLocal<Regex>();
         private readonly string[] fieldsToWrite;
         private readonly bool[] sufficientFields;
         private readonly bool checkSufficientFields;

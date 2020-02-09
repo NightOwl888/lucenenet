@@ -69,7 +69,7 @@ namespace Lucene.Net.Analysis
         private readonly ReuseStrategy reuseStrategy;
 
         // non readonly as it gets nulled if closed; internal for access by ReuseStrategy's final helper methods:
-        internal DisposableThreadLocal<object> storedValue = new DisposableThreadLocal<object>();
+        internal LightWeightThreadLocal<object> storedValue = new LightWeightThreadLocal<object>();
 
         /// <summary>
         /// Create a new <see cref="Analyzer"/>, reusing the same set of components per-thread
@@ -634,7 +634,7 @@ namespace Lucene.Net.Analysis
             {
                 throw new ObjectDisposedException(this.GetType().GetTypeInfo().FullName, "this Analyzer is closed");
             }
-            return analyzer.storedValue.Get();
+            return analyzer.storedValue.Value;
         }
 
         /// <summary>
@@ -649,7 +649,7 @@ namespace Lucene.Net.Analysis
             {
                 throw new ObjectDisposedException("this Analyzer is closed");
             }
-            analyzer.storedValue.Set(storedValue);
+            analyzer.storedValue.Value = storedValue;
         }
     }
 }

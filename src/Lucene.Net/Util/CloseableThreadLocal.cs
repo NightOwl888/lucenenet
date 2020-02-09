@@ -1,8 +1,8 @@
-using J2N.Threading.Atomic;
+using J2N.Runtime.CompilerServices;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Util
 {
@@ -24,149 +24,273 @@ namespace Lucene.Net.Util
      */
 
     /// <summary>
-    /// Java's builtin ThreadLocal has a serious flaw:
-    /// it can take an arbitrarily long amount of time to
-    /// dereference the things you had stored in it, even once the
-    /// ThreadLocal instance itself is no longer referenced.
-    /// This is because there is single, master map stored for
-    /// each thread, which all ThreadLocals share, and that
-    /// master map only periodically purges "stale" entries.
+    /// .NET's built-in <see cref="ThreadLocal{T}"/> has a serious flaw:
+    /// internally, it creates an array with an internal lattice structure
+    /// which in turn causes the garbage collector to cause long blocking pauses
+    /// when tearing the structure down. See
+    /// <a href="https://ayende.com/blog/189761-A/production-postmortem-the-slow-slowdown-of-large-systems">
+    /// https://ayende.com/blog/189761-A/production-postmortem-the-slow-slowdown-of-large-systems</a>
+    /// for a more detailed explanation.
     /// <para/>
-    /// While not technically a memory leak, because eventually
-    /// the memory will be reclaimed, it can take a long time
-    /// and you can easily hit <see cref="OutOfMemoryException"/> because from the
-    /// GC's standpoint the stale entries are not reclaimable.
+    /// This is a completely different problem than in Java which the ClosableThreadLocal&lt;T&gt; class is
+    /// meant to solve, so <see cref="LightWeightThreadLocal{T}"/> is specific to Lucene.NET and can be used
+    /// as a direct replacement for ClosableThreadLocal&lt;T&gt;.
     /// <para/>
-    /// This class works around that, by only enrolling
-    /// WeakReference values into the ThreadLocal, and
-    /// separately holding a hard reference to each stored
-    /// value.  When you call <see cref="Dispose()"/>, these hard
-    /// references are cleared and then GC is freely able to
-    /// reclaim space by objects stored in it.
-    /// <para/>
-    /// You should not call <see cref="Dispose()"/> until all
-    /// threads are done using the instance.
+    /// This class works around the issue by using an alternative approach than using <see cref="ThreadLocal{T}"/>.
+    /// It keeps track of each thread's local and global state in order to later optimize disposal.
+    /// A complete explanation can be found at 
+    /// <a href="https://ayende.com/blog/189793-A/the-design-and-implementation-of-a-better-threadlocal-t">
+    /// https://ayende.com/blog/189793-A/the-design-and-implementation-of-a-better-threadlocal-t</a>.
     /// <para/>
     /// @lucene.internal
     /// </summary>
-    public class DisposableThreadLocal<T> : IDisposable
+    /// <typeparam name="T">Specifies the type of data stored per-thread.</typeparam>
+    public sealed class LightWeightThreadLocal<T> : IDisposable
     {
-        private ThreadLocal<WeakReference> t = new ThreadLocal<WeakReference>();
+        [ThreadStatic]
+        private static CurrentThreadState _state;
+        private ConcurrentDictionary<CurrentThreadState, T> _values = new ConcurrentDictionary<CurrentThreadState, T>(IdentityEqualityComparer<CurrentThreadState>.Default);
+        private readonly Func<T> _valueFactory;
+        private readonly GlobalState _globalState = new GlobalState();
+        private readonly object _valuesLock = new object();
 
-        // Use a WeakHashMap so that if a Thread exits and is
-        // GC'able, its entry may be removed:
-        private IDictionary<Thread, T> hardRefs = new JCG.Dictionary<Thread, T>();
-
-        // Increase this to decrease frequency of purging in get:
-        private static int PURGE_MULTIPLIER = 20;
-
-        // On each get or set we decrement this; when it hits 0 we
-        // purge.  After purge, we set this to
-        // PURGE_MULTIPLIER * stillAliveCount.  this keeps
-        // amortized cost of purging linear.
-        private readonly AtomicInt32 countUntilPurge = new AtomicInt32(PURGE_MULTIPLIER);
-
-        protected internal virtual T InitialValue() // LUCENENET NOTE: Sometimes returns new instance - not a good candidate for a property
+        /// <summary>
+        /// Initializes the <see cref="LightWeightThreadLocal{T}"/> instance.
+        /// </summary>
+        /// <remarks>
+        /// The default value of <typeparamref name="T"/> is used to initialize
+        /// the instance when <see cref="Value"/> is accessed for the first time.
+        /// </remarks>
+        public LightWeightThreadLocal()
         {
-            return default(T);
+            _valueFactory = null;
         }
 
-        public virtual T Get()
+        /// <summary>
+        /// Initializes the <see cref="LightWeightThreadLocal{T}"/> instance with the
+        /// specified <paramref name="valueFactory"/> function.
+        /// </summary>
+        /// <param name="valueFactory">The <see cref="Func{T, TResult}"/> invoked to produce a
+        /// lazily-initialized value when an attempt is made to retrieve <see cref="Value"/>
+        /// without it having been previously initialized.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="valueFactory"/> is <c>null</c>.</exception>
+        public LightWeightThreadLocal(Func<T> valueFactory)
         {
-            WeakReference weakRef = t.Value;
-            if (weakRef == null)
-            {
-                T iv = InitialValue();
-                if (iv != null)
-                {
-                    Set(iv);
-                    return iv;
-                }
-                else
-                {
-                    return default(T);
-                }
-            }
-            else
-            {
-                MaybePurge();
-                return (T)weakRef.Target;
-            }
+            _valueFactory = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));
         }
 
-        public virtual void Set(T @object)
+        /// <summary>
+        /// Gets a collection for all of the values currently stored by all of the threads that have accessed this instance.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">The <see cref="LightWeightThreadLocal{T}"/> instance has been disposed.</exception>
+        public ICollection<T> Values
         {
-            t.Value = new WeakReference(@object);
-
-            lock (hardRefs)
+            get
             {
-                hardRefs[Thread.CurrentThread] = @object;
-                MaybePurge();
+                if (_globalState.Disposed != 0)
+                    throw new ObjectDisposedException(nameof(LightWeightThreadLocal<T>));
+
+                return _values.Values;
             }
         }
 
-        private void MaybePurge()
+        /// <summary>
+        /// Gets whether Value is initialized on the current thread.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">The <see cref="LightWeightThreadLocal{T}"/> instance has been disposed.</exception>
+        public bool IsValueCreated
         {
-            if (countUntilPurge.GetAndDecrement() == 0)
+            get
             {
-                Purge();
+                if (_globalState.Disposed != 0)
+                    throw new ObjectDisposedException(nameof(LightWeightThreadLocal<T>));
+
+                return _state != null && _values.ContainsKey(_state);
             }
         }
 
-        // Purge dead threads
-        private void Purge()
+        /// <summary>
+        /// Gets or sets the value of this instance for the current thread.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">The <see cref="LightWeightThreadLocal{T}"/> instance has been disposed.</exception>
+        /// <remarks>
+        /// If this instance was not previously initialized for the current thread, accessing Value will attempt to
+        /// initialize it. If an initialization function was supplied during the construction, that initialization
+        /// will happen by invoking the function to retrieve the initial value for <see cref="Value"/>. Otherwise, the default
+        /// value of <typeparamref name="T"/> will be used.
+        /// </remarks>
+        public T Value
         {
-            lock (hardRefs)
+            get
             {
-                int stillAliveCount = 0;
-                //Placing in try-finally to ensure HardRef threads are removed in the case of an exception
-                List<Thread> Removed = new List<Thread>();
-                try
-                {
-                    foreach (Thread t in hardRefs.Keys)
-                    {
-                        if (!t.IsAlive)
-                        {
-                            Removed.Add(t);
-                        }
-                        else
-                        {
-                            stillAliveCount++;
-                        }
-                    }
-                }
-                finally
-                {
-                    foreach (Thread thd in Removed)
-                    {
-                        hardRefs.Remove(thd);
-                    }
-                }
+                if (_globalState.Disposed != 0)
+                    throw new ObjectDisposedException(nameof(LightWeightThreadLocal<T>));
 
-                int nextCount = (1 + stillAliveCount) * PURGE_MULTIPLIER;
-                if (nextCount <= 0)
+                (_state ??= new CurrentThreadState()).Register(this);
+                return _values.GetOrAdd(_state, (key) =>
                 {
-                    // defensive: int overflow!
-                    nextCount = 1000000;
-                }
+                    return _valueFactory != null ? _valueFactory() : default;
+                });
+            }
+            set
+            {
+                if (_globalState.Disposed != 0)
+                    throw new ObjectDisposedException(nameof(LightWeightThreadLocal<T>));
 
-                countUntilPurge.Value = nextCount;
+                (_state ??= new CurrentThreadState()).Register(this);
+                _values[_state] = value;
             }
         }
 
+        /// <summary>
+        /// Releases the resources used by this <see cref="LightWeightThreadLocal{T}"/> instance.
+        /// </summary>
         public void Dispose()
         {
-            // Clear the hard refs; then, the only remaining refs to
-            // all values we were storing are weak (unless somewhere
-            // else is still using them) and so GC may reclaim them:
-            hardRefs = null;
-            // Take care of the current thread right now; others will be
-            // taken care of via the WeakReferences.
-            if (t != null)
+            var copy = _values;
+            if (copy == null)
+                return;
+
+            copy = Interlocked.CompareExchange(ref _values, null, copy);
+            if (copy == null)
+                return;
+
+            _globalState.Dispose();
+            _values = null;
+
+            while (copy.Count > 0)
             {
-                t.Dispose();
+                foreach (var kvp in copy)
+                {
+                    if (copy.TryRemove(kvp.Key, out var item) &&
+                        item is IDisposable d)
+                    {
+                        d.Dispose();
+                    }
+                }
             }
-            t = null;
+        }
+
+        private sealed class CurrentThreadState
+        {
+            private readonly HashSet<WeakReferenceToLightWeightThreadLocal> _parents
+                = new HashSet<WeakReferenceToLightWeightThreadLocal>();
+
+            private readonly LocalState _localState = new LocalState();
+
+            public void Register(LightWeightThreadLocal<T> parent)
+            {
+                parent._globalState.UsedThreads.TryAdd(_localState, null);
+                _parents.Add(new WeakReferenceToLightWeightThreadLocal(parent));
+                int parentsDisposed = _localState.ParentsDisposed;
+                if (parentsDisposed > 0)
+                {
+                    RemoveDisposedParents();
+                    Interlocked.Add(ref _localState.ParentsDisposed, -parentsDisposed);
+                }
+            }
+
+            private void RemoveDisposedParents()
+            {
+                var toRemove = new List<WeakReferenceToLightWeightThreadLocal>();
+                foreach (var local in _parents)
+                {
+                    if (local.TryGetTarget(out var target) == false || target._globalState.Disposed != 0)
+                    {
+                        toRemove.Add(local);
+                    }
+                }
+
+                foreach (var remove in toRemove)
+                {
+                    _parents.Remove(remove);
+                }
+
+            }
+            ~CurrentThreadState()
+            {
+                foreach (var parent in _parents)
+                {
+                    if (parent.TryGetTarget(out var liveParent) == false)
+                        continue;
+                    var copy = liveParent._values;
+                    if (copy == null)
+                        continue;
+                    if (copy.TryRemove(this, out var value)
+                        && value is IDisposable d)
+                    {
+                        d.Dispose();
+                    }
+                }
+            }
+        }
+
+        private sealed class WeakReferenceToLightWeightThreadLocal : IEquatable<WeakReferenceToLightWeightThreadLocal>
+        {
+            private readonly WeakReference<LightWeightThreadLocal<T>> _weak;
+            private readonly int _hashCode;
+
+            public bool TryGetTarget(out LightWeightThreadLocal<T> target)
+            {
+                return _weak.TryGetTarget(out target);
+            }
+
+            public WeakReferenceToLightWeightThreadLocal(LightWeightThreadLocal<T> instance)
+            {
+                _hashCode = instance.GetHashCode();
+                _weak = new WeakReference<LightWeightThreadLocal<T>>(instance);
+            }
+
+            public bool Equals(WeakReferenceToLightWeightThreadLocal other)
+            {
+                if (ReferenceEquals(null, other))
+                    return false;
+                if (ReferenceEquals(this, other))
+                    return true;
+                if (_hashCode != other._hashCode)
+                    return false;
+                if (_weak.TryGetTarget(out var x) == false ||
+                    other._weak.TryGetTarget(out var y) == false)
+                    return false;
+                return ReferenceEquals(x, y);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj))
+                    return false;
+                if (ReferenceEquals(this, obj))
+                    return true;
+                if (obj.GetType() != GetType())
+                    return false;
+                return Equals((WeakReferenceToLightWeightThreadLocal)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return _hashCode;
+            }
+        }
+
+        private sealed class GlobalState
+        {
+            public int Disposed;
+            public readonly ConcurrentDictionary<LocalState, object> UsedThreads
+                = new ConcurrentDictionary<LocalState, object>(IdentityEqualityComparer<LocalState>.Default);
+
+            public void Dispose()
+            {
+                Interlocked.Exchange(ref Disposed, 1);
+                foreach (var localState in UsedThreads)
+                {
+                    Interlocked.Increment(ref localState.Key.ParentsDisposed);
+                }
+            }
+        }
+
+        private sealed class LocalState
+        {
+            public int ParentsDisposed;
         }
     }
 }

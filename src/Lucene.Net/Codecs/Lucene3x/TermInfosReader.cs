@@ -45,7 +45,7 @@ namespace Lucene.Net.Codecs.Lucene3x
         private readonly string segment;
         private readonly FieldInfos fieldInfos;
 
-        private readonly DisposableThreadLocal<ThreadResources> threadResources = new DisposableThreadLocal<ThreadResources>();
+        private readonly LightWeightThreadLocal<ThreadResources> threadResources = new LightWeightThreadLocal<ThreadResources>();
         private readonly SegmentTermEnum origEnum;
         private readonly long size;
 
@@ -197,12 +197,12 @@ namespace Lucene.Net.Codecs.Lucene3x
 
         private ThreadResources GetThreadResources()
         {
-            ThreadResources resources = threadResources.Get();
+            ThreadResources resources = threadResources.Value;
             if (resources == null)
             {
                 resources = new ThreadResources();
                 resources.termEnum = Terms();
-                threadResources.Set(resources);
+                threadResources.Value = resources;
             }
             return resources;
         }

@@ -1,7 +1,7 @@
 using J2N.Threading;
 using J2N.Threading.Atomic;
-using Lucene.Net.Attributes;
 using Lucene.Net.Index.Extensions;
+using Lucene.Net.Util;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -50,7 +50,6 @@ namespace Lucene.Net.Search
     using RandomIndexWriter = Lucene.Net.Index.RandomIndexWriter;
     using SnapshotDeletionPolicy = Lucene.Net.Index.SnapshotDeletionPolicy;
     using Term = Lucene.Net.Index.Term;
-    using TestUtil = Lucene.Net.Util.TestUtil;
     using TextField = Lucene.Net.Documents.TextField;
     using ThreadedIndexingAndSearchingTestCase = Lucene.Net.Index.ThreadedIndexingAndSearchingTestCase;
     using TrackingIndexWriter = Lucene.Net.Index.TrackingIndexWriter;
@@ -73,7 +72,7 @@ namespace Lucene.Net.Search
         private ControlledRealTimeReopenThread<IndexSearcher> nrtDeletesThread;
         private ControlledRealTimeReopenThread<IndexSearcher> nrtNoDeletesThread;
 
-        private readonly ThreadLocal<long?> lastGens = new ThreadLocal<long?>();
+        private readonly LightWeightThreadLocal<long?> lastGens = new LightWeightThreadLocal<long?>();
         private bool warmCalled;
 
         [Test]

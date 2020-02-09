@@ -1,7 +1,6 @@
 using J2N.Threading;
 using J2N.Threading.Atomic;
 using Lucene.Net.Analysis;
-using Lucene.Net.Attributes;
 using Lucene.Net.Documents;
 using Lucene.Net.Index.Extensions;
 using Lucene.Net.Store;
@@ -10,7 +9,6 @@ using Lucene.Net.Util;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Console = Lucene.Net.Util.SystemConsole;
@@ -280,7 +278,7 @@ namespace Lucene.Net.Index
             }
         }
 
-        internal ThreadLocal<Thread> DoFail = new ThreadLocal<Thread>();
+        internal LightWeightThreadLocal<Thread> DoFail = new LightWeightThreadLocal<Thread>();
 
         private class TestPoint1 : ITestPoint
         {

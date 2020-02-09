@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Threading;
 using Console = Lucene.Net.Util.SystemConsole;
 
 namespace Lucene.Net.Util
@@ -257,7 +256,7 @@ namespace Lucene.Net.Util
             }
         }
 
-        private readonly ThreadLocal<DocState> threadDocs = new ThreadLocal<DocState>();
+        private readonly LightWeightThreadLocal<DocState> threadDocs = new LightWeightThreadLocal<DocState>();
 
         /// <summary>
         /// Note: Document instance is re-used per-thread </summary>

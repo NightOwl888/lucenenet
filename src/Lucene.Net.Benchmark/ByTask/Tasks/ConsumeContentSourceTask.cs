@@ -1,4 +1,5 @@
 ﻿using Lucene.Net.Benchmarks.ByTask.Feeds;
+using Lucene.Net.Util;
 using System.Threading;
 
 namespace Lucene.Net.Benchmarks.ByTask.Tasks
@@ -26,7 +27,7 @@ namespace Lucene.Net.Benchmarks.ByTask.Tasks
     public class ConsumeContentSourceTask : PerfTask
     {
         private readonly ContentSource source;
-        private ThreadLocal<DocData> dd = new ThreadLocal<DocData>();
+        private readonly LightWeightThreadLocal<DocData> dd = new LightWeightThreadLocal<DocData>();
 
         public ConsumeContentSourceTask(PerfRunData runData)
             : base(runData)

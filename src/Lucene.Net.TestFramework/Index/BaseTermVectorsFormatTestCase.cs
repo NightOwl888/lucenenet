@@ -12,7 +12,6 @@ using Lucene.Net.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using JCG = J2N.Collections.Generic;
 using static Lucene.Net.Index.TermsEnum;
 using Assert = Lucene.Net.TestFramework.Assert;
@@ -519,10 +518,10 @@ namespace Lucene.Net.Index
         }
 
         // to test reuse
-        private readonly ThreadLocal<TermsEnum> termsEnum = new ThreadLocal<TermsEnum>();
+        private readonly LightWeightThreadLocal<TermsEnum> termsEnum = new LightWeightThreadLocal<TermsEnum>();
 
-        private readonly ThreadLocal<DocsEnum> docsEnum = new ThreadLocal<DocsEnum>();
-        private readonly ThreadLocal<DocsAndPositionsEnum> docsAndPositionsEnum = new ThreadLocal<DocsAndPositionsEnum>();
+        private readonly LightWeightThreadLocal<DocsEnum> docsEnum = new LightWeightThreadLocal<DocsEnum>();
+        private readonly LightWeightThreadLocal<DocsAndPositionsEnum> docsAndPositionsEnum = new LightWeightThreadLocal<DocsAndPositionsEnum>();
 
         protected virtual void AssertEquals(RandomTokenStream tk, FieldType ft, Terms terms)
         {
