@@ -1,6 +1,6 @@
 ﻿// Lucene version compatibility level 7.1.0
 #if FEATURE_BREAKITERATOR
-using ICU4N.Support.Text;
+using Lucene.Net.Support.Text;
 using Lucene.Net.Util;
 using NUnit.Framework;
 using System;

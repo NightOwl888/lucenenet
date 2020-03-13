@@ -1,11 +1,12 @@
 ﻿#if FEATURE_BREAKITERATOR
-using ICU4N.Support.Text;
+using Lucene.Net.Support.Text;
 using ICU4N.Text;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
 using NUnit.Framework;
 using System;
 using System.Globalization;
+using J2N.Text;
 
 namespace Lucene.Net.Search.PostingsHighlight
 {
@@ -84,8 +85,8 @@ namespace Lucene.Net.Search.PostingsHighlight
 
         public void assertSameBreaks(String text, BreakIterator expected, BreakIterator actual)
         {
-            assertSameBreaks(new StringCharacterIterator(text),
-                             new StringCharacterIterator(text),
+            assertSameBreaks(new StringCharacterEnumerator(text),
+                             new StringCharacterEnumerator(text),
                              expected,
                              actual);
         }
@@ -97,14 +98,14 @@ namespace Lucene.Net.Search.PostingsHighlight
 
         public void assertSameBreaks(String text, int offset, int length, int current, BreakIterator expected, BreakIterator actual)
         {
-            assertSameBreaks(new StringCharacterIterator(text, offset, offset + length, current),
-                             new StringCharacterIterator(text, offset, offset + length, current),
+            assertSameBreaks(new StringCharacterEnumerator(text, offset, length, current), // LUCENENET: Corrected 3rd parameter
+                             new StringCharacterEnumerator(text, offset, length, current), // LUCENENET: Corrected 3rd parameter
                              expected,
                              actual);
         }
 
         /** Asserts that two breakiterators break the text the same way */
-        public void assertSameBreaks(CharacterIterator one, CharacterIterator two, BreakIterator expected, BreakIterator actual)
+        public void assertSameBreaks(ICharacterEnumerator one, ICharacterEnumerator two, BreakIterator expected, BreakIterator actual)
         {
             expected.SetText(one);
             actual.SetText(two);
@@ -135,7 +136,7 @@ namespace Lucene.Net.Search.PostingsHighlight
             }
 
             // following()
-            for (int i = one.BeginIndex; i <= one.EndIndex; i++)
+            for (int i = one.StartIndex; i <= one.EndIndex; i++)
             {
                 expected.First();
                 actual.First();
@@ -144,7 +145,7 @@ namespace Lucene.Net.Search.PostingsHighlight
             }
 
             // preceding()
-            for (int i = one.BeginIndex; i <= one.EndIndex; i++)
+            for (int i = one.StartIndex; i <= one.EndIndex; i++)
             {
                 expected.Last();
                 actual.Last();

@@ -1,5 +1,5 @@
 ﻿// Lucene version compatibility level 8.2.0
-using ICU4N.Support.Text;
+using Lucene.Net.Support.Text;
 using ICU4N.Text;
 using Lucene.Net.Analysis.OpenNlp.Tools;
 using Lucene.Net.Analysis.Util;
@@ -7,6 +7,8 @@ using opennlp.tools.util;
 using System;
 using System.Diagnostics;
 using System.Text;
+using J2N.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Lucene.Net.Analysis.OpenNlp
 {
@@ -30,6 +32,7 @@ namespace Lucene.Net.Analysis.OpenNlp
     /// <summary>
     /// A <see cref="BreakIterator"/> that splits sentences using an OpenNLP sentence chunking model.
     /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CS0534", Justification = "Internal members cannot be overridden")]
     public sealed class OpenNLPSentenceBreakIterator : BreakIterator
     {
         private CharacterIterator text;
@@ -41,6 +44,7 @@ namespace Lucene.Net.Analysis.OpenNlp
         {
             this.sentenceOp = sentenceOp;
         }
+
 
         public override int Current => text.Index;
 
@@ -237,9 +241,23 @@ namespace Lucene.Net.Analysis.OpenNlp
             return Current;
         }
 
-        public override CharacterIterator Text => text;
+        public override ICharacterEnumerator Text
+        {
+            get
+            {
+                if (text is CharacterEnumeratorWrapper t)
+                    return t.Enumerator;
+                return null;
+            }
+        }
 
-        public override void SetText(CharacterIterator newText)
+
+        public override void SetText(ICharacterEnumerator newText)
+        {
+            SetText(new CharacterEnumeratorWrapper(newText));
+        }
+
+        internal void SetText(CharacterIterator newText)
         {
             text = newText;
             text.SetIndex(text.BeginIndex);

@@ -1,9 +1,10 @@
 ﻿#if FEATURE_BREAKITERATOR
-using System;
+using ICU4N.Text;
+using J2N.Text;
+using Lucene.Net.Support.Text;
 using Lucene.Net.Util;
 using NUnit.Framework;
-using ICU4N.Text;
-using ICU4N.Support.Text;
+using System;
 using System.Globalization;
 
 namespace Lucene.Net.Analysis.Util
@@ -39,11 +40,11 @@ namespace Lucene.Net.Analysis.Util
         {
             // we use the default locale, as its randomized by LuceneTestCase
             BreakIterator bi = BreakIterator.GetWordInstance(CultureInfo.CurrentCulture);
-            var ci = CharArrayIterator.NewWordInstance();
+            var ci = CharArrayEnumerator.NewWordInstance();
             for (var i = 0; i < 10000; i++)
             {
                 var text = TestUtil.RandomUnicodeString(Random).toCharArray();
-                ci.SetText(text, 0, text.Length);
+                ci.Reset(text, 0, text.Length);
                 Consume(bi, ci);
             }
         }
@@ -74,11 +75,11 @@ namespace Lucene.Net.Analysis.Util
         {
             // we use the default locale, as its randomized by LuceneTestCase
             BreakIterator bi = BreakIterator.GetSentenceInstance(CultureInfo.CurrentCulture);
-            var ci = CharArrayIterator.NewSentenceInstance();
+            var ci = CharArrayEnumerator.NewSentenceInstance();
             for (var i = 0; i < 10000; i++)
             {
                 var text = TestUtil.RandomUnicodeString(Random).toCharArray();
-                ci.SetText(text, 0, text.Length);
+                ci.Reset(text, 0, text.Length);
                 Consume(bi, ci);
             }
         }
@@ -173,7 +174,7 @@ namespace Lucene.Net.Analysis.Util
             assertEquals(ci.Last(), ci2.Last());
         }
 
-        private void Consume(BreakIterator bi, CharacterIterator ci)
+        private void Consume(BreakIterator bi, ICharacterEnumerator ci)
         {
             bi.SetText(ci);
             while (bi.Next() != BreakIterator.Done)

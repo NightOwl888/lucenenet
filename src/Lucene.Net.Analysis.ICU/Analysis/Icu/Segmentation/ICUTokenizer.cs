@@ -38,7 +38,7 @@ namespace Lucene.Net.Analysis.Icu.Segmentation
     [ExceptionToClassNameConvention]
     public sealed class ICUTokenizer : Tokenizer
     {
-        private static readonly int IOBUFFER = 4096;
+        private const int IOBUFFER = 4096;
         private readonly char[] buffer = new char[IOBUFFER];
         /// <summary>true length of text in the buffer</summary>
         private int length = 0;

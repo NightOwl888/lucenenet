@@ -43,9 +43,9 @@ namespace Lucene.Net.QueryParsers.Flexible.Core.Nodes
         protected int m_begin;
 
         /// <summary>
-        /// The term's end position.
+        /// The term's length.
         /// </summary>
-        protected int m_end;
+        protected int m_length;
 
         /// <summary>
         /// The term's position increment.
@@ -55,45 +55,45 @@ namespace Lucene.Net.QueryParsers.Flexible.Core.Nodes
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="field">field name</param>
-        /// <param name="text">value</param>
-        /// <param name="begin">position in the query string</param>
-        /// <param name="end">position in the query string</param>
+        /// <param name="field">Field name.</param>
+        /// <param name="text">Value.</param>
+        /// <param name="begin">Begin position in the query string.</param>
+        /// <param name="length">Length of the query string.</param>
          // LUCENENET specific overload for passing text as string
         public FieldQueryNode(string field, string text, int begin,
-            int end)
-            : this(field, text.AsCharSequence(), begin, end)
+            int length)
+            : this(field, text.AsCharSequence(), begin, length)
         {
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="field">field name</param>
-        /// <param name="text">value</param>
-        /// <param name="begin">position in the query string</param>
-        /// <param name="end">position in the query string</param>
+        /// <param name="field">Field name.</param>
+        /// <param name="text">Value.</param>
+        /// <param name="begin">Begin position in the query string.</param>
+        /// <param name="length">Length of the query string.</param>
          // LUCENENET specific overload for passing text as StringBuilder
         public FieldQueryNode(string field, StringBuilder text, int begin,
-            int end)
-            : this(field, text.AsCharSequence(), begin, end)
+            int length)
+            : this(field, text.AsCharSequence(), begin, length)
         {
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="field">field name</param>
-        /// <param name="text">value</param>
-        /// <param name="begin">position in the query string</param>
-        /// <param name="end">position in the query string</param>
+        /// <param name="field">Field name.</param>
+        /// <param name="text">Value.</param>
+        /// <param name="begin">Begin position in the query string.</param>
+        /// <param name="length">Length of the query string.</param>
         public FieldQueryNode(string field, ICharSequence text, int begin,
-            int end)
+            int length)
         {
             this.m_field = field;
             this.m_text = text;
             this.m_begin = begin;
-            this.m_end = end;
+            this.m_length = length;
             this.IsLeaf = true;
 
         }
@@ -124,7 +124,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Core.Nodes
 
         public override string ToString()
         {
-            return "<field start='" + this.m_begin + "' end='" + this.m_end + "' field='"
+            return "<field start='" + this.m_begin + "' end='" + this.m_length + "' field='"
                 + this.m_field + "' text='" + this.m_text + "'/>";
         }
 
@@ -161,8 +161,8 @@ namespace Lucene.Net.QueryParsers.Flexible.Core.Nodes
 
         public virtual int End
         {
-            get { return this.m_end; }
-            set { this.m_end = value; }
+            get { return this.m_length; }
+            set { this.m_length = value; }
         }
 
         public virtual string Field
@@ -190,7 +190,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Core.Nodes
         {
             FieldQueryNode fqn = (FieldQueryNode)base.CloneTree();
             fqn.m_begin = this.m_begin;
-            fqn.m_end = this.m_end;
+            fqn.m_length = this.m_length;
             fqn.m_field = this.m_field;
             fqn.m_text = this.m_text;
             fqn.m_positionIncrement = this.m_positionIncrement;

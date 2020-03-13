@@ -2,6 +2,8 @@
 using ICU4N;
 using ICU4N.Support.Text;
 using ICU4N.Text;
+using J2N.Text;
+using Lucene.Net.Analysis.Util;
 
 namespace Lucene.Net.Analysis.Icu.Segmentation
 {
@@ -40,7 +42,7 @@ namespace Lucene.Net.Analysis.Icu.Segmentation
     /// </summary>
     internal abstract class BreakIteratorWrapper
     {
-        protected readonly CharArrayIterator m_textIterator = new CharArrayIterator();
+        protected readonly CharArrayEnumerator m_textIterator = new CharArrayEnumerator();
         protected char[] m_text;
         protected int m_start;
         protected int m_length;
@@ -48,14 +50,14 @@ namespace Lucene.Net.Analysis.Icu.Segmentation
         public abstract int Next();
         public abstract int Current { get; }
         public abstract int RuleStatus { get; }
-        public abstract void SetText(CharacterIterator text);
+        public abstract void SetText(ICharacterEnumerator text);
 
         public void SetText(char[] text, int start, int length)
         {
             this.m_text = text;
             this.m_start = start;
             this.m_length = length;
-            m_textIterator.SetText(text, start, length);
+            m_textIterator.Reset(text, start, length);
             SetText(m_textIterator);
         }
 
@@ -96,7 +98,7 @@ namespace Lucene.Net.Analysis.Icu.Segmentation
                 return rbbi.Next();
             }
 
-            public override void SetText(CharacterIterator text)
+            public override void SetText(ICharacterEnumerator text)
             {
                 rbbi.SetText(text);
             }
@@ -158,7 +160,7 @@ namespace Lucene.Net.Analysis.Icu.Segmentation
                 return BreakIterator.WordNone;
             }
 
-            public override void SetText(CharacterIterator text)
+            public override void SetText(ICharacterEnumerator text)
             {
                 bi.SetText(text);
                 status = BreakIterator.WordNone;

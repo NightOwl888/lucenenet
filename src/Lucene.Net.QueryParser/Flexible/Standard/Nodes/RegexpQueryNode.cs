@@ -34,43 +34,44 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard.Nodes
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="field">field name</param>
-        /// <param name="text">value that contains a regular expression</param>
-        /// <param name="begin">position in the query string</param>
-        /// <param name="end">position in the query string</param>
+        /// <param name="field">Field name.</param>
+        /// <param name="text">Value that contains a regular expression.</param>
+        /// <param name="begin">Begin position in the query string.</param>
+        /// <param name="length">Length of the query string.</param>
         // LUCENENET specific overload for passing text as string
         public RegexpQueryNode(string field, string text, int begin,
-            int end)
-            : this(field, text.AsCharSequence(), begin, end)
+            int length)
+            : this(field, text.AsCharSequence(), begin, length)
         {
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="field">field name</param>
-        /// <param name="text">value that contains a regular expression</param>
-        /// <param name="begin">position in the query string</param>
-        /// <param name="end">position in the query string</param>
+        /// <param name="field">Field name.</param>
+        /// <param name="text">Value that contains a regular expression.</param>
+        /// <param name="begin">Begin position in the query string.</param>
+        /// <param name="length">Length of the query string.</param>
         // LUCENENET specific overload for passing text as StringBuilder
         public RegexpQueryNode(string field, StringBuilder text, int begin,
-            int end)
-            : this(field, text.AsCharSequence(), begin, end)
+            int length)
+            : this(field, text.AsCharSequence(), begin, length)
         {
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="field">field name</param>
-        /// <param name="text">value that contains a regular expression</param>
-        /// <param name="begin">position in the query string</param>
-        /// <param name="end">position in the query string</param>
+        /// <param name="field">Field name.</param>
+        /// <param name="text">Value that contains a regular expression.</param>
+        /// <param name="begin">Begin position in the query string.</param>
+        /// <param name="length">Length of the query string.</param>
+        // LUCENENET specific - Made 4th parameter into a length rather than an end index to match .NET semantics
         public RegexpQueryNode(string field, ICharSequence text, int begin,
-            int end) // LUCENENET TODO: API - Change to use length rather than end index to match .NET
+            int length)
         {
             this.field = field;
-            this.text = text.Subsequence(begin, end - begin);
+            this.text = text.Subsequence(begin, length);
         }
 
         public virtual BytesRef TextToBytesRef()

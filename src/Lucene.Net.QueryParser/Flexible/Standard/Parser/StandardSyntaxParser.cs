@@ -651,7 +651,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Standard.Parser
                     else if (regexp)
                     {
                         string re = term.Image.Substring(1, (term.Image.Length - 1) - 1);
-                        q = new RegexpQueryNode(field, re, 0, re.Length);
+                        q = new RegexpQueryNode(field, re, 0, re.Length); // LUCENENET specific: Checked 4th parameter logic (converted from end to length for .NET)
                     }
                     break;
                 case RegexpToken.RANGEIN_START:

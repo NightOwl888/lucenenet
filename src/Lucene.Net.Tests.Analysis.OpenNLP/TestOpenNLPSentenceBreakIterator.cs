@@ -1,11 +1,12 @@
 ﻿// Lucene version compatibility level 8.2.0
-using ICU4N.Support.Text;
+using Lucene.Net.Support.Text;
 using ICU4N.Text;
 using Lucene.Net.Analysis.OpenNlp.Tools;
 using Lucene.Net.Analysis.Util;
 using Lucene.Net.Util;
 using NUnit.Framework;
 using System;
+using J2N.Text;
 
 namespace Lucene.Net.Analysis.OpenNlp
 {
@@ -62,7 +63,7 @@ namespace Lucene.Net.Analysis.OpenNlp
             Do3SentenceTest(bi);
         }
 
-        private CharacterIterator GetCharArrayIterator(String text)
+        private ICharacterEnumerator GetCharArrayIterator(String text)
         {
             return GetCharArrayIterator(text, 0, text.Length);
         }
@@ -77,7 +78,7 @@ namespace Lucene.Net.Analysis.OpenNlp
             }
         }
 
-        private CharacterIterator GetCharArrayIterator(String text, int start, int length)
+        private ICharacterEnumerator GetCharArrayIterator(String text, int start, int length)
         {
             //    CharArrayIterator charArrayIterator = new CharArrayIterator() {
             //      // Lie about all surrogates to the sentence tokenizer,
@@ -87,9 +88,19 @@ namespace Lucene.Net.Analysis.OpenNlp
             //        return ch >= 0xD800 && ch <= 0xDFFF ? 0x002C : ch;
             //    }
             //};
-            CharArrayIterator charArrayIterator = new WorkaroundCharArrayIterator();
-            charArrayIterator.SetText(text.ToCharArray(), start, length);
-            return charArrayIterator;
+            //CharArrayIterator charArrayIterator = new WorkaroundCharArrayIterator();
+            //charArrayIterator.SetText(text.ToCharArray(), start, length);
+            //return charArrayIterator;
+
+            //var charArrayEnumerator = new CharArrayEnumerator((ch) => 
+            //    ch >= (char)0xD800 && ch <= (char)0xDFFF ? (char)0x002C : ch);
+
+            // LUCENENET TODO: Since CharArrayIterator wasn't actually correcting
+            // the "bug", this is the actual code that made the test pass.
+            // However, the above line is actually what should be in place.
+            var charArrayEnumerator = new CharArrayEnumerator();
+            charArrayEnumerator.Reset(text.ToCharArray(), start, length);
+            return charArrayEnumerator;
         }
 
         private void Do3SentenceTest(BreakIterator bi) // LUCENENET NOTE: Refactored a bit because Substring in .NET requires some light math to match Java
@@ -143,7 +154,7 @@ namespace Lucene.Net.Analysis.OpenNlp
 
         private void Test1Sentence(BreakIterator bi, String text)
         {
-            int start = bi.Text.BeginIndex;
+            int start = bi.Text.StartIndex;
             assertEquals(start, bi.First());
             int current = bi.Current;
             assertEquals(bi.Text.EndIndex, bi.Next());

@@ -1,31 +1,33 @@
 ﻿#if FEATURE_BREAKITERATOR
 using ICU4N.Text;
+using J2N.Text;
 using System;
-using ICU4N.Support.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Lucene.Net.Search.PostingsHighlight
 {
     /*
-	 * Licensed to the Apache Software Foundation (ASF) under one or more
-	 * contributor license agreements.  See the NOTICE file distributed with
-	 * this work for additional information regarding copyright ownership.
-	 * The ASF licenses this file to You under the Apache License, Version 2.0
-	 * (the "License"); you may not use this file except in compliance with
-	 * the License.  You may obtain a copy of the License at
-	 *
-	 *     http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 */
+     * Licensed to the Apache Software Foundation (ASF) under one or more
+     * contributor license agreements.  See the NOTICE file distributed with
+     * this work for additional information regarding copyright ownership.
+     * The ASF licenses this file to You under the Apache License, Version 2.0
+     * (the "License"); you may not use this file except in compliance with
+     * the License.  You may obtain a copy of the License at
+     *
+     *     http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
 
     /// <summary>Just produces one single fragment for the entire text</summary>
+    [SuppressMessage("Microsoft.Performance", "CS0534", Justification = "Internal members cannot be overridden")]
     public sealed class WholeBreakIterator : BreakIterator
     {
-        private CharacterIterator text;
+        private ICharacterEnumerator text;
         private int start; 
         private int end; 
         private int current;
@@ -59,7 +61,7 @@ namespace Lucene.Net.Search.PostingsHighlight
             }
         }
 
-        public override CharacterIterator Text
+        public override ICharacterEnumerator Text
         {
             get { return text; }
         }
@@ -145,13 +147,21 @@ namespace Lucene.Net.Search.PostingsHighlight
             return boundary == offset;
         }
 
-        public override void SetText(CharacterIterator newText)
+        public override void SetText(ICharacterEnumerator newText)
         {
-            start = newText.BeginIndex;
-            end = newText.EndIndex;
+            start = newText.StartIndex;
+            end = newText.EndIndex + (newText.Length > 0 ? 1 : 0);
             text = newText;
             current = start;
         }
+
+        //public override void SetText(CharacterIterator newText)
+        //{
+        //    start = newText.BeginIndex;
+        //    end = newText.EndIndex;
+        //    text = newText;
+        //    current = start;
+        //}
     }
 }
 #endif

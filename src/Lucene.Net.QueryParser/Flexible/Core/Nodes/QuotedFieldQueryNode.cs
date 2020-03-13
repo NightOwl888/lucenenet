@@ -82,7 +82,7 @@ namespace Lucene.Net.QueryParsers.Flexible.Core.Nodes
 
         public override string ToString()
         {
-            return "<quotedfield start='" + this.m_begin + "' end='" + this.m_end
+            return "<quotedfield start='" + this.m_begin + "' end='" + this.m_length
                 + "' field='" + this.m_field + "' term='" + this.m_text + "'/>";
         }
 
