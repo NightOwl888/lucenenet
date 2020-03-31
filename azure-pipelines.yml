@@ -129,7 +129,7 @@ stages:
         if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path "$dir" -Force }
         '$(PackageVersion)' | Out-File -FilePath "$dir/$(PackageVersionFileName)" -Force
         '$(FileVersion)' | Out-File -FilePath "$dir/$(FileVersionFileName)" -Force
-      # '$(Build.BuildNumber)' | Out-File -FilePath "$dir/$(BuildNumberFileName)" -Force
+        '$(Build.BuildNumber)' | Out-File -FilePath "$dir/$(BuildNumberFileName)" -Force
       displayName: 'Write Versions to Files'
 
     # If this is a release pipeline, copy the build.bat and Version.props files as version artifacts, which will 
@@ -333,7 +333,7 @@ stages:
     - powershell: |
         $version = Get-Content '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)/$(PackageVersionFileName)' -Raw
         Write-Host "##vso[task.setvariable variable=PackageVersion;]$version"
-      # Write-Host "##vso[task.setvariable variable=Build.BuildNumber;]$version"
+        Write-Host "##vso[build.updatebuildnumber]$version"
       displayName: 'Read PackageVersion from File to Build.BuildNumber'
 
     - template: 'build/azure-templates/show-all-environment-variables.yml'
@@ -378,7 +378,7 @@ stages:
         $vcsLabel = 'Lucene.Net_' + $version.Replace('.', '_').Replace('-', '_')
         Write-Host "##vso[task.setvariable variable=VCSLabel;]$vcsLabel"
         Write-Host "##vso[task.setvariable variable=PackageVersion;]$version"
-      # Write-Host "##vso[task.setvariable variable=Build.BuildNumber;]$version"
+        Write-Host "##vso[build.updatebuildnumber]$version"
       displayName: 'Build VCS Label and Rehydrate Version Variables'
 
     - powershell: |
