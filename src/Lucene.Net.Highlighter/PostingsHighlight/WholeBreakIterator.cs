@@ -2,6 +2,7 @@
 using ICU4N.Text;
 using System;
 using ICU4N.Support.Text;
+using Lucene.Net.ICU.Support.Text;
 
 namespace Lucene.Net.Search.PostingsHighlight
 {
@@ -26,6 +27,7 @@ namespace Lucene.Net.Search.PostingsHighlight
     public sealed class WholeBreakIterator : BreakIterator
     {
         private CharacterIterator text;
+        //private ICharacterEnumerator text;
         private int start; 
         private int end; 
         private int current;
@@ -59,10 +61,7 @@ namespace Lucene.Net.Search.PostingsHighlight
             }
         }
 
-        public override CharacterIterator Text
-        {
-            get { return text; }
-        }
+        public override ICharacterEnumerator Text => null; // LUCENENET TODO: Return an enumerator here
 
         public override int Last()
         {
@@ -151,6 +150,16 @@ namespace Lucene.Net.Search.PostingsHighlight
             end = newText.EndIndex;
             text = newText;
             current = start;
+        }
+
+        public override void SetText(ICharacterEnumerator newText)
+        {
+            SetText(new CharacterEnumeratorWrapper(newText));
+
+            //start = newText.StartIndex;
+            //end = newText.Length > 0 ? newText.EndIndex + 1 : 0;
+            //text = newText;
+            //current = start;
         }
     }
 }

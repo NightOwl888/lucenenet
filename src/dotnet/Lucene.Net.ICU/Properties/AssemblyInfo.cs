@@ -44,4 +44,3 @@ using System.Runtime.InteropServices;
 // for testing
 [assembly: InternalsVisibleTo("Lucene.Net.Tests.ICU, PublicKey=" + AssemblyKeys.PublicKey)]
 
-
