@@ -1,5 +1,4 @@
 ﻿using Lucene.Net.Util.Mutable;
-using System;
 using System.Globalization;
 
 namespace Lucene.Net.Queries.Function.DocValues
@@ -92,34 +91,11 @@ namespace Lucene.Net.Queries.Function.DocValues
 
         public override ValueFiller GetValueFiller()
         {
-            return new ValueFillerAnonymousInnerClassHelper(this);
-        }
-
-        private class ValueFillerAnonymousInnerClassHelper : ValueFiller
-        {
-            private readonly SingleDocValues outerInstance;
-
-            public ValueFillerAnonymousInnerClassHelper(SingleDocValues outerInstance)
+            return new ValueFiller.AnonymousValueFiller<MutableValueSingle>(new MutableValueSingle(), fillValue: (doc, mutableValue) =>
             {
-                this.outerInstance = outerInstance;
-                mval = new MutableValueSingle();
-            }
-
-            private readonly MutableValueSingle mval;
-
-            public override MutableValue Value
-            {
-                get
-                {
-                    return mval;
-                }
-            }
-
-            public override void FillValue(int doc)
-            {
-                mval.Value = outerInstance.SingleVal(doc);
-                mval.Exists = outerInstance.Exists(doc);
-            }
+                mutableValue.Value = SingleVal(doc);
+                mutableValue.Exists = Exists(doc);
+            });
         }
     }
 }
