@@ -1,3 +1,4 @@
+using J2N.Collections;
 using Lucene.Net.Support;
 using NUnit.Framework;
 using System;
@@ -153,7 +154,7 @@ namespace Lucene.Net.Util
             {
                 int numEntries = 0;
                 const int size = 797;
-                BitArray bits = new BitArray(size);
+                BitSet bits = new BitSet(size);
                 for (int i = 0; i < size; i++)
                 {
                     string str;
@@ -165,25 +166,25 @@ namespace Lucene.Net.Util
                     int key = Hash.Add(@ref);
                     if (key < 0)
                     {
-                        Assert.IsTrue(bits.SafeGet((-key) - 1));
+                        Assert.IsTrue(bits.Get((-key) - 1));
                     }
                     else
                     {
-                        Assert.IsFalse(bits.SafeGet(key));
-                        bits.SafeSet(key, true);
+                        Assert.IsFalse(bits.Get(key));
+                        bits.Set(key, true);
                         numEntries++;
                     }
                 }
-                Assert.AreEqual(Hash.Count, bits.Cardinality());
-                Assert.AreEqual(numEntries, bits.Cardinality());
+                Assert.AreEqual(Hash.Count, bits.Cardinality);
+                Assert.AreEqual(numEntries, bits.Cardinality);
                 Assert.AreEqual(numEntries, Hash.Count);
                 int[] compact = Hash.Compact();
                 Assert.IsTrue(numEntries < compact.Length);
                 for (int i = 0; i < numEntries; i++)
                 {
-                    bits.SafeSet(compact[i], false);
+                    bits.Set(compact[i], false);
                 }
-                Assert.AreEqual(0, bits.Cardinality());
+                Assert.AreEqual(0, bits.Cardinality);
                 Hash.Clear();
                 Assert.AreEqual(0, Hash.Count);
                 Hash.Reinit();
