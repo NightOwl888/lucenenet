@@ -2625,8 +2625,8 @@ namespace Lucene.Net.Util
             Assert.AreEqual(leftTerms.HasPositions, rightTerms.HasPositions);
             Assert.AreEqual(leftTerms.HasPayloads, rightTerms.HasPayloads);
 
-            TermsEnum leftTermsEnum = leftTerms.GetIterator(null);
-            TermsEnum rightTermsEnum = rightTerms.GetIterator(null);
+            TermsEnum leftTermsEnum = leftTerms.GetEnumerator();
+            TermsEnum rightTermsEnum = rightTerms.GetEnumerator();
             AssertTermsEnumEquals(info, leftReader, leftTermsEnum, rightTermsEnum, true);
 
             AssertTermsSeekingEquals(info, leftTerms, rightTerms);
@@ -2897,7 +2897,7 @@ namespace Lucene.Net.Util
             int numPasses = 0;
             while (numPasses < 10 && tests.Count < numTests)
             {
-                leftEnum = leftTerms.GetIterator(leftEnum);
+                leftEnum = leftTerms.GetEnumerator(leftEnum);
                 BytesRef term;
                 while (leftEnum.MoveNext())
                 {
@@ -2949,7 +2949,7 @@ namespace Lucene.Net.Util
                 numPasses++;
             }
 
-            rightEnum = rightTerms.GetIterator(rightEnum);
+            rightEnum = rightTerms.GetEnumerator(rightEnum);
 
             IList<BytesRef> shuffledTests = new List<BytesRef>(tests);
             shuffledTests.Shuffle(Random);
@@ -2959,8 +2959,8 @@ namespace Lucene.Net.Util
                 if (Rarely())
                 {
                     // reuse the enums
-                    leftEnum = leftTerms.GetIterator(leftEnum);
-                    rightEnum = rightTerms.GetIterator(rightEnum);
+                    leftEnum = leftTerms.GetEnumerator(leftEnum);
+                    rightEnum = rightTerms.GetEnumerator(rightEnum);
                 }
 
                 bool seekExact = LuceneTestCase.Random.NextBoolean();
