@@ -144,7 +144,7 @@ namespace Lucene.Net.Analysis.OpenNlp
 
         private void Test1Sentence(BreakIterator bi, String text)
         {
-            int start = bi.Text.BeginIndex;
+            int start = bi.Text.StartIndex;
             assertEquals(start, bi.First());
             int current = bi.Current;
             assertEquals(bi.Text.EndIndex, bi.Next());

@@ -2,6 +2,7 @@
 using ICU4N.Support.Text;
 using Lucene.Net.Support;
 ﻿using System;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Lucene.Net.Analysis.Util
@@ -22,6 +23,133 @@ namespace Lucene.Net.Analysis.Util
      * See the License for the specific language governing permissions and
      * limitations under the License.
      */
+
+    /// <summary>
+    /// A <see cref="ICharacterEnumerator"/> used internally for use with <see cref="ICU4N.Text.BreakIterator"/>.
+    /// <para/>
+    /// @lucene.internal
+    /// </summary>
+    // ICU4N specific - refactored from CharArrayIterator
+    public abstract class CharArrayEnumerator : ICharacterEnumerator
+    {
+        /// <summary>
+        /// A constant which indicates that there is no character at the current
+        /// index.
+        /// </summary>
+        private const char DONE = '\uffff';
+
+        private char[] array;
+        private int start;
+        private int index;
+        private int length;
+        private int limit;
+
+        [WritableArray]
+        [SuppressMessage("Microsoft.Performance", "CA1819", Justification = "Lucene's design requires some writable array properties")]
+        public virtual char[] Text => array;
+
+        public virtual int Start => start;
+
+        public virtual int StartIndex => 0;
+
+        public virtual int EndIndex => limit;
+
+        public virtual int Length => length;
+
+        public virtual int Index
+        {
+            get => index;
+            set
+            {
+                if (value < StartIndex || value >= EndIndex)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Illegal Position: " + value);
+                }
+                index = start + value;
+            }
+        }
+
+        public virtual char Current => (index == limit) ? DONE : array[index];
+
+        object IEnumerator.Current => Current;
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
+
+        public virtual bool MoveFirst()
+        {
+            index = start;
+            return true;
+        }
+
+        public virtual bool MoveLast()
+        {
+            index = (limit == start) ? limit : limit - 1;
+            return true;
+        }
+
+        public virtual bool MoveNext()
+        {
+            if (++index >= limit)
+            {
+                index = limit;
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public virtual bool MovePrevious()
+        {
+            if (--index < start)
+            {
+                index = start;
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public virtual void Reset()
+        {
+            index = start;
+        }
+
+        public virtual void Reset(char[] array, int start, int length)
+        {
+            this.array = array;
+            this.start = start;
+            this.index = start;
+            this.length = length;
+            this.limit = start + length;
+        }
+
+        public virtual bool TrySetIndex(int value)
+        {
+            if (value < StartIndex || value >= EndIndex)
+            {
+                return false;
+            }
+            index = start + value;
+            return true;
+        }
+    }
 
     /// <summary>
     /// A CharacterIterator used internally for use with <see cref="ICU4N.Text.BreakIterator"/>

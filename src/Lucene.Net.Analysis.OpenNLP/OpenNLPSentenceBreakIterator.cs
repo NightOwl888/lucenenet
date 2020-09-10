@@ -3,6 +3,8 @@ using ICU4N.Support.Text;
 using ICU4N.Text;
 using Lucene.Net.Analysis.OpenNlp.Tools;
 using Lucene.Net.Analysis.Util;
+using Lucene.Net.ICU.Support.Text;
+using Lucene.Net.Support.Text;
 using opennlp.tools.util;
 using System;
 using System.Diagnostics;
@@ -32,7 +34,7 @@ namespace Lucene.Net.Analysis.OpenNlp
     /// </summary>
     public sealed class OpenNLPSentenceBreakIterator : BreakIterator
     {
-        private CharacterIterator text;
+        private ICharacterEnumerator text;
         private int currentSentence;
         private int[] sentenceStarts;
         private NLPSentenceDetectorOp sentenceOp;
@@ -44,10 +46,12 @@ namespace Lucene.Net.Analysis.OpenNlp
 
         public override int Current => text.Index;
 
+        private int ConvertedEndIndex => text.EndIndex + (text.Length > 0 ? 1 : 0);
+
         public override int First()
         {
             currentSentence = 0;
-            text.SetIndex(text.BeginIndex);
+            text.Index = text.StartIndex;
             return Current;
         }
 
@@ -56,12 +60,17 @@ namespace Lucene.Net.Analysis.OpenNlp
             if (sentenceStarts.Length > 0)
             {
                 currentSentence = sentenceStarts.Length - 1;
-                text.SetIndex(text.EndIndex);
+                //text.Index = ConvertedEndIndex;
+                //if (!text.TrySetIndex(ConvertedEndIndex))
+                //return Done;
+                var endIndex = ConvertedEndIndex;
+                text.TrySetIndex(endIndex);
+                return endIndex;
             }
             else
             { // there are no sentences; both the first and last positions are the begin index
                 currentSentence = 0;
-                text.SetIndex(text.BeginIndex);
+                text.Index = text.StartIndex;
             }
             return Current;
         }
@@ -74,7 +83,7 @@ namespace Lucene.Net.Analysis.OpenNlp
             }
             else if (currentSentence < sentenceStarts.Length - 1)
             {
-                text.SetIndex(sentenceStarts[++currentSentence]);
+                text.Index = sentenceStarts[++currentSentence];
                 return Current;
             }
             else
@@ -85,20 +94,20 @@ namespace Lucene.Net.Analysis.OpenNlp
 
         public override int Following(int pos)
         {
-            if (pos < text.BeginIndex || pos > text.EndIndex)
+            if (pos < text.StartIndex || pos > ConvertedEndIndex)
             {
                 throw new ArgumentException("offset out of bounds");
             }
             else if (0 == sentenceStarts.Length)
             {
-                text.SetIndex(text.BeginIndex);
+                text.Index = text.StartIndex;
                 return Done;
             }
             else if (pos >= sentenceStarts[sentenceStarts.Length - 1])
             {
                 // this conflicts with the javadocs, but matches actual behavior (Oracle has a bug in something)
                 // https://bugs.openjdk.java.net/browse/JDK-8015110
-                text.SetIndex(text.EndIndex);
+                text.Index = ConvertedEndIndex;
                 currentSentence = sentenceStarts.Length - 1;
                 return Done;
             }
@@ -106,7 +115,7 @@ namespace Lucene.Net.Analysis.OpenNlp
             { // there are at least two sentences
                 currentSentence = (sentenceStarts.Length - 1) / 2; // start search from the middle
                 MoveToSentenceAt(pos, 0, sentenceStarts.Length - 2);
-                text.SetIndex(sentenceStarts[++currentSentence]);
+                text.Index = sentenceStarts[++currentSentence];
                 return Current;
             }
         }
@@ -133,7 +142,7 @@ namespace Lucene.Net.Analysis.OpenNlp
             {
                 Debug.Assert(currentSentence == minSentence);
                 Debug.Assert(pos >= sentenceStarts[currentSentence]);
-                Debug.Assert((currentSentence == sentenceStarts.Length - 1 && pos <= text.EndIndex)
+                Debug.Assert((currentSentence == sentenceStarts.Length - 1 && pos <= ConvertedEndIndex)
                     || pos < sentenceStarts[currentSentence + 1]);
             }
             // we have arrived - nothing to do
@@ -141,7 +150,7 @@ namespace Lucene.Net.Analysis.OpenNlp
 
         public override int Previous()
         {
-            if (text.Index == text.BeginIndex)
+            if (text.Index == text.StartIndex)
             {
                 return Done;
             }
@@ -149,16 +158,16 @@ namespace Lucene.Net.Analysis.OpenNlp
             {
                 if (0 == sentenceStarts.Length)
                 {
-                    text.SetIndex(text.BeginIndex);
+                    text.Index = text.StartIndex;
                     return Done;
                 }
-                if (text.Index == text.EndIndex)
+                if (text.Index == ConvertedEndIndex)
                 {
-                    text.SetIndex(sentenceStarts[currentSentence]);
+                    text.Index = sentenceStarts[currentSentence];
                 }
                 else
                 {
-                    text.SetIndex(sentenceStarts[--currentSentence]);
+                    text.Index = sentenceStarts[--currentSentence];
                 }
                 return Current;
             }
@@ -166,13 +175,13 @@ namespace Lucene.Net.Analysis.OpenNlp
 
         public override int Preceding(int pos)
         {
-            if (pos < text.BeginIndex || pos > text.EndIndex)
+            if (pos < text.StartIndex || pos > ConvertedEndIndex)
             {
                 throw new ArgumentException("offset out of bounds");
             }
             else if (0 == sentenceStarts.Length)
             {
-                text.SetIndex(text.BeginIndex);
+                text.Index = text.StartIndex;
                 currentSentence = 0;
                 return Done;
             }
@@ -180,7 +189,7 @@ namespace Lucene.Net.Analysis.OpenNlp
             {
                 // this conflicts with the javadocs, but matches actual behavior (Oracle has a bug in something)
                 // https://bugs.openjdk.java.net/browse/JDK-8015110
-                text.SetIndex(text.BeginIndex);
+                text.Index = text.StartIndex;
                 currentSentence = 0;
                 return Done;
             }
@@ -190,12 +199,12 @@ namespace Lucene.Net.Analysis.OpenNlp
                 MoveToSentenceAt(pos, 0, sentenceStarts.Length - 1);
                 if (0 == currentSentence)
                 {
-                    text.SetIndex(text.BeginIndex);
+                    text.Index = text.StartIndex;
                     return Done;
                 }
                 else
                 {
-                    text.SetIndex(sentenceStarts[--currentSentence]);
+                    text.Index = sentenceStarts[--currentSentence];
                     return Current;
                 }
             }
@@ -206,19 +215,19 @@ namespace Lucene.Net.Analysis.OpenNlp
             currentSentence += n;
             if (n < 0)
             {
-                if (text.Index == text.EndIndex)
+                if (text.Index == ConvertedEndIndex)
                 {
                     ++currentSentence;
                 }
                 if (currentSentence < 0)
                 {
                     currentSentence = 0;
-                    text.SetIndex(text.BeginIndex);
+                    text.Index = text.StartIndex;
                     return Done;
                 }
                 else
                 {
-                    text.SetIndex(sentenceStarts[currentSentence]);
+                    text.Index = sentenceStarts[currentSentence];
                 }
             }
             else if (n > 0)
@@ -226,51 +235,100 @@ namespace Lucene.Net.Analysis.OpenNlp
                 if (currentSentence >= sentenceStarts.Length)
                 {
                     currentSentence = sentenceStarts.Length - 1;
-                    text.SetIndex(text.EndIndex);
+                    //text.Index = ConvertedEndIndex;
+                    text.TrySetIndex(ConvertedEndIndex);
                     return Done;
                 }
                 else
                 {
-                    text.SetIndex(sentenceStarts[currentSentence]);
+                    text.Index = sentenceStarts[currentSentence];
                 }
             }
             return Current;
         }
 
-        public override CharacterIterator Text => text;
+        //public override CharacterIterator Text => text;
 
-        public override void SetText(CharacterIterator newText)
+        public override ICharacterEnumerator Text => text;
+        //{
+        //    get
+        //    {
+        //        if (text is CharacterEnumeratorWrapper wrapper)
+        //            return wrapper.Enumerator;
+        //        return null;
+        //    }
+        //}
+
+        public override void SetText(ICharacterEnumerator newText)
         {
             text = newText;
-            text.SetIndex(text.BeginIndex);
+            text.Index = text.StartIndex;
             currentSentence = 0;
-            Span[] spans = sentenceOp.SplitSentences(CharacterIteratorToString());
+            Span[] spans = sentenceOp.SplitSentences(CharacterEnumeratorToString());
             sentenceStarts = new int[spans.Length];
             for (int i = 0; i < spans.Length; ++i)
             {
                 // Adjust start positions to match those of the passed-in CharacterIterator
-                sentenceStarts[i] = spans[i].getStart() + text.BeginIndex;
+                sentenceStarts[i] = spans[i].getStart() + text.StartIndex;
             }
         }
 
-        private string CharacterIteratorToString()
+        private string CharacterEnumeratorToString()
         {
             string fullText;
-            if (text is CharArrayIterator)
+            if (text is CharArrayEnumerator)
             {
-                CharArrayIterator charArrayIterator = (CharArrayIterator)text;
+#pragma warning disable IDE0020 // Use pattern matching
+                CharArrayEnumerator charArrayIterator = (CharArrayEnumerator)text;
+#pragma warning restore IDE0020 // Use pattern matching
                 fullText = new string(charArrayIterator.Text, charArrayIterator.Start, charArrayIterator.Length);
             }
             else
             {
                 // TODO: is there a better way to extract full text from arbitrary CharacterIterators?
                 StringBuilder builder = new StringBuilder();
-                for (char ch = text.First(); ch != CharacterIterator.Done; ch = text.Next())
+                for (bool hasNext = text.MoveFirst(); hasNext; hasNext = text.MoveNext())
                 {
-                    builder.Append(ch);
+                    builder.Append(text.Current);
                 }
                 fullText = builder.ToString();
-                text.SetIndex(text.BeginIndex);
+                text.Index = text.StartIndex;
+            }
+            return fullText;
+        }
+
+        public override void SetText(CharacterIterator newText)
+        {
+            text = new CharacterIteratorWrapper(newText);
+            text.Index = text.StartIndex;
+            currentSentence = 0;
+            Span[] spans = sentenceOp.SplitSentences(CharacterIteratorToString());
+            sentenceStarts = new int[spans.Length];
+            for (int i = 0; i < spans.Length; ++i)
+            {
+                // Adjust start positions to match those of the passed-in CharacterIterator
+                sentenceStarts[i] = spans[i].getStart() + text.StartIndex;
+            }
+        }
+
+        private string CharacterIteratorToString()
+        {
+            string fullText;
+            if (text is CharacterIteratorWrapper wrapper && wrapper.CharacterIterator is CharArrayIterator)
+            {
+                CharArrayIterator charArrayIterator = (CharArrayIterator)wrapper.CharacterIterator;
+                fullText = new string(charArrayIterator.Text, charArrayIterator.Start, charArrayIterator.Length);
+            }
+            else
+            {
+                // TODO: is there a better way to extract full text from arbitrary CharacterIterators?
+                StringBuilder builder = new StringBuilder();
+                for (bool hasNext = text.MoveFirst(); hasNext; hasNext = text.MoveNext())
+                {
+                    builder.Append(text.Current);
+                }
+                fullText = builder.ToString();
+                text.Index = text.StartIndex;
             }
             return fullText;
         }

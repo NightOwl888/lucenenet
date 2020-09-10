@@ -2,6 +2,7 @@
 using ICU4N.Text;
 using System;
 using ICU4N.Support.Text;
+using Lucene.Net.Support.Text;
 
 namespace Lucene.Net.Search.PostingsHighlight
 {
@@ -25,9 +26,11 @@ namespace Lucene.Net.Search.PostingsHighlight
     /// <summary>Just produces one single fragment for the entire text</summary>
     public sealed class WholeBreakIterator : BreakIterator
     {
-        private CharacterIterator text;
-        private int start; 
-        private int end; 
+        //private CharacterIterator text;
+        //private ICharacterEnumerator text;
+        private CharacterEnumeratorWrapper text;
+        private int start;
+        private int end;
         private int current;
 
         public override int Current => current;
@@ -56,7 +59,15 @@ namespace Lucene.Net.Search.PostingsHighlight
             }
         }
 
-        public override CharacterIterator Text => text;
+        public override ICharacterEnumerator Text => text.Enumerator;
+        //{
+        //    get
+        //    {
+        //        if (text is CharacterEnumeratorWrapper wrapper)
+        //            return wrapper.Enumerator;
+        //        return null;
+        //    }
+        //}
 
         public override int Last()
         {
@@ -139,13 +150,171 @@ namespace Lucene.Net.Search.PostingsHighlight
             return boundary == offset;
         }
 
-        public override void SetText(CharacterIterator newText)
+        public override void SetText(ICharacterEnumerator newText)
         {
-            start = newText.BeginIndex;
-            end = newText.EndIndex;
-            text = newText;
+            if (newText is null)
+                throw new ArgumentNullException(nameof(newText)); // LUCENENET specific - added guard clause
+
+            text = new CharacterEnumeratorWrapper(newText);
+            start = text.BeginIndex;
+            end = text.EndIndex;
             current = start;
+
+            //start = newText.StartIndex;
+            ////enumerator.EndIndex + (enumerator.Length > 0 ? 1 : 0);
+            ////end = newText.EndIndex + (newText.Length > 0 ? 1 : 0); // LUCENENET specific - correct end index for ICharacterEnumerator
+            ////end = Math.Max(start + newText.Length - 1, 0);
+            ////end = newText.EndIndex;
+            //text = newText;
+            //current = start;
         }
+
+        //public override void SetText(CharacterIterator newText)
+        //{
+        //    start = newText.BeginIndex;
+        //    end = newText.EndIndex;
+        //    text = newText;
+        //    current = start;
+        //}
     }
+
+    ///// <summary>Just produces one single fragment for the entire text</summary>
+    //public sealed class WholeBreakIterator : BreakIterator
+    //{
+    //    private CharacterIterator text;
+    //    private int start; 
+    //    private int end; 
+    //    private int current;
+
+    //    public override int Current => current;
+
+    //    public override int First()
+    //    {
+    //        return (current = start);
+    //    }
+
+    //    public override int Following(int pos)
+    //    {
+    //        if (pos < start || pos > end)
+    //        {
+    //            throw new ArgumentException("offset out of bounds");
+    //        }
+    //        else if (pos == end)
+    //        {
+    //            // this conflicts with the javadocs, but matches actual behavior (Oracle has a bug in something)
+    //            // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=9000909
+    //            current = end;
+    //            return Done;
+    //        }
+    //        else
+    //        {
+    //            return Last();
+    //        }
+    //    }
+
+    //    public override ICharacterEnumerator Text
+    //    {
+    //        get
+    //        {
+    //            if (text is CharacterEnumeratorWrapper wrapper)
+    //                return wrapper.Enumerator;
+    //            return null;
+    //        }
+    //    }
+
+    //    public override int Last()
+    //    {
+    //        return (current = end);
+    //    }
+
+    //    public override int Next()
+    //    {
+    //        if (current == end)
+    //        {
+    //            return Done;
+    //        }
+    //        else
+    //        {
+    //            return Last();
+    //        }
+    //    }
+
+    //    public override int Next(int n)
+    //    {
+    //        if (n < 0)
+    //        {
+    //            for (int i = 0; i < -n; i++)
+    //            {
+    //                Previous();
+    //            }
+    //        }
+    //        else
+    //        {
+    //            for (int i = 0; i < n; i++)
+    //            {
+    //                Next();
+    //            }
+    //        }
+    //        return Current;
+    //    }
+
+    //    public override int Preceding(int pos)
+    //    {
+    //        if (pos < start || pos > end)
+    //        {
+    //            throw new ArgumentException("offset out of bounds");
+    //        }
+    //        else if (pos == start)
+    //        {
+    //            // this conflicts with the javadocs, but matches actual behavior (Oracle has a bug in something)
+    //            // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=9000909
+    //            current = start;
+    //            return Done;
+    //        }
+    //        else
+    //        {
+    //            return First();
+    //        }
+    //    }
+
+    //    public override int Previous()
+    //    {
+    //        if (current == start)
+    //        {
+    //            return Done;
+    //        }
+    //        else
+    //        {
+    //            return First();
+    //        }
+    //    }
+
+    //    public override bool IsBoundary(int offset)
+    //    {
+    //        if (offset == 0)
+    //        {
+    //            return true;
+    //        }
+    //        int boundary = Following(offset - 1);
+    //        if (boundary == Done)
+    //        {
+    //            throw new ArgumentException();
+    //        }
+    //        return boundary == offset;
+    //    }
+
+    //    public override void SetText(ICharacterEnumerator newText)
+    //    {
+    //        SetText(newText is null ? null : new CharacterEnumeratorWrapper(newText));
+    //    }
+
+    //    public override void SetText(CharacterIterator newText)
+    //    {
+    //        start = newText.BeginIndex;
+    //        end = newText.EndIndex;
+    //        text = newText;
+    //        current = start;
+    //    }
+    //}
 }
 #endif
