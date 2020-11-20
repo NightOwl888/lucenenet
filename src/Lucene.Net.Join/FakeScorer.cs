@@ -62,7 +62,7 @@ namespace Lucene.Net.Join
 
         public override ICollection<ChildScorer> GetChildren()
         {
-            throw new NotSupportedException();
+            throw new NotSupportedException(); // Some change
         }
     }
 }
