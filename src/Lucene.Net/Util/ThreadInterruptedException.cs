@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Threading;
 
-namespace Lucene.Net.Store
+namespace Lucene.Net.Util
 {
     /*
      * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,29 +20,25 @@ namespace Lucene.Net.Store
      */
 
     /// <summary>
-    /// Takes a while to open files: gives TestThreadInterruptDeadlock
-    /// a chance to find file leaks if opening an input throws exception
+    /// Thrown by Lucene on detecing that <see cref="System.Threading.Thread.Interrupt()"/> had been
+    /// called. This exception has the specific purpose of being allowed to pass through to the
+    /// calling thread of <see cref="J2N.Threading.ThreadJob"/> so it reaches the appropriate handler.
     /// </summary>
-    internal class SlowOpeningMockIndexInputWrapper : MockIndexInputWrapper
+    // LUCENENET: In Lucene, this exception was so it could be re-thrown unchecked. It has been
+    // re-purposed in .NET but used in all the same scenerios.
+    public class ThreadInterruptedException : Exception, IRuntimeException
     {
-        public SlowOpeningMockIndexInputWrapper(MockDirectoryWrapper dir, string name, IndexInput @delegate)
-            : base(dir, name, @delegate)
+        public ThreadInterruptedException(Exception interruptedException)
+            : base(interruptedException.Message, interruptedException)
         {
-            try
-            {
-                Thread.Sleep(50);
-            }
-            catch (Exception ie) when (ie.IsInterruptedException())
-            {
-                try
-                {
-                    base.Dispose();
-                } // we didnt open successfully
-                catch (Exception ignore) when (ignore.IsThrowable())
-                {
-                }
-                throw new Util.ThreadInterruptedException(ie);
-            }
+        }
+
+        public ThreadInterruptedException(string message) : base(message)
+        {
+        }
+
+        public ThreadInterruptedException(string message, Exception innerException) : base(message, innerException)
+        {
         }
     }
 }
