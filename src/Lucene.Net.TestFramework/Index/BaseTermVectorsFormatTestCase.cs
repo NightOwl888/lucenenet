@@ -1,4 +1,4 @@
-using J2N.Threading;
+﻿using J2N.Threading;
 using J2N.Threading.Atomic;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.TokenAttributes;
@@ -16,7 +16,6 @@ using System.Threading;
 using JCG = J2N.Collections.Generic;
 using static Lucene.Net.Index.TermsEnum;
 using Assert = Lucene.Net.TestFramework.Assert;
-using AssertionError = Lucene.Net.Diagnostics.AssertionException;
 using Attribute = Lucene.Net.Util.Attribute;
 using System.Diagnostics.CodeAnalysis;
 
@@ -46,6 +45,8 @@ namespace Lucene.Net.Index
      * See the License for the specific language governing permissions and
      * limitations under the License.
      */
+
+    using AssertionError = Lucene.Net.Diagnostics.AssertionException; // LUCENENET TODO: Remove this after converting to the .IsAssertionError() extension method in catch blocks
 
     /// <summary>
     /// Base class aiming at testing <see cref="TermVectorsFormat"/>.
