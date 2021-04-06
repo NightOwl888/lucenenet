@@ -165,7 +165,7 @@ namespace Lucene.Net.Search
                         }
                     }
                 }
-                catch (Exception t)
+                catch (Exception t) when (t.IsThrowable())
                 {
                     if (Verbose)
                     {
@@ -390,7 +390,7 @@ namespace Lucene.Net.Search
                 {
                     // expected
                 }
-                catch (Exception e)
+                catch (Exception e) when (e.IsThrowable())
                 {
                     if (Verbose)
                     {

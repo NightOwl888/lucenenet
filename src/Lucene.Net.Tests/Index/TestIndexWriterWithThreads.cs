@@ -137,7 +137,7 @@ namespace Lucene.Net.Index
                             break;
                         }
                     }
-                    catch (Exception t)
+                    catch (Exception t) when (t.IsThrowable())
                     {
                         //Console.WriteLine(t.StackTrace);
                         if (noErrors)
@@ -640,7 +640,7 @@ namespace Lucene.Net.Index
                     startIndexing.Wait();
                     writer.AddDocument(doc);
                 }
-                catch (Exception e)
+                catch (Exception e) when (e.IsThrowable())
                 {
                     failed = true;
                     failure = e;
@@ -816,7 +816,7 @@ namespace Lucene.Net.Index
                                 break;
                         }
                     }
-                    catch (Exception t)
+                    catch (Exception t) when (t.IsThrowable())
                     {
                         failed.Value = (true);
                         throw new Exception(t.Message, t);

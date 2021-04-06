@@ -1,4 +1,4 @@
-using J2N.Threading;
+﻿using J2N.Threading;
 using J2N.Threading.Atomic;
 using Lucene.Net.Analysis;
 using Lucene.Net.Diagnostics;
@@ -385,7 +385,7 @@ namespace Lucene.Net.Index
                             doc.RemoveField(addedField);
                         }
                     }
-                    catch (Exception t)
+                    catch (Exception t) when (t.IsThrowable())
                     {
                         Console.WriteLine(Thread.CurrentThread.Name + ": hit exc");
                         Console.WriteLine(t.ToString());
@@ -531,7 +531,7 @@ namespace Lucene.Net.Index
                             outerInstance.ReleaseSearcher(s);
                         }
                     }
-                    catch (Exception t)
+                    catch (Exception t) when (t.IsThrowable())
                     {
                         Console.WriteLine(Thread.CurrentThread.Name + ": hit exc");
                         outerInstance.m_failed.Value = (true);

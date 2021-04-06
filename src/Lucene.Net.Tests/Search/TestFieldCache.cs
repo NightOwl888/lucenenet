@@ -1,4 +1,4 @@
-using J2N.Threading;
+﻿using J2N.Threading;
 using J2N.Threading.Atomic;
 using Lucene.Net.Diagnostics;
 using Lucene.Net.Index.Extensions;
@@ -587,7 +587,7 @@ namespace Lucene.Net.Search
                         }
                     }
                 }
-                catch (Exception t)
+                catch (Exception t) when (t.IsThrowable())
                 {
                     failed.Value = true;
                     throw new Exception(t.Message, t);

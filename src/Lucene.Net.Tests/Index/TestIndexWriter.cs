@@ -1355,7 +1355,7 @@ namespace Lucene.Net.Index
                             break;
                         }
                     }
-                    catch (Exception t)
+                    catch (Exception t) when (t.IsThrowable())
                     {
                         Console.WriteLine("FAILED; unexpected exception");
                         Console.WriteLine(t.ToString());

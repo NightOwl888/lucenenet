@@ -1,4 +1,4 @@
-using J2N.Threading;
+﻿using J2N.Threading;
 using Lucene.Net.Documents;
 using NUnit.Framework;
 using System;
@@ -153,7 +153,7 @@ namespace Lucene.Net.Index
                         }
                     }
                 }
-                catch (Exception e)
+                catch (Exception e) when (e.IsThrowable())
                 {
                     failed = e;
                 }
@@ -223,7 +223,7 @@ namespace Lucene.Net.Index
 
                             Assert.IsFalse(current);
                         }
-                        catch (Exception e)
+                        catch (Exception e) when (e.IsThrowable())
                         {
                             if (Verbose)
                             {

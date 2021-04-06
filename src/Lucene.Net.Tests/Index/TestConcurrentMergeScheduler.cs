@@ -370,7 +370,7 @@ namespace Lucene.Net.Index
                         runningMergeCount.DecrementAndGet();
                     }
                 }
-                catch (Exception t)
+                catch (Exception t) when (t.IsThrowable())
                 {
                     failed.Value = (true);
                     m_writer.MergeFinish(merge);

@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -126,9 +126,7 @@ namespace Lucene.Net.Index
             {
                 TwoPhaseCommitTool.Execute(objects);
             }
-#pragma warning disable 168
-            catch (Exception t)
-#pragma warning restore 168
+            catch (Exception t) when (t.IsThrowable())
             {
                 anyFailure = true;
             }

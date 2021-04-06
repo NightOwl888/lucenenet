@@ -1,4 +1,4 @@
-using J2N.Threading;
+﻿using J2N.Threading;
 using J2N.Threading.Atomic;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
@@ -413,7 +413,7 @@ namespace Lucene.Net.Index
                     } while (Environment.TickCount < endTime);
                     r.Dispose();
                 }
-                catch (Exception t)
+                catch (Exception t) when (t.IsThrowable())
                 {
                     failed.Value = (true);
                     throw new Exception(t.Message, t);

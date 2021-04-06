@@ -248,7 +248,7 @@ namespace Lucene.Net.Index
                             break;
                         }
                     }
-                    catch (Exception t)
+                    catch (Exception t) when (t.IsThrowable())
                     {
                         Console.WriteLine(Thread.CurrentThread.Name + ": unexpected exception2");
                         Console.WriteLine(t.StackTrace);
@@ -265,7 +265,7 @@ namespace Lucene.Net.Index
                     {
                         writer.UpdateDocument(idTerm, doc);
                     }
-                    catch (Exception t)
+                    catch (Exception t) when (t.IsThrowable())
                     {
                         Console.WriteLine(Thread.CurrentThread.Name + ": unexpected exception3");
                         Console.WriteLine(t.StackTrace);
@@ -357,7 +357,7 @@ namespace Lucene.Net.Index
             {
                 writer.Dispose();
             }
-            catch (Exception t)
+            catch (Exception t) when (t.IsThrowable())
             {
                 Console.WriteLine("exception during close:");
                 Console.WriteLine(t.StackTrace);
@@ -416,7 +416,7 @@ namespace Lucene.Net.Index
             {
                 writer.Dispose();
             }
-            catch (Exception t)
+            catch (Exception t) when (t.IsThrowable())
             {
                 Console.WriteLine("exception during close:");
                 Console.WriteLine(t.StackTrace);
@@ -994,7 +994,7 @@ namespace Lucene.Net.Index
                         }
                     }
                 }
-                catch (Exception t)
+                catch (Exception t) when (t.IsThrowable())
                 {
                     lock (this)
                     {
