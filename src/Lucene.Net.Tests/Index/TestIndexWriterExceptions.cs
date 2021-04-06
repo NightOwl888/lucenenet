@@ -619,9 +619,7 @@ namespace Lucene.Net.Index
                 writer.AddDocument(doc);
                 Assert.Fail("did not hit expected exception");
             }
-#pragma warning disable 168
-            catch (Exception e)
-#pragma warning restore 168
+            catch (Exception e) when (e.IsException())
             {
             }
 
@@ -1393,9 +1391,7 @@ namespace Lucene.Net.Index
                 reader = DirectoryReader.Open(dir);
                 Assert.Fail("reader did not hit IOException on opening a corrupt index");
             }
-#pragma warning disable 168
-            catch (Exception e)
-#pragma warning restore 168
+            catch (Exception e) when (e.IsException())
             {
             }
             if (reader != null)
@@ -1452,9 +1448,7 @@ namespace Lucene.Net.Index
                 reader = DirectoryReader.Open(dir);
                 Assert.Fail("reader did not hit IOException on opening a corrupt index");
             }
-#pragma warning disable 168
-            catch (Exception e)
-#pragma warning restore 168
+            catch (Exception e) when (e.IsException())
             {
             }
             if (reader != null)
@@ -1513,9 +1507,7 @@ namespace Lucene.Net.Index
             {
                 reader = DirectoryReader.Open(dir);
             }
-#pragma warning disable 168
-            catch (Exception e)
-#pragma warning restore 168
+            catch (Exception e) when (e.IsException())
             {
                 Assert.Fail("reader failed to open on a crashed index");
             }
@@ -1525,7 +1517,7 @@ namespace Lucene.Net.Index
             {
                 writer = new IndexWriter(dir, NewIndexWriterConfig(TEST_VERSION_CURRENT, new MockAnalyzer(Random)).SetOpenMode(OpenMode.CREATE));
             }
-            catch (Exception e)
+            catch (Exception e) when (e.IsException())
             {
                 Console.WriteLine(e.StackTrace);
                 Assert.Fail("writer failed to open on a crashed index");

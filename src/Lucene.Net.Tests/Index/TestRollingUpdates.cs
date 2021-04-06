@@ -1,4 +1,4 @@
-using J2N.Threading;
+﻿using J2N.Threading;
 using Lucene.Net.Codecs.Memory;
 using Lucene.Net.Documents;
 using Lucene.Net.Index.Extensions;
@@ -274,7 +274,7 @@ namespace Lucene.Net.Index
                         open.Dispose();
                     }
                 }
-                catch (Exception e)
+                catch (Exception e) when (e.IsException())
                 {
                     throw new Exception(e.Message, e);
                 }

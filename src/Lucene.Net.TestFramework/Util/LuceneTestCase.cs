@@ -2079,6 +2079,7 @@ namespace Lucene.Net.Util
         private static Directory NewFSDirectoryImpl(Type clazz, DirectoryInfo file)
         {
             return CommandLineUtil.NewFSDirectory(clazz, file);
+            // LUCENENET: No sense in catching just to rethrow again as the same type
         }
 
         private static Directory NewDirectoryImpl(Random random, string clazzName)
@@ -2444,7 +2445,7 @@ namespace Lucene.Net.Util
             {
                 return this.GetType().getResourceAsStream(name);
             }
-            catch (Exception e)
+            catch (Exception e) when (e.IsException())
             {
                 throw new IOException("Cannot find resource: " + name, e); // LUCENENET specific - wrapped inner exception
             }

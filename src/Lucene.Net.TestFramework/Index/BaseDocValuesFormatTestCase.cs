@@ -1,4 +1,4 @@
-using J2N.Threading;
+﻿using J2N.Threading;
 using Lucene.Net.Analysis;
 using Lucene.Net.Codecs.Lucene42;
 using Lucene.Net.Diagnostics;
@@ -3354,7 +3354,7 @@ namespace Lucene.Net.Index
                     }
                     TestUtil.CheckReader(ir);
                 }
-                catch (Exception e)
+                catch (Exception e) when (e.IsException())
                 {
                     throw new Exception(e.ToString(), e);
                 }
@@ -3543,7 +3543,7 @@ namespace Lucene.Net.Index
                     }
                     TestUtil.CheckReader(ir);
                 }
-                catch (Exception e)
+                catch (Exception e) when (e.IsException())
                 {
                     throw new Exception(e.ToString(), e);
                 }

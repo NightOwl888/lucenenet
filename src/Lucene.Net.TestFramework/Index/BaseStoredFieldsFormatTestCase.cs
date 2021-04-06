@@ -1,4 +1,4 @@
-using J2N.Collections.Generic.Extensions;
+﻿using J2N.Collections.Generic.Extensions;
 using J2N.Text;
 using J2N.Threading;
 using J2N.Threading.Atomic;
@@ -565,9 +565,9 @@ namespace Lucene.Net.Index
                             throw new InvalidOperationException("Expected " + q + ", but got " + sdoc.Get("fld"));
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (e.IsException())
                     {
-                        ex.Value = e;
+                        ex.CompareAndSet(null, e);
                     }
                 }
             }

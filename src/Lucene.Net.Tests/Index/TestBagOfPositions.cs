@@ -1,4 +1,4 @@
-using J2N.Collections.Generic.Extensions;
+﻿using J2N.Collections.Generic.Extensions;
 using J2N.Threading;
 using Lucene.Net.Documents;
 using NUnit.Framework;
@@ -203,7 +203,7 @@ namespace Lucene.Net.Index
                         iw.AddDocument(document);
                     }
                 }
-                catch (Exception e)
+                catch (Exception e) when (e.IsException())
                 {
                     throw new Exception(e.Message, e);
                 }

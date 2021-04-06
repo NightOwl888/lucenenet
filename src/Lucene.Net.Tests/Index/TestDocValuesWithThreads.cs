@@ -1,4 +1,4 @@
-using J2N.Threading;
+﻿using J2N.Threading;
 using Lucene.Net.Documents;
 using Lucene.Net.Index.Extensions;
 using Lucene.Net.Search;
@@ -173,7 +173,7 @@ namespace Lucene.Net.Index
                         Assert.AreEqual(sorted[docID], scratch2);
                     }
                 }
-                catch (Exception e)
+                catch (Exception e) when (e.IsException())
                 {
                     throw new Exception(e.Message, e);
                 }
