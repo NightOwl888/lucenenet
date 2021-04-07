@@ -105,7 +105,7 @@ namespace Lucene.Net.Index
                         writer.UpdateDocument(new Term("id", "" + (idUpto++)), doc);
                         addCount++;
                     }
-                    catch (IOException ioe)
+                    catch (Exception ioe) when (ioe.IsIOException())
                     {
                         if (Verbose)
                         {
@@ -349,7 +349,7 @@ namespace Lucene.Net.Index
                     writer.Dispose(false);
                     success = true;
                 }
-                catch (IOException)
+                catch (Exception ioe) when (ioe.IsIOException())
                 {
                     failure.ClearDoFail();
                     writer.Dispose(false);
@@ -406,7 +406,7 @@ namespace Lucene.Net.Index
                 writer.Commit();
                 Assert.Fail("did not hit exception");
             }
-            catch (IOException)
+            catch (Exception ioe) when (ioe.IsIOException())
             {
             }
             failure.ClearDoFail();

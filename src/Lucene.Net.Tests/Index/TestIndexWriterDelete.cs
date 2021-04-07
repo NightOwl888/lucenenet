@@ -593,7 +593,7 @@ namespace Lucene.Net.Index
             long diskUsage = startDir.GetSizeInBytes();
             long diskFree = diskUsage + 10;
 
-            IOException err = null;
+            Exception err = null; // LUCENENET: No need to cast to IOExcpetion
 
             bool done = false;
 
@@ -709,7 +709,7 @@ namespace Lucene.Net.Index
                             done = true;
                         }
                     }
-                    catch (IOException e)
+                    catch (Exception e) when (e.IsIOException())
                     {
                         if (Verbose)
                         {
@@ -760,7 +760,7 @@ namespace Lucene.Net.Index
                     {
                         newReader = DirectoryReader.Open(dir);
                     }
-                    catch (IOException e)
+                    catch (Exception e) when (e.IsIOException())
                     {
                         Console.WriteLine(e.ToString());
                         Console.Write(e.StackTrace);
@@ -773,7 +773,7 @@ namespace Lucene.Net.Index
                     {
                         hits = searcher.Search(new TermQuery(searchTerm), null, 1000).ScoreDocs;
                     }
-                    catch (IOException e)
+                    catch (Exception e) when (e.IsIOException())
                     {
                         Console.WriteLine(e.ToString());
                         Console.Write(e.StackTrace);
@@ -919,9 +919,7 @@ namespace Lucene.Net.Index
                 }
                 modifier.Commit();
             }
-#pragma warning disable 168
-            catch (IOException ioe)
-#pragma warning restore 168
+            catch (Exception ioe) when (ioe.IsIOException())
             {
                 // expected
                 failed = true;
@@ -1042,7 +1040,7 @@ namespace Lucene.Net.Index
                 {
                     modifier.AddDocument(doc);
                 }
-                catch (IOException io)
+                catch (Exception io) when (io.IsIOException())
                 {
                     if (Verbose)
                     {

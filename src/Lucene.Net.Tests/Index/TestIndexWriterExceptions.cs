@@ -240,7 +240,7 @@ namespace Lucene.Net.Index
                         {
                             TestUtil.CheckIndex(writer.Directory);
                         }
-                        catch (IOException ioe)
+                        catch (Exception ioe) when (ioe.IsIOException())
                         {
                             Console.WriteLine(Thread.CurrentThread.Name + ": unexpected exception1");
                             Console.WriteLine(ioe.StackTrace);
@@ -531,9 +531,7 @@ namespace Lucene.Net.Index
                 w.AddDocument(crashDoc, analyzer);
                 Assert.Fail("did not hit expected exception");
             }
-#pragma warning disable 168
-            catch (IOException ioe)
-#pragma warning restore 168
+            catch (Exception ioe) when (ioe.IsIOException())
             {
                 // expected
             }
@@ -734,9 +732,7 @@ namespace Lucene.Net.Index
                 {
                     writer.AddDocument(doc);
                 }
-#pragma warning disable 168
-                catch (IOException ioe)
-#pragma warning restore 168
+                catch (Exception ioe) when (ioe.IsIOException())
                 {
                     // only one flush should fail:
                     Assert.IsFalse(hitError);
@@ -786,7 +782,7 @@ namespace Lucene.Net.Index
                     writer.AddDocument(doc);
                     Assert.Fail("did not hit expected exception");
                 }
-                catch (IOException ioe)
+                catch (Exception ioe) when (ioe.IsIOException())
                 {
                     if (Verbose)
                     {
@@ -977,9 +973,7 @@ namespace Lucene.Net.Index
                             writer.AddDocument(doc);
                             Assert.Fail("did not hit expected exception");
                         }
-#pragma warning disable 168
-                        catch (IOException ioe)
-#pragma warning restore 168
+                        catch (Exception ioe) when (ioe.IsIOException())
                         {
                         }
 
@@ -1066,9 +1060,7 @@ namespace Lucene.Net.Index
                     {
                         writer.Commit();
                     }
-#pragma warning disable 168
-                    catch (IOException ioe)
-#pragma warning restore 168
+                    catch (Exception ioe) when (ioe.IsIOException())
                     {
                         // expected
                     }
@@ -1146,9 +1138,7 @@ namespace Lucene.Net.Index
                     w.Dispose();
                     Assert.Fail();
                 }
-#pragma warning disable 168
-                catch (IOException ioe)
-#pragma warning restore 168
+                catch (Exception ioe) when (ioe.IsIOException())
                 {
                     Assert.Fail("expected only RuntimeException");
                 }
@@ -1199,7 +1189,7 @@ namespace Lucene.Net.Index
                 {
                     w.ForceMerge(1);
                 }
-                catch (IOException ioe)
+                catch (Exception ioe) when (ioe.IsIOException())
                 {
                     if (ioe.InnerException == null)
                     {
@@ -1335,7 +1325,7 @@ namespace Lucene.Net.Index
             {
                 reader = DirectoryReader.Open(dir);
             }
-            catch (IOException e)
+            catch (Exception e) when (e.IsIOException())
             {
                 Console.WriteLine(e.StackTrace);
                 Assert.Fail("segmentInfos failed to retry fallback to correct segments_N file");
@@ -1675,7 +1665,7 @@ namespace Lucene.Net.Index
                 // BUG: CrashingFilter didn't
                 Assert.Fail("did not hit expected exception");
             }
-            catch (IOException ioe)
+            catch (Exception ioe) when (ioe.IsIOException())
             {
                 // expected
                 Assert.AreEqual(CRASH_FAIL_MESSAGE, ioe.Message);
@@ -1769,7 +1759,7 @@ namespace Lucene.Net.Index
                 // BUG: CrashingFilter didn't
                 Assert.Fail("did not hit expected exception");
             }
-            catch (IOException ioe)
+            catch (Exception ioe) when (ioe.IsIOException())
             {
                 // expected
                 Assert.AreEqual(CRASH_FAIL_MESSAGE, ioe.Message);
@@ -2243,7 +2233,7 @@ namespace Lucene.Net.Index
                         w = null;
                     }
                 }
-                catch (IOException ioe)
+                catch (Exception ioe) when (ioe.IsIOException())
                 {
                     // FakeIOException can be thrown from mergeMiddle, in which case IW
                     // registers it before our CMS gets to suppress it. IW.forceMerge later

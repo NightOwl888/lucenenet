@@ -130,7 +130,7 @@ namespace Lucene.Net.Index
                         }
                         extraCount++;
                     }
-                    catch (IOException ioe)
+                    catch (Exception ioe) when (ioe.IsIOException())
                     {
                         if (Verbose)
                         {

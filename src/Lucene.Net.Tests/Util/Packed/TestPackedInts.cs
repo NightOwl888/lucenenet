@@ -1376,9 +1376,7 @@ namespace Lucene.Net.Util.Packed
                     it.Next();
                     Assert.IsTrue(false);
                 }
-#pragma warning disable 168
-                catch (IOException e)
-#pragma warning restore 168
+                catch (Exception e) when (e.IsIOException())
                 {
                     // OK
                 }
@@ -1415,9 +1413,7 @@ namespace Lucene.Net.Util.Packed
                     it2.Skip(1);
                     Assert.IsTrue(false);
                 }
-#pragma warning disable 168
-                catch (IOException e)
-#pragma warning restore 168
+                catch (Exception e) when (e.IsIOException())
                 {
                     // OK
                 }
