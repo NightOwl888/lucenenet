@@ -486,7 +486,7 @@ namespace Lucene.Net.Util.Automaton
 
         public int[] GetRandomAcceptedString(Random r)
         {
-            IList<int?> soFar = new List<int?>();
+            List<int> soFar = new List<int>();
             if (a.IsSingleton)
             {
                 // accepts only one
@@ -562,7 +562,7 @@ namespace Lucene.Net.Util.Automaton
                 }
             }
 
-            return ArrayUtil.ToInt32Array(soFar);
+            return soFar.ToArray(); // LUCENENET: ArrayUtil.ToIntArray() call unnecessary
         }
     }
 }
