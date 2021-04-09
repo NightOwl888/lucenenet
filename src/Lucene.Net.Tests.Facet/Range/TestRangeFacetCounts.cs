@@ -120,7 +120,7 @@ namespace Lucene.Net.Facet.Range
                 _ = new Int64Range("useless", 7, true, 6, true);
                 fail("did not hit expected exception");
             }
-            catch (ArgumentException)
+            catch (Exception iae) when (iae.IsIllegalArgumentException())
             {
                 // expected
             }
@@ -129,7 +129,7 @@ namespace Lucene.Net.Facet.Range
                 _ = new Int64Range("useless", 7, true, 7, false);
                 fail("did not hit expected exception");
             }
-            catch (ArgumentException)
+            catch (Exception iae) when (iae.IsIllegalArgumentException())
             {
                 // expected
             }
@@ -138,7 +138,7 @@ namespace Lucene.Net.Facet.Range
                 _ = new DoubleRange("useless", 7.0, true, 6.0, true);
                 fail("did not hit expected exception");
             }
-            catch (ArgumentException)
+            catch (Exception iae) when (iae.IsIllegalArgumentException())
             {
                 // expected
             }
@@ -147,7 +147,7 @@ namespace Lucene.Net.Facet.Range
                 _ = new DoubleRange("useless", 7.0, true, 7.0, false);
                 fail("did not hit expected exception");
             }
-            catch (ArgumentException)
+            catch (Exception iae) when (iae.IsIllegalArgumentException())
             {
                 // expected
             }

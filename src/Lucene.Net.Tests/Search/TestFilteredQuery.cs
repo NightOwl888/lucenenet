@@ -1,4 +1,4 @@
-using Lucene.Net.Documents;
+﻿using Lucene.Net.Documents;
 using Lucene.Net.Index.Extensions;
 using Lucene.Net.Util;
 using NUnit.Framework;
@@ -417,9 +417,7 @@ namespace Lucene.Net.Search
                 new FilteredQuery(null, null);
                 Assert.Fail("Should throw IllegalArgumentException");
             }
-#pragma warning disable 168
-            catch (ArgumentException iae)
-#pragma warning restore 168
+            catch (Exception iae) when (iae.IsIllegalArgumentException())
             {
                 // pass
             }
@@ -428,9 +426,7 @@ namespace Lucene.Net.Search
                 new FilteredQuery(new TermQuery(new Term("field", "one")), null);
                 Assert.Fail("Should throw IllegalArgumentException");
             }
-#pragma warning disable 168
-            catch (ArgumentException iae)
-#pragma warning restore 168
+            catch (Exception iae) when (iae.IsIllegalArgumentException())
             {
                 // pass
             }
@@ -439,9 +435,7 @@ namespace Lucene.Net.Search
                 new FilteredQuery(null, new PrefixFilter(new Term("field", "o")));
                 Assert.Fail("Should throw IllegalArgumentException");
             }
-#pragma warning disable 168
-            catch (ArgumentException iae)
-#pragma warning restore 168
+            catch (Exception iae) when (iae.IsIllegalArgumentException())
             {
                 // pass
             }

@@ -1,4 +1,4 @@
-// Lucene version compatibility level 4.8.1
+﻿// Lucene version compatibility level 4.8.1
 using J2N.Text;
 using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.TokenAttributes;
@@ -960,7 +960,7 @@ namespace Lucene.Net.Analysis.Synonym
                 new SynonymFilter(tokenizer, (new SynonymMap.Builder(true)).Build(), true);
                 fail("did not hit expected exception");
             }
-            catch (ArgumentException iae)
+            catch (Exception iae) when (iae.IsIllegalArgumentException())
             {
                 // expected
                 assertEquals("fst must be non-null", iae.Message);

@@ -3076,7 +3076,7 @@ namespace Lucene.Net.Index
                             {
                                 w.AddDocument(doc);
                             }
-                            catch (ArgumentException iae)
+                            catch (Exception iae) when (iae.IsIllegalArgumentException())
                             {
                                 if (iae.Message.IndexOf("is too large", StringComparison.Ordinal) == -1)
                                 {
@@ -3099,7 +3099,7 @@ namespace Lucene.Net.Index
                         {
                             r = w.GetReader();
                         }
-                        catch (ArgumentException iae)
+                        catch (Exception iae) when (iae.IsIllegalArgumentException())
                         {
                             if (iae.Message.IndexOf("is too large", StringComparison.Ordinal) == -1)
                             {
