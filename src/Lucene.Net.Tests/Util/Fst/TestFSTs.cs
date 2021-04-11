@@ -1,4 +1,4 @@
-using J2N.Collections.Generic.Extensions;
+﻿using J2N.Collections.Generic.Extensions;
 using J2N.Threading.Atomic;
 using Lucene.Net.Diagnostics;
 using Lucene.Net.Index.Extensions;
@@ -392,9 +392,7 @@ namespace Lucene.Net.Util.Fst
                         {
                             var _ = termsEnum.Ord;
                         }
-#pragma warning disable 168, IDE0059
-                        catch (NotSupportedException uoe)
-#pragma warning restore 168, IDE0059
+                        catch (Exception uoe) when (uoe.IsUnsupportedOperationException())
                         {
                             if (Verbose)
                             {

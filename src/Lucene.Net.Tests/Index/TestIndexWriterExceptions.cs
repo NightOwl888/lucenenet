@@ -1823,9 +1823,7 @@ namespace Lucene.Net.Index
                 new IndexWriter(d, NewIndexWriterConfig(TEST_VERSION_CURRENT, null));
                 Assert.Fail("should have gotten a UOE");
             }
-#pragma warning disable 168
-            catch (NotSupportedException expected)
-#pragma warning restore 168
+            catch (Exception expected) when (expected.IsUnsupportedOperationException())
             {
             }
 
@@ -1900,9 +1898,7 @@ namespace Lucene.Net.Index
                 iw.AddDocument(list);
                 Assert.Fail("didn't get any exception, boost silently discarded");
             }
-#pragma warning disable 168
-            catch (NotSupportedException expected)
-#pragma warning restore 168
+            catch (Exception expected) when (expected.IsUnsupportedOperationException())
             {
                 // expected
             }
