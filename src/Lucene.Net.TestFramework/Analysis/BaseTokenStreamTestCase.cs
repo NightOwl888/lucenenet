@@ -559,7 +559,7 @@ namespace Lucene.Net.Analysis
             {
                 //ok
             }
-            catch (AssertionError expected) // LUCENENET: Actual AssertionError type is Lucene.Net.Diagnostics.AssertionException
+            catch (Exception expected) when (expected.IsAssertionError())
             {
                 // ok: MockTokenizer
                 Assert.IsTrue(expected.Message != null && expected.Message.Contains("wrong state"), expected.Message);
@@ -1145,8 +1145,7 @@ namespace Lucene.Net.Analysis
                         {
                             ts.End();
                         }
-                        // LUCENENET: Actual AssertionError type is Lucene.Net.Diagnostics.AssertionException
-                        catch (AssertionError ae) when (ae.Message.Contains("End() called before IncrementToken() returned false!"))
+                        catch (Exception ae) when (ae.IsAssertionError() && ae.Message.Contains("End() called before IncrementToken() returned false!"))
                         {
                             // Catch & ignore MockTokenizer's
                             // anger...
@@ -1178,8 +1177,7 @@ namespace Lucene.Net.Analysis
                         {
                             ts.End();
                         }
-                        // LUCENENET: Actual AssertionError type is Lucene.Net.Diagnostics.AssertionException
-                        catch (AssertionError ae) when (ae.Message.Contains("End() called before IncrementToken() returned false!"))
+                        catch (Exception ae) when (ae.IsAssertionError() && ae.Message.Contains("End() called before IncrementToken() returned false!"))
                         {
                             // Catch & ignore MockTokenizer's
                             // anger...
