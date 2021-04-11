@@ -1,4 +1,4 @@
-using J2N.Threading.Atomic;
+﻿using J2N.Threading.Atomic;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -71,7 +71,7 @@ namespace Lucene.Net.Index
                     reader.Dispose();
                     Assert.Fail("expected Exception");
                 }
-                catch (InvalidOperationException ex)
+                catch (Exception ex) when (ex.IsIllegalStateException())
                 {
                     if (throwOnClose)
                     {

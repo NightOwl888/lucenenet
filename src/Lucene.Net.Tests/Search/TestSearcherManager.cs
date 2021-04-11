@@ -437,7 +437,15 @@ namespace Lucene.Net.Search
             acquire.IndexReader.DecRef();
             sm.Release(acquire);
 
-            Assert.Throws<InvalidOperationException>(() => sm.Acquire(), "acquire should have thrown an InvalidOperationException since we modified the refCount outside of the manager");
+            try
+            {
+                sm.Acquire();
+                fail("acquire should have thrown an InvalidOperationException since we modified the refCount outside of the manager");
+            }
+            catch (Exception ise) when (ise.IsIllegalStateException())
+            {
+                // expected
+            }
 
             // sm.Dispose(); -- already closed
             writer.Dispose();
@@ -545,9 +553,7 @@ namespace Lucene.Net.Search
             {
                 new SearcherManager(dir, theEvilOne);
             }
-#pragma warning disable 168
-            catch (InvalidOperationException ise)
-#pragma warning restore 168
+            catch (Exception ise) when (ise.IsIllegalStateException())
             {
                 // expected
             }
@@ -555,9 +561,7 @@ namespace Lucene.Net.Search
             {
                 new SearcherManager(w.IndexWriter, random.NextBoolean(), theEvilOne);
             }
-#pragma warning disable 168
-            catch (InvalidOperationException ise)
-#pragma warning restore 168
+            catch (Exception ise) when (ise.IsIllegalStateException())
             {
                 // expected
             }
