@@ -11,6 +11,7 @@ using Lucene.Net.Util.Packed;
 using NUnit.Framework;
 using System;
 using System.Globalization;
+using AssertionError = Lucene.Net.Diagnostics.AssertionException;
 
 namespace Lucene.Net.Tests.Queries.Function
 {
@@ -53,7 +54,7 @@ namespace Lucene.Net.Tests.Queries.Function
                     f = new NumericDocValuesField("dv", 0);
                     break;
                 default:
-                    throw new InvalidOperationException();
+                    throw new AssertionError();
             }
             Document document = new Document();
             document.Add(id);
@@ -104,7 +105,7 @@ namespace Lucene.Net.Tests.Queries.Function
                         vs = new Int64FieldSource("dv");
                         break;
                     default:
-                        throw new InvalidOperationException();
+                        throw new AssertionError();
                 }
                 FunctionValues values = vs.GetValues(null, leave);
                 BytesRef bytes = new BytesRef();
@@ -122,7 +123,7 @@ namespace Lucene.Net.Tests.Queries.Function
                     }
                     else
                     {
-                        throw new InvalidOperationException();
+                        throw new AssertionError();
                     }
 
                     object expected = vals[ids.Int32Val(i)];

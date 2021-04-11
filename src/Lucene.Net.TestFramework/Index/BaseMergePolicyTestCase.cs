@@ -1,5 +1,6 @@
-using J2N.Threading.Atomic;
+﻿using J2N.Threading.Atomic;
 using Lucene.Net.Analysis;
+using Lucene.Net.Diagnostics;
 using Lucene.Net.Documents;
 using Lucene.Net.Index.Extensions;
 using Lucene.Net.Store;
@@ -93,7 +94,7 @@ namespace Lucene.Net.Index
                 {
                     if (!mayMerge.Value && writer.NextMerge() != null)
                     {
-                        throw new InvalidOperationException();
+                        throw new AssertionException();
                     }
                     base.Merge(writer, trigger, newMergesFound);
                 }

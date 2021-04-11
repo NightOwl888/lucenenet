@@ -2933,7 +2933,7 @@ namespace Lucene.Net.Util
                                 break;
 
                             default:
-                                throw new InvalidOperationException();
+                                throw new AssertionException();
                         }
                     }
                 }
