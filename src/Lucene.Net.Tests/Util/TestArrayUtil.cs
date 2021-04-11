@@ -1,4 +1,4 @@
-using Lucene.Net.Support;
+﻿using Lucene.Net.Support;
 using NUnit.Framework;
 using System;
 using Assert = Lucene.Net.TestFramework.Assert;
@@ -82,9 +82,7 @@ namespace Lucene.Net.Util
                 test = ArrayUtil.ParseInt32("".ToCharArray());
                 Assert.IsTrue(false);
             }
-#pragma warning disable 168
-            catch (FormatException e)
-#pragma warning restore 168
+            catch (Exception e) when (e.IsNumberFormatException())
             {
                 //expected
             }
@@ -93,9 +91,7 @@ namespace Lucene.Net.Util
                 test = ArrayUtil.ParseInt32("foo".ToCharArray());
                 Assert.IsTrue(false);
             }
-#pragma warning disable 168
-            catch (FormatException e)
-#pragma warning restore 168
+            catch (Exception e) when (e.IsNumberFormatException())
             {
                 //expected
             }
@@ -104,9 +100,7 @@ namespace Lucene.Net.Util
                 test = ArrayUtil.ParseInt32(Convert.ToString(long.MaxValue).ToCharArray());
                 Assert.IsTrue(false);
             }
-#pragma warning disable 168
-            catch (FormatException e)
-#pragma warning restore 168
+            catch (Exception e) when (e.IsNumberFormatException())
             {
                 //expected
             }
@@ -115,9 +109,7 @@ namespace Lucene.Net.Util
                 test = ArrayUtil.ParseInt32("0.34".ToCharArray());
                 Assert.IsTrue(false);
             }
-#pragma warning disable 168
-            catch (FormatException e)
-#pragma warning restore 168
+            catch (Exception e) when (e.IsNumberFormatException())
             {
                 //expected
             }
@@ -135,7 +127,7 @@ namespace Lucene.Net.Util
                 test = ArrayUtil.ParseInt32("foo 1923 bar".ToCharArray(), 4, 4);
                 Assert.IsTrue(test == 1923, test + " does not equal: " + 1923);
             }
-            catch (FormatException e)
+            catch (Exception e) when (e.IsNumberFormatException())
             {
                 Console.WriteLine(e.ToString());
                 Console.Write(e.StackTrace);
