@@ -248,9 +248,7 @@ namespace Lucene.Net.Index
                 psub.Document(0);
                 Assert.Fail("Subreader should be already closed because inner reader was closed!");
             }
-#pragma warning disable 168
-            catch (ObjectDisposedException e)
-#pragma warning restore 168
+            catch (Exception e) when (e.IsAlreadyClosedException())
             {
                 // pass
             }
@@ -260,9 +258,7 @@ namespace Lucene.Net.Index
                 pr.Document(0);
                 Assert.Fail("ParallelCompositeReader should be already closed because inner reader was closed!");
             }
-#pragma warning disable 168
-            catch (ObjectDisposedException e)
-#pragma warning restore 168
+            catch (Exception e) when (e.IsAlreadyClosedException())
             {
                 // pass
             }
