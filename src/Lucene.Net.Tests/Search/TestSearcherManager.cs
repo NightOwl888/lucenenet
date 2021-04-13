@@ -346,7 +346,7 @@ namespace Lucene.Net.Search
                         awaitClose.Wait();
                     }
                 }
-                catch (ThreadInterruptedException)
+                catch (Exception e) when (e.IsInterruptedException())
                 {
                     //
                 }

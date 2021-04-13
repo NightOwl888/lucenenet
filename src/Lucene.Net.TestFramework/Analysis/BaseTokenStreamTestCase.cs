@@ -797,7 +797,7 @@ namespace Lucene.Net.Analysis
                     {
                         t.Join();
                     }
-                    catch (ThreadInterruptedException)
+                    catch (Exception e) when (e.IsInterruptedException())
                     {
                         fail("Thread interrupted");
                     }

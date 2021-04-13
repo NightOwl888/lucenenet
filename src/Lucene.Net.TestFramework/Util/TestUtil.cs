@@ -1214,7 +1214,7 @@ namespace Lucene.Net.Util
         //        ex.shutdown();
         //        ex.awaitTermination(1, TimeUnit.SECONDS);
         //      }
-        //      catch (ThreadInterruptedException e)
+        //      catch (Exception e) when (e.IsInterruptedException())
         //      {
         //        // Just report it on the syserr.
         //        Console.Error.WriteLine("Could not properly shutdown executor service.");
