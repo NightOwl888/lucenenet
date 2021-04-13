@@ -229,6 +229,12 @@ namespace Lucene.Net.Index
                             writer.UpdateDocument(idTerm, doc);
                         }
                     }
+                    // LUCENENET TODO: This exception type was caught just so we can get here, since we don't
+                    // currently have a way to specify RuntimeException without catching all would-be "checked"
+                    // exceptions in Java, as well. We need our code to start throwing something we can identify
+                    // as a RuntimeException first (possibly just a custom type that implements IRuntimeException),
+                    // then we can enable the below line and remove the one below it.
+                    //catch (Exception re) when (re.IsRuntimeException())
                     catch (TestPoint1Exception re)
                     {
                         if (Verbose)
@@ -310,7 +316,7 @@ namespace Lucene.Net.Index
             }
         }
 
-        private class TestPoint1Exception : Exception
+        private class TestPoint1Exception : Exception, IRuntimeException
         {
             public TestPoint1Exception(string message) : base(message)
             {
@@ -489,20 +495,15 @@ namespace Lucene.Net.Index
             doc.Add(NewTextField("field", "a field", Field.Store.YES));
             w.AddDocument(doc);
             testPoint.doFail = true;
-
-            // LUCENENET: Don't swallow NUnit's assert exception
-            Assert.Throws<Exception>(() => w.AddDocument(doc), "did not hit exception");
-//            try
-//            {
-//                w.AddDocument(doc);
-//                Assert.Fail("did not hit exception");
-//            }
-//#pragma warning disable 168
-//            catch (Exception re)
-//#pragma warning restore 168
-//            {
-//                // expected
-//            }
+            try
+            {
+                w.AddDocument(doc);
+                Assert.Fail("did not hit exception");
+            }
+            catch (Exception re) when (re.IsRuntimeException())
+            {
+                // expected
+            }
             w.Dispose();
             dir.Dispose();
         }
@@ -580,7 +581,7 @@ namespace Lucene.Net.Index
                 {
                     w.AddDocument(doc);
                 }
-                catch (Exception)
+                catch (Exception re) when (re.IsRuntimeException())
                 {
                     break;
                 }
@@ -1142,9 +1143,7 @@ namespace Lucene.Net.Index
                 {
                     Assert.Fail("expected only RuntimeException");
                 }
-#pragma warning disable 168
-                catch (Exception re)
-#pragma warning restore 168
+                catch (Exception re) when (re.IsRuntimeException())
                 {
                     // Expected
                 }
@@ -1279,9 +1278,15 @@ namespace Lucene.Net.Index
 
             AddDoc(w);
             testPoint.doFail = true;
-            // LUCENENET: Don't assert in try block
-            Assert.Throws<Exception>(() => w.Rollback(), "did not hit intentional RuntimeException");
-
+            try
+            {
+                w.Rollback();
+                fail("did not hit intentional RuntimeException");
+            }
+            catch (Exception re) when (re.IsRuntimeException())
+            {
+                // expected
+            }
             testPoint.doFail = false;
             w.Rollback();
             dir.Dispose();
@@ -1546,7 +1551,7 @@ namespace Lucene.Net.Index
                             w.AddDocument(doc);
                             Assert.IsFalse(field.IndexableFieldType.StoreTermVectors);
                         }
-                        catch (Exception e)
+                        catch (Exception e) when (e.IsRuntimeException())
                         {
                             Assert.IsTrue(e.Message.StartsWith(FailOnTermVectors.EXC_MSG, StringComparison.Ordinal));
                         }
@@ -1571,7 +1576,7 @@ namespace Lucene.Net.Index
                             w.AddDocument(doc);
                             Assert.IsFalse(field.IndexableFieldType.StoreTermVectors);
                         }
-                        catch (Exception e)
+                        catch (Exception e) when (e.IsRuntimeException())
                         {
                             Assert.IsTrue(e.Message.StartsWith(FailOnTermVectors.EXC_MSG, StringComparison.Ordinal));
                         }
@@ -2414,7 +2419,7 @@ namespace Lucene.Net.Index
                 iw.Rollback();
                 Assert.Fail();
             }
-            catch (Exception expected)
+            catch (Exception expected) when (expected.IsRuntimeException())
             {
                 Assert.AreEqual("BOOM!", expected.Message);
             }
