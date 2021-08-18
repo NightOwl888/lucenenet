@@ -32,6 +32,9 @@ on:
     - 'src/Lucene.Net.Tests.Analysis.Morfologik/Directory.Build.*'
     - 'src/Directory.Build.*'
     - 'Directory.Build.*'
+    - 'src/Lucene.Net.Tests.Analysis.Morfologik/Morfologik/custom-dictionary.dict'
+    - 'src/Lucene.Net.Tests.Analysis.Morfologik/Morfologik/custom-dictionary.info'
+    - 'src/Lucene.Net.Tests.Analysis.Morfologik/Morfologik/custom-dictionary.input'
 
     # Dependencies
     - 'src/Lucene.Net/**/*'

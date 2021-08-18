@@ -32,6 +32,10 @@ on:
     - 'src/Lucene.Net.Tests.Analysis.Kuromoji/Directory.Build.*'
     - 'src/Directory.Build.*'
     - 'Directory.Build.*'
+    - 'src/Lucene.Net.Tests.Analysis.Kuromoji/bocchan.utf-8'
+    - 'src/Lucene.Net.Tests.Analysis.Kuromoji/search-segmentation-tests.txt'
+    - 'src/Lucene.Net.Tests.Analysis.Kuromoji/userdict.txt'
+    - 'src/Lucene.Net.Tests.Analysis.Kuromoji/Tools/custom-dictionary-input.zip'
 
     # Dependencies
     - 'src/Lucene.Net/**/*'

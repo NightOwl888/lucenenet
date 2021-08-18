@@ -32,6 +32,18 @@ on:
     - 'src/Lucene.Net.Tests.Spatial/Directory.Build.*'
     - 'src/Directory.Build.*'
     - 'Directory.Build.*'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/cities-Intersects-BBox.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/Data/countries-bbox.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/Data/countries-poly.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/Data/geonames-IE.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/Data/LUCENE-4464.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/Data/simple-bbox.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/Data/states-bbox.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/Data/states-poly.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/Data/world-cities-points.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/simple-Queries-BBox.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/states-Intersects-BBox.txt'
+    - 'src/Lucene.Net.Tests.Spatial/Test-Files/states-IsWithin-BBox.txt'
 
     # Dependencies
     - 'src/Lucene.Net/**/*'

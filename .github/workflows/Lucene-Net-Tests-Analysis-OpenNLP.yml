@@ -32,6 +32,13 @@ on:
     - 'src/Lucene.Net.Tests.Analysis.OpenNLP/Directory.Build.*'
     - 'src/Directory.Build.*'
     - 'Directory.Build.*'
+    - 'src/Lucene.Net.Tests.Analysis.OpenNLP/en-test-chunker.bin'
+    - 'src/Lucene.Net.Tests.Analysis.OpenNLP/en-test-lemmas.dict'
+    - 'src/Lucene.Net.Tests.Analysis.OpenNLP/en-test-lemmatizer.bin'
+    - 'src/Lucene.Net.Tests.Analysis.OpenNLP/en-test-ner.bin'
+    - 'src/Lucene.Net.Tests.Analysis.OpenNLP/en-test-pos-maxent.bin'
+    - 'src/Lucene.Net.Tests.Analysis.OpenNLP/en-test-sent.bin'
+    - 'src/Lucene.Net.Tests.Analysis.OpenNLP/en-test-tokenizer.bin'
 
     # Dependencies
     - 'src/Lucene.Net/**/*'

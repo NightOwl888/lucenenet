@@ -32,6 +32,13 @@ on:
     - 'src/Lucene.Net.Tests.Benchmark/Directory.Build.*'
     - 'src/Directory.Build.*'
     - 'Directory.Build.*'
+    - 'src/Lucene.Net.Tests.Benchmark/ByTask/Feeds/trecdocs.zip'
+    - 'src/Lucene.Net.Tests.Benchmark/ByTask/conf.zip'
+    - 'src/Lucene.Net.Tests.Benchmark/ByTask/reuters.first20.lines.txt'
+    - 'src/Lucene.Net.Tests.Benchmark/ByTask/test-mapping-ISOLatin1Accent-partial.txt'
+    - 'src/Lucene.Net.Tests.Benchmark/Quality/reuters.578.lines.txt.bz2'
+    - 'src/Lucene.Net.Tests.Benchmark/Quality/trecQRels.txt'
+    - 'src/Lucene.Net.Tests.Benchmark/Quality/trecTopics.txt'
 
     # Dependencies
     - 'src/Lucene.Net/**/*'
