@@ -174,7 +174,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lucene.Net.Tests.ICU", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lucene.Net.Tests.Cli", "src\dotnet\tools\Lucene.Net.Tests.Cli\Lucene.Net.Tests.Cli.csproj", "{1F5574FE-19F7-4F10-9B88-76A938621F5B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lucene.Net.Tests._A-D", "src\Lucene.Net.Tests.Core.A-D\Lucene.Net.Tests._A-D.csproj", "{86FADACC-57EC-4AA3-8BBE-C6ED526EE596}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lucene.Net.Tests._A-D", "src\Lucene.Net.Tests.Core.A-D\Lucene.Net.Tests.Core.A-D.csproj", "{86FADACC-57EC-4AA3-8BBE-C6ED526EE596}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lucene.Net.Tests._E-I", "src\Lucene.Net.Tests._E-I\Lucene.Net.Tests._E-I.csproj", "{8251BB22-EDA9-4850-A9B7-259C5B171040}"
 EndProject
