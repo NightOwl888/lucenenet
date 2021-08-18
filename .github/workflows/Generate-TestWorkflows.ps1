@@ -1,4 +1,4 @@
-﻿# -----------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -267,8 +267,8 @@ jobs:
 "
 
     # GitHub Actions does not support filenames with "." or "_" in them, so replace
-    # with "-"
-    $projectFileName = $projectName -replace '\.|_', '-'
+    # with "-" and "" respectively
+    $projectFileName = $projectName -replace '\.', '-' -replace '_', ''
     $FilePath = "$OutputDirectory/$projectFileName.yml"
 
     #$dir = [System.IO.Path]::GetDirectoryName($File)
