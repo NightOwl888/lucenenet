@@ -486,7 +486,7 @@ stages:
           osName: 'Windows'
           imageName: 'windows-2019'
           maximumParallelJobs: 8
-          maximumAllowedFailures: 5 # Maximum allowed failures for a successful build
+          maximumAllowedFailures: 7 # Maximum allowed failures for a successful build
     displayName: 'Test net461,x86 on'
     pool:
       vmImage: $(imageName)
