@@ -46,11 +46,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Lucene.Net\Lucene.Net.csproj" />
-    <ProjectReference Include="..\..\Lucene.Net.Analysis.Common\Lucene.Net.Analysis.Common.csproj" />
-    <ProjectReference Include="..\..\Lucene.Net.Highlighter\Lucene.Net.Highlighter.csproj" />
-    <ProjectReference Include="..\Lucene.Net.ICU\Lucene.Net.ICU.csproj" />
-    <ProjectReference Include="..\..\Lucene.Net.TestFramework\Lucene.Net.TestFramework.csproj" />
+    <ProjectReference Include="..\..\Lucene.Net\Lucene.Net.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Lucene.Net.Analysis.Common\Lucene.Net.Analysis.Common.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Lucene.Net.Highlighter\Lucene.Net.Highlighter.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+    <ProjectReference Include="..\Lucene.Net.ICU\Lucene.Net.ICU.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Lucene.Net.TestFramework\Lucene.Net.TestFramework.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
     <ProjectReference Include="..\..\Lucene.Net.Tests.Analysis.Common\Lucene.Net.Tests.Analysis.Common.csproj" />
   </ItemGroup>
 
@@ -70,6 +80,11 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsDependencyInjectionAbstractionsPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsDependencyInjectionAbstractionsPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPackageVersion)" />
   </ItemGroup>
