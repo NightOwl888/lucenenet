@@ -70,15 +70,23 @@ namespace Lucene.Net.Search
 
         public override Similarity Get(string field)
         {
-            lock (this)
+            try
             {
-                if (Debugging.AssertsEnabled) Debugging.Assert(field != null);
-                if (!previousMappings.TryGetValue(field, out Similarity sim) || sim == null)
+                lock (this)
                 {
-                    sim = knownSims[Math.Max(0, Math.Abs(perFieldSeed ^ field.GetHashCode())) % knownSims.Count];
-                    previousMappings[field] = sim;
+                    if (Debugging.AssertsEnabled) Debugging.Assert(field != null);
+                    if (!previousMappings.TryGetValue(field, out Similarity sim) || sim == null)
+                    {
+                        sim = knownSims[Math.Max(0, Math.Abs(perFieldSeed ^ field.GetHashCode())) % knownSims.Count];
+                        previousMappings[field] = sim;
+                    }
+                    return sim;
                 }
-                return sim;
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 

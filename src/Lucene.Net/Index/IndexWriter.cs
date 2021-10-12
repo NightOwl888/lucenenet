@@ -398,6 +398,11 @@ namespace Lucene.Net.Index
                             }
                         }
                     }
+                    catch (Exception ie) when (ie.IsInterruptedException())
+                    {
+                        // LUCENENET TODO: Should we re-throw on lock (this)?
+                        throw new Util.ThreadInterruptedException(ie);
+                    }
                     catch (Exception oom) when (oom.IsOutOfMemoryError())
                     {
                         HandleOOM(oom, "GetReader");
@@ -467,87 +472,127 @@ namespace Lucene.Net.Index
             // used only by asserts
             public virtual bool InfoIsLive(SegmentCommitInfo info)
             {
-                lock (this)
+                try
                 {
-                    int idx = outerInstance.segmentInfos.IndexOf(info);
-                    Debugging.Assert(idx != -1, "info={0} isn't live", info);
-                    Debugging.Assert(outerInstance.segmentInfos.Info(idx) == info, "info={0} doesn't match live info in segmentInfos", info);
-                    return true;
+                    lock (this)
+                    {
+                        int idx = outerInstance.segmentInfos.IndexOf(info);
+                        Debugging.Assert(idx != -1, "info={0} isn't live", info);
+                        Debugging.Assert(outerInstance.segmentInfos.Info(idx) == info, "info={0} doesn't match live info in segmentInfos", info);
+                        return true;
+                    }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
 
             public virtual void Drop(SegmentCommitInfo info)
             {
-                lock (this)
+                try
                 {
-                    if (readerMap.TryGetValue(info, out ReadersAndUpdates rld) && rld != null)
+                    lock (this)
                     {
-                        if (Debugging.AssertsEnabled) Debugging.Assert(info == rld.Info);
-                        //        System.out.println("[" + Thread.currentThread().getName() + "] ReaderPool.drop: " + info);
-                        readerMap.Remove(info);
-                        rld.DropReaders();
+                        if (readerMap.TryGetValue(info, out ReadersAndUpdates rld) && rld != null)
+                        {
+                            if (Debugging.AssertsEnabled) Debugging.Assert(info == rld.Info);
+                            //        System.out.println("[" + Thread.currentThread().getName() + "] ReaderPool.drop: " + info);
+                            readerMap.Remove(info);
+                            rld.DropReaders();
+                        }
                     }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
 
             public virtual bool AnyPendingDeletes()
             {
-                lock (this)
+                try
                 {
-                    foreach (ReadersAndUpdates rld in readerMap.Values)
+                    lock (this)
                     {
-                        if (rld.PendingDeleteCount != 0)
+                        foreach (ReadersAndUpdates rld in readerMap.Values)
                         {
-                            return true;
+                            if (rld.PendingDeleteCount != 0)
+                            {
+                                return true;
+                            }
                         }
-                    }
 
-                    return false;
+                        return false;
+                    }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
 
             public virtual void Release(ReadersAndUpdates rld)
             {
-                lock (this)
+                try
                 {
-                    Release(rld, true);
+                    lock (this)
+                    {
+                        Release(rld, true);
+                    }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
 
             public virtual void Release(ReadersAndUpdates rld, bool assertInfoLive)
             {
-                lock (this)
+                try
                 {
-                    // Matches incRef in get:
-                    rld.DecRef();
-
-                    // Pool still holds a ref:
-                    if (Debugging.AssertsEnabled) Debugging.Assert(rld.RefCount() >= 1);
-
-                    if (!outerInstance.poolReaders && rld.RefCount() == 1)
+                    lock (this)
                     {
-                        // this is the last ref to this RLD, and we're not
-                        // pooling, so remove it:
-                        //        System.out.println("[" + Thread.currentThread().getName() + "] ReaderPool.release: " + rld.info);
-                        if (rld.WriteLiveDocs(outerInstance.directory))
-                        {
-                            // Make sure we only write del docs for a live segment:
-                            if (Debugging.AssertsEnabled) Debugging.Assert(assertInfoLive == false || InfoIsLive(rld.Info));
-                            // Must checkpoint because we just
-                            // created new _X_N.del and field updates files;
-                            // don't call IW.checkpoint because that also
-                            // increments SIS.version, which we do not want to
-                            // do here: it was done previously (after we
-                            // invoked BDS.applyDeletes), whereas here all we
-                            // did was move the state to disk:
-                            outerInstance.CheckpointNoSIS();
-                        }
-                        //System.out.println("IW: done writeLiveDocs for info=" + rld.info);
+                        // Matches incRef in get:
+                        rld.DecRef();
 
-                        //        System.out.println("[" + Thread.currentThread().getName() + "] ReaderPool.release: drop readers " + rld.info);
-                        rld.DropReaders();
-                        readerMap.Remove(rld.Info);
+                        // Pool still holds a ref:
+                        if (Debugging.AssertsEnabled) Debugging.Assert(rld.RefCount() >= 1);
+
+                        if (!outerInstance.poolReaders && rld.RefCount() == 1)
+                        {
+                            // this is the last ref to this RLD, and we're not
+                            // pooling, so remove it:
+                            //        System.out.println("[" + Thread.currentThread().getName() + "] ReaderPool.release: " + rld.info);
+                            if (rld.WriteLiveDocs(outerInstance.directory))
+                            {
+                                // Make sure we only write del docs for a live segment:
+                                if (Debugging.AssertsEnabled) Debugging.Assert(assertInfoLive == false || InfoIsLive(rld.Info));
+                                // Must checkpoint because we just
+                                // created new _X_N.del and field updates files;
+                                // don't call IW.checkpoint because that also
+                                // increments SIS.version, which we do not want to
+                                // do here: it was done previously (after we
+                                // invoked BDS.applyDeletes), whereas here all we
+                                // did was move the state to disk:
+                                outerInstance.CheckpointNoSIS();
+                            }
+                            //System.out.println("IW: done writeLiveDocs for info=" + rld.info);
+
+                            //        System.out.println("[" + Thread.currentThread().getName() + "] ReaderPool.release: drop readers " + rld.info);
+                            rld.DropReaders();
+                            readerMap.Remove(rld.Info);
+                        }
                     }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
 
@@ -562,71 +607,79 @@ namespace Lucene.Net.Index
             /// </summary>
             internal virtual void DropAll(bool doSave)
             {
-                lock (this)
+                try
                 {
-                    Exception priorE = null;
-                    foreach (var pair in readerMap)
+                    lock (this)
                     {
-                        ReadersAndUpdates rld = pair.Value;
+                        Exception priorE = null;
+                        foreach (var pair in readerMap)
+                        {
+                            ReadersAndUpdates rld = pair.Value;
 
-                        try
-                        {
-                            if (doSave && rld.WriteLiveDocs(outerInstance.directory)) // Throws IOException
+                            try
                             {
-                                // Make sure we only write del docs and field updates for a live segment:
-                                if (Debugging.AssertsEnabled) Debugging.Assert(InfoIsLive(rld.Info));
-                                // Must checkpoint because we just
-                                // created new _X_N.del and field updates files;
-                                // don't call IW.checkpoint because that also
-                                // increments SIS.version, which we do not want to
-                                // do here: it was done previously (after we
-                                // invoked BDS.applyDeletes), whereas here all we
-                                // did was move the state to disk:
-                                outerInstance.CheckpointNoSIS(); // Throws IOException
+                                if (doSave && rld.WriteLiveDocs(outerInstance.directory)) // Throws IOException
+                                {
+                                    // Make sure we only write del docs and field updates for a live segment:
+                                    if (Debugging.AssertsEnabled) Debugging.Assert(InfoIsLive(rld.Info));
+                                    // Must checkpoint because we just
+                                    // created new _X_N.del and field updates files;
+                                    // don't call IW.checkpoint because that also
+                                    // increments SIS.version, which we do not want to
+                                    // do here: it was done previously (after we
+                                    // invoked BDS.applyDeletes), whereas here all we
+                                    // did was move the state to disk:
+                                    outerInstance.CheckpointNoSIS(); // Throws IOException
+                                }
                             }
-                        }
-                        catch (Exception t) when (t.IsThrowable())
-                        {
-                            if (doSave)
+                            catch (Exception t) when (t.IsThrowable())
                             {
-                                //IOUtils.ReThrow(t);
-                                throw; // LUCENENET: CA2200: Rethrow to preserve stack details (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca2200-rethrow-to-preserve-stack-details)
+                                if (doSave)
+                                {
+                                    //IOUtils.ReThrow(t);
+                                    throw; // LUCENENET: CA2200: Rethrow to preserve stack details (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca2200-rethrow-to-preserve-stack-details)
+                                }
+                                else if (priorE == null)
+                                {
+                                    priorE = t;
+                                }
                             }
-                            else if (priorE == null)
-                            {
-                                priorE = t;
-                            }
-                        }
 
-                        // Important to remove as-we-go, not with .clear()
-                        // in the end, in case we hit an exception;
-                        // otherwise we could over-decref if close() is
-                        // called again:
-                        readerMap.Remove(pair.Key);
+                            // Important to remove as-we-go, not with .clear()
+                            // in the end, in case we hit an exception;
+                            // otherwise we could over-decref if close() is
+                            // called again:
+                            readerMap.Remove(pair.Key);
 
-                        // NOTE: it is allowed that these decRefs do not
-                        // actually close the SRs; this happens when a
-                        // near real-time reader is kept open after the
-                        // IndexWriter instance is closed:
-                        try
-                        {
-                            rld.DropReaders(); // Throws IOException
-                        }
-                        catch (Exception t) when (t.IsThrowable())
-                        {
-                            if (doSave)
+                            // NOTE: it is allowed that these decRefs do not
+                            // actually close the SRs; this happens when a
+                            // near real-time reader is kept open after the
+                            // IndexWriter instance is closed:
+                            try
                             {
-                                //IOUtils.ReThrow(t);
-                                throw; // LUCENENET: CA2200: Rethrow to preserve stack details (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca2200-rethrow-to-preserve-stack-details)
+                                rld.DropReaders(); // Throws IOException
                             }
-                            else if (priorE == null)
+                            catch (Exception t) when (t.IsThrowable())
                             {
-                                priorE = t;
+                                if (doSave)
+                                {
+                                    //IOUtils.ReThrow(t);
+                                    throw; // LUCENENET: CA2200: Rethrow to preserve stack details (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca2200-rethrow-to-preserve-stack-details)
+                                }
+                                else if (priorE == null)
+                                {
+                                    priorE = t;
+                                }
                             }
                         }
+                        if (Debugging.AssertsEnabled) Debugging.Assert(readerMap.Count == 0);
+                        IOUtils.ReThrow(priorE);
                     }
-                    if (Debugging.AssertsEnabled) Debugging.Assert(readerMap.Count == 0);
-                    IOUtils.ReThrow(priorE);
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
 
@@ -637,28 +690,36 @@ namespace Lucene.Net.Index
             /// <exception cref="IOException"> If there is a low-level I/O error </exception>
             public virtual void Commit(SegmentInfos infos)
             {
-                lock (this)
+                try
                 {
-                    foreach (SegmentCommitInfo info in infos.Segments)
+                    lock (this)
                     {
-                        if (readerMap.TryGetValue(info, out ReadersAndUpdates rld))
+                        foreach (SegmentCommitInfo info in infos.Segments)
                         {
-                            if (Debugging.AssertsEnabled) Debugging.Assert(rld.Info == info);
-                            if (rld.WriteLiveDocs(outerInstance.directory))
+                            if (readerMap.TryGetValue(info, out ReadersAndUpdates rld))
                             {
-                                // Make sure we only write del docs for a live segment:
-                                if (Debugging.AssertsEnabled) Debugging.Assert(InfoIsLive(info));
-                                // Must checkpoint because we just
-                                // created new _X_N.del and field updates files;
-                                // don't call IW.checkpoint because that also
-                                // increments SIS.version, which we do not want to
-                                // do here: it was done previously (after we
-                                // invoked BDS.applyDeletes), whereas here all we
-                                // did was move the state to disk:
-                                outerInstance.CheckpointNoSIS();
+                                if (Debugging.AssertsEnabled) Debugging.Assert(rld.Info == info);
+                                if (rld.WriteLiveDocs(outerInstance.directory))
+                                {
+                                    // Make sure we only write del docs for a live segment:
+                                    if (Debugging.AssertsEnabled) Debugging.Assert(InfoIsLive(info));
+                                    // Must checkpoint because we just
+                                    // created new _X_N.del and field updates files;
+                                    // don't call IW.checkpoint because that also
+                                    // increments SIS.version, which we do not want to
+                                    // do here: it was done previously (after we
+                                    // invoked BDS.applyDeletes), whereas here all we
+                                    // did was move the state to disk:
+                                    outerInstance.CheckpointNoSIS();
+                                }
                             }
                         }
                     }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
 
@@ -669,35 +730,43 @@ namespace Lucene.Net.Index
             /// </summary>
             public virtual ReadersAndUpdates Get(SegmentCommitInfo info, bool create)
             {
-                lock (this)
+                try
                 {
-                    if (Debugging.AssertsEnabled) Debugging.Assert(info.Info.Dir == outerInstance.directory, "info.dir={0} vs {1}", info.Info.Dir, outerInstance.directory);
-
-                    if (!readerMap.TryGetValue(info, out ReadersAndUpdates rld) || rld == null)
+                    lock (this)
                     {
-                        if (!create)
+                        if (Debugging.AssertsEnabled) Debugging.Assert(info.Info.Dir == outerInstance.directory, "info.dir={0} vs {1}", info.Info.Dir, outerInstance.directory);
+
+                        if (!readerMap.TryGetValue(info, out ReadersAndUpdates rld) || rld == null)
                         {
-                            return null;
+                            if (!create)
+                            {
+                                return null;
+                            }
+                            rld = new ReadersAndUpdates(outerInstance, info);
+                            // Steal initial reference:
+                            readerMap[info] = rld;
                         }
-                        rld = new ReadersAndUpdates(outerInstance, info);
-                        // Steal initial reference:
-                        readerMap[info] = rld;
-                    }
-                    else
-                    {
-                        if (Debugging.AssertsEnabled && !(rld.Info == info))
-                            throw AssertionError.Create(string.Format("rld.info={0} info={1} isLive?={2} vs {3}", rld.Info, info, InfoIsLive(rld.Info), InfoIsLive(info)));
-                    }
+                        else
+                        {
+                            if (Debugging.AssertsEnabled && !(rld.Info == info))
+                                throw AssertionError.Create(string.Format("rld.info={0} info={1} isLive?={2} vs {3}", rld.Info, info, InfoIsLive(rld.Info), InfoIsLive(info)));
+                        }
 
-                    if (create)
-                    {
-                        // Return ref to caller:
-                        rld.IncRef();
+                        if (create)
+                        {
+                            // Return ref to caller:
+                            rld.IncRef();
+                        }
+
+                        if (Debugging.AssertsEnabled) Debugging.Assert(NoDups());
+
+                        return rld;
                     }
-
-                    if (Debugging.AssertsEnabled) Debugging.Assert(NoDups());
-
-                    return rld;
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
 
@@ -918,6 +987,11 @@ namespace Lucene.Net.Index
 
                 success = true;
             }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
+            }
             finally
             {
                 if (!success)
@@ -1100,30 +1174,38 @@ namespace Lucene.Net.Index
         /// </summary>
         private bool ShouldClose()
         {
-            lock (this)
+            try
             {
-                while (true)
+                lock (this)
                 {
-                    if (!closed)
+                    while (true)
                     {
-                        if (!closing)
+                        if (!closed)
                         {
-                            closing = true;
-                            return true;
+                            if (!closing)
+                            {
+                                closing = true;
+                                return true;
+                            }
+                            else
+                            {
+                                // Another thread is presently trying to close;
+                                // wait until it finishes one way (closes
+                                // successfully) or another (fails to close)
+                                DoWait();
+                            }
                         }
                         else
                         {
-                            // Another thread is presently trying to close;
-                            // wait until it finishes one way (closes
-                            // successfully) or another (fails to close)
-                            DoWait();
+                            return false;
                         }
                     }
-                    else
-                    {
-                        return false;
-                    }
                 }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -1212,6 +1294,13 @@ namespace Lucene.Net.Index
                             }
                             stopMerges = true;
                         }
+                    }
+                    catch (Exception ie) when (ie.IsInterruptedException())
+                    {
+                        // LUCENENET TODO: Should we re-throw on lock (this)?
+                        //throw new Util.ThreadInterruptedException(ie);
+                        // Swallow this ?
+                        interrupted = true;
                     }
                     finally
                     {
@@ -1311,10 +1400,18 @@ namespace Lucene.Net.Index
         {
             get
             {
-                lock (this)
+                try
                 {
-                    EnsureOpen();
-                    return docWriter.NumDocs + segmentInfos.TotalDocCount;
+                    lock (this)
+                    {
+                        EnsureOpen();
+                        return docWriter.NumDocs + segmentInfos.TotalDocCount;
+                    }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
         }
@@ -1331,15 +1428,23 @@ namespace Lucene.Net.Index
         {
             get
             {
-                lock (this)
+                try
                 {
-                    EnsureOpen();
-                    int count = docWriter.NumDocs;
-                    foreach (SegmentCommitInfo info in segmentInfos)
+                    lock (this)
                     {
-                        count += info.Info.DocCount - NumDeletedDocs(info);
+                        EnsureOpen();
+                        int count = docWriter.NumDocs;
+                        foreach (SegmentCommitInfo info in segmentInfos)
+                        {
+                            count += info.Info.DocCount - NumDeletedDocs(info);
+                        }
+                        return count;
                     }
-                    return count;
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
         }
@@ -1353,29 +1458,37 @@ namespace Lucene.Net.Index
         /// </summary>
         public virtual bool HasDeletions()
         {
-            lock (this)
+            try
             {
-                EnsureOpen();
-                if (bufferedUpdatesStream.Any())
+                lock (this)
                 {
-                    return true;
-                }
-                if (docWriter.AnyDeletions())
-                {
-                    return true;
-                }
-                if (readerPool.AnyPendingDeletes())
-                {
-                    return true;
-                }
-                foreach (SegmentCommitInfo info in segmentInfos.Segments)
-                {
-                    if (info.HasDeletions)
+                    EnsureOpen();
+                    if (bufferedUpdatesStream.Any())
                     {
                         return true;
                     }
+                    if (docWriter.AnyDeletions())
+                    {
+                        return true;
+                    }
+                    if (readerPool.AnyPendingDeletes())
+                    {
+                        return true;
+                    }
+                    foreach (SegmentCommitInfo info in segmentInfos.Segments)
+                    {
+                        if (info.HasDeletions)
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
-                return false;
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -1607,78 +1720,86 @@ namespace Lucene.Net.Index
         /// </summary>
         public virtual bool TryDeleteDocument(IndexReader readerIn, int docID)
         {
-            lock (this)
+            try
             {
-                if (!(readerIn is AtomicReader reader))
+                lock (this)
                 {
-                    // Composite reader: lookup sub-reader and re-base docID:
-                    IList<AtomicReaderContext> leaves = readerIn.Leaves;
-                    int subIndex = ReaderUtil.SubIndex(docID, leaves);
-                    reader = leaves[subIndex].AtomicReader;
-                    docID -= leaves[subIndex].DocBase;
-                    if (Debugging.AssertsEnabled)
+                    if (!(readerIn is AtomicReader reader))
                     {
-                        Debugging.Assert(docID >= 0);
-                        Debugging.Assert(docID < reader.MaxDoc);
-                    }
-                }
-                // else: Reader is already atomic: use the incoming docID
-
-                if (!(reader is SegmentReader segmentReader))
-                {
-                    throw new ArgumentException("the reader must be a SegmentReader or composite reader containing only SegmentReaders");
-                }
-
-                SegmentCommitInfo info = segmentReader.SegmentInfo;
-
-                // TODO: this is a slow linear search, but, number of
-                // segments should be contained unless something is
-                // seriously wrong w/ the index, so it should be a minor
-                // cost:
-
-                if (segmentInfos.IndexOf(info) != -1)
-                {
-                    ReadersAndUpdates rld = readerPool.Get(info, false);
-                    if (rld != null)
-                    {
-                        lock (bufferedUpdatesStream)
+                        // Composite reader: lookup sub-reader and re-base docID:
+                        IList<AtomicReaderContext> leaves = readerIn.Leaves;
+                        int subIndex = ReaderUtil.SubIndex(docID, leaves);
+                        reader = leaves[subIndex].AtomicReader;
+                        docID -= leaves[subIndex].DocBase;
+                        if (Debugging.AssertsEnabled)
                         {
-                            rld.InitWritableLiveDocs();
-                            if (rld.Delete(docID))
-                            {
-                                int fullDelCount = rld.Info.DelCount + rld.PendingDeleteCount;
-                                if (fullDelCount == rld.Info.Info.DocCount)
-                                {
-                                    // If a merge has already registered for this
-                                    // segment, we leave it in the readerPool; the
-                                    // merge will skip merging it and will then drop
-                                    // it once it's done:
-                                    if (!mergingSegments.Contains(rld.Info))
-                                    {
-                                        segmentInfos.Remove(rld.Info);
-                                        readerPool.Drop(rld.Info);
-                                        Checkpoint();
-                                    }
-                                }
+                            Debugging.Assert(docID >= 0);
+                            Debugging.Assert(docID < reader.MaxDoc);
+                        }
+                    }
+                    // else: Reader is already atomic: use the incoming docID
 
-                                // Must bump changeCount so if no other changes
-                                // happened, we still commit this change:
-                                Changed();
+                    if (!(reader is SegmentReader segmentReader))
+                    {
+                        throw new ArgumentException("the reader must be a SegmentReader or composite reader containing only SegmentReaders");
+                    }
+
+                    SegmentCommitInfo info = segmentReader.SegmentInfo;
+
+                    // TODO: this is a slow linear search, but, number of
+                    // segments should be contained unless something is
+                    // seriously wrong w/ the index, so it should be a minor
+                    // cost:
+
+                    if (segmentInfos.IndexOf(info) != -1)
+                    {
+                        ReadersAndUpdates rld = readerPool.Get(info, false);
+                        if (rld != null)
+                        {
+                            lock (bufferedUpdatesStream)
+                            {
+                                rld.InitWritableLiveDocs();
+                                if (rld.Delete(docID))
+                                {
+                                    int fullDelCount = rld.Info.DelCount + rld.PendingDeleteCount;
+                                    if (fullDelCount == rld.Info.Info.DocCount)
+                                    {
+                                        // If a merge has already registered for this
+                                        // segment, we leave it in the readerPool; the
+                                        // merge will skip merging it and will then drop
+                                        // it once it's done:
+                                        if (!mergingSegments.Contains(rld.Info))
+                                        {
+                                            segmentInfos.Remove(rld.Info);
+                                            readerPool.Drop(rld.Info);
+                                            Checkpoint();
+                                        }
+                                    }
+
+                                    // Must bump changeCount so if no other changes
+                                    // happened, we still commit this change:
+                                    Changed();
+                                }
+                                //System.out.println("  yes " + info.info.name + " " + docID);
+                                return true;
                             }
-                            //System.out.println("  yes " + info.info.name + " " + docID);
-                            return true;
+                        }
+                        else
+                        {
+                            //System.out.println("  no rld " + info.info.name + " " + docID);
                         }
                     }
                     else
                     {
-                        //System.out.println("  no rld " + info.info.name + " " + docID);
+                        //System.out.println("  no seg " + info.info.name + " " + docID);
                     }
+                    return false;
                 }
-                else
-                {
-                    //System.out.println("  no seg " + info.info.name + " " + docID);
-                }
-                return false;
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -1928,9 +2049,17 @@ namespace Lucene.Net.Index
         {
             get
             {
-                lock (this)
+                try
                 {
-                    return segmentInfos.Count;
+                    lock (this)
+                    {
+                        return segmentInfos.Count;
+                    }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
         }
@@ -1940,9 +2069,17 @@ namespace Lucene.Net.Index
         {
             get
             {
-                lock (this)
+                try
                 {
-                    return docWriter.NumDocs;
+                    lock (this)
+                    {
+                        return docWriter.NumDocs;
+                    }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
         }
@@ -1952,9 +2089,17 @@ namespace Lucene.Net.Index
         {
             get
             {
-                lock (this)
+                try
                 {
-                    return segmentInfos.GetFiles(directory, true);
+                    lock (this)
+                    {
+                        return segmentInfos.GetFiles(directory, true);
+                    }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
         }
@@ -1962,16 +2107,24 @@ namespace Lucene.Net.Index
         // for test purpose
         internal int GetDocCount(int i)
         {
-            lock (this)
+            try
             {
-                if (i >= 0 && i < segmentInfos.Count)
+                lock (this)
                 {
-                    return segmentInfos.Info(i).Info.DocCount;
+                    if (i >= 0 && i < segmentInfos.Count)
+                    {
+                        return segmentInfos.Info(i).Info.DocCount;
+                    }
+                    else
+                    {
+                        return -1;
+                    }
                 }
-                else
-                {
-                    return -1;
-                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -1983,18 +2136,26 @@ namespace Lucene.Net.Index
 
         internal string NewSegmentName()
         {
-            // Cannot synchronize on IndexWriter because that causes
-            // deadlock
-            lock (segmentInfos)
+            try
             {
-                // Important to increment changeCount so that the
-                // segmentInfos is written on close.  Otherwise we
-                // could close, re-open and re-return the same segment
-                // name that was previously returned which can cause
-                // problems at least with ConcurrentMergeScheduler.
-                changeCount++;
-                segmentInfos.Changed();
-                return "_" + (segmentInfos.Counter++).ToString(J2N.Character.MaxRadix);
+                // Cannot synchronize on IndexWriter because that causes
+                // deadlock
+                lock (segmentInfos)
+                {
+                    // Important to increment changeCount so that the
+                    // segmentInfos is written on close.  Otherwise we
+                    // could close, re-open and re-return the same segment
+                    // name that was previously returned which can cause
+                    // problems at least with ConcurrentMergeScheduler.
+                    changeCount++;
+                    segmentInfos.Changed();
+                    return "_" + (segmentInfos.Counter++).ToString(J2N.Character.MaxRadix);
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -2099,83 +2260,92 @@ namespace Lucene.Net.Index
 
             Flush(true, true);
 
-            lock (this)
+            try
             {
-                ResetMergeExceptions();
-                segmentsToMerge.Clear();
-                foreach (SegmentCommitInfo info in segmentInfos.Segments)
-                {
-                    if (info != null) segmentsToMerge[info] = true;
-                }
-                mergeMaxNumSegments = maxNumSegments;
 
-                // Now mark all pending & running merges for forced
-                // merge:
-                foreach (MergePolicy.OneMerge merge in pendingMerges)
-                {
-                    merge.MaxNumSegments = maxNumSegments;
-                    if (merge.Info != null) segmentsToMerge[merge.Info] = true;
-                }
-
-                foreach (MergePolicy.OneMerge merge in runningMerges)
-                {
-                    merge.MaxNumSegments = maxNumSegments;
-                    if (merge.Info != null) segmentsToMerge[merge.Info] = true;
-                }
-            }
-
-            MaybeMerge(MergeTrigger.EXPLICIT, maxNumSegments);
-
-            if (doWait)
-            {
                 lock (this)
                 {
-                    while (true)
+                    ResetMergeExceptions();
+                    segmentsToMerge.Clear();
+                    foreach (SegmentCommitInfo info in segmentInfos.Segments)
                     {
-                        if (hitOOM)
-                        {
-                            throw IllegalStateException.Create("this writer hit an OutOfMemoryError; cannot complete forceMerge");
-                        }
+                        if (info != null) segmentsToMerge[info] = true;
+                    }
+                    mergeMaxNumSegments = maxNumSegments;
 
-                        if (mergeExceptions.Count > 0)
-                        {
-                            // Forward any exceptions in background merge
-                            // threads to the current thread:
-                            int size = mergeExceptions.Count;
-                            for (int i = 0; i < size; i++)
-                            {
-                                MergePolicy.OneMerge merge = mergeExceptions[i];
-                                if (merge.MaxNumSegments != -1)
-                                {
-                                    string message = "background merge hit exception: " + merge.SegString(directory);
-                                    Exception t = merge.Exception;
-                                    if (t != null)
-                                    {
-                                        //err.initCause(t);
-                                        throw new IOException(message + t.ToString(), t);
-                                    }
-                                    //throw err;
-                                    throw new IOException(message);
-                                }
-                            }
-                        }
+                    // Now mark all pending & running merges for forced
+                    // merge:
+                    foreach (MergePolicy.OneMerge merge in pendingMerges)
+                    {
+                        merge.MaxNumSegments = maxNumSegments;
+                        if (merge.Info != null) segmentsToMerge[merge.Info] = true;
+                    }
 
-                        if (MaxNumSegmentsMergesPending())
-                        {
-                            DoWait();
-                        }
-                        else
-                        {
-                            break;
-                        }
+                    foreach (MergePolicy.OneMerge merge in runningMerges)
+                    {
+                        merge.MaxNumSegments = maxNumSegments;
+                        if (merge.Info != null) segmentsToMerge[merge.Info] = true;
                     }
                 }
 
-                // If close is called while we are still
-                // running, throw an exception so the calling
-                // thread will know merging did not
-                // complete
-                EnsureOpen();
+                MaybeMerge(MergeTrigger.EXPLICIT, maxNumSegments);
+
+                if (doWait)
+                {
+                    lock (this)
+                    {
+                        while (true)
+                        {
+                            if (hitOOM)
+                            {
+                                throw IllegalStateException.Create("this writer hit an OutOfMemoryError; cannot complete forceMerge");
+                            }
+
+                            if (mergeExceptions.Count > 0)
+                            {
+                                // Forward any exceptions in background merge
+                                // threads to the current thread:
+                                int size = mergeExceptions.Count;
+                                for (int i = 0; i < size; i++)
+                                {
+                                    MergePolicy.OneMerge merge = mergeExceptions[i];
+                                    if (merge.MaxNumSegments != -1)
+                                    {
+                                        string message = "background merge hit exception: " + merge.SegString(directory);
+                                        Exception t = merge.Exception;
+                                        if (t != null)
+                                        {
+                                            //err.initCause(t);
+                                            throw new IOException(message + t.ToString(), t);
+                                        }
+                                        //throw err;
+                                        throw new IOException(message);
+                                    }
+                                }
+                            }
+
+                            if (MaxNumSegmentsMergesPending())
+                            {
+                                DoWait();
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    // If close is called while we are still
+                    // running, throw an exception so the calling
+                    // thread will know merging did not
+                    // complete
+                    EnsureOpen();
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
             // NOTE: in the ConcurrentMergeScheduler case, when
             // doWait is false, we can return immediately while
@@ -2188,25 +2358,33 @@ namespace Lucene.Net.Index
         /// </summary>
         private bool MaxNumSegmentsMergesPending()
         {
-            lock (this)
+            try
             {
-                foreach (MergePolicy.OneMerge merge in pendingMerges)
+                lock (this)
                 {
-                    if (merge.MaxNumSegments != -1)
+                    foreach (MergePolicy.OneMerge merge in pendingMerges)
                     {
-                        return true;
+                        if (merge.MaxNumSegments != -1)
+                        {
+                            return true;
+                        }
                     }
-                }
 
-                foreach (MergePolicy.OneMerge merge in runningMerges)
-                {
-                    if (merge.MaxNumSegments != -1)
+                    foreach (MergePolicy.OneMerge merge in runningMerges)
                     {
-                        return true;
+                        if (merge.MaxNumSegments != -1)
+                        {
+                            return true;
+                        }
                     }
-                }
 
-                return false;
+                    return false;
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -2239,60 +2417,68 @@ namespace Lucene.Net.Index
 
             MergePolicy.MergeSpecification spec;
             bool newMergesFound = false;
-            lock (this)
+            try
             {
-                spec = mergePolicy.FindForcedDeletesMerges(segmentInfos);
-                newMergesFound = spec != null;
-                if (newMergesFound)
+                lock (this)
+                {
+                    spec = mergePolicy.FindForcedDeletesMerges(segmentInfos);
+                    newMergesFound = spec != null;
+                    if (newMergesFound)
+                    {
+                        int numMerges = spec.Merges.Count;
+                        for (int i = 0; i < numMerges; i++)
+                        {
+                            RegisterMerge(spec.Merges[i]);
+                        }
+                    }
+                }
+
+                mergeScheduler.Merge(this, MergeTrigger.EXPLICIT, newMergesFound);
+
+                if (spec != null && doWait)
                 {
                     int numMerges = spec.Merges.Count;
-                    for (int i = 0; i < numMerges; i++)
+                    lock (this)
                     {
-                        RegisterMerge(spec.Merges[i]);
+                        bool running = true;
+                        while (running)
+                        {
+                            if (hitOOM)
+                            {
+                                throw IllegalStateException.Create("this writer hit an OutOfMemoryError; cannot complete forceMergeDeletes");
+                            }
+
+                            // Check each merge that MergePolicy asked us to
+                            // do, to see if any of them are still running and
+                            // if any of them have hit an exception.
+                            running = false;
+                            for (int i = 0; i < numMerges; i++)
+                            {
+                                MergePolicy.OneMerge merge = spec.Merges[i];
+                                if (pendingMerges.Contains(merge) || runningMerges.Contains(merge))
+                                {
+                                    running = true;
+                                }
+                                Exception t = merge.Exception;
+                                if (t != null)
+                                {
+                                    throw new IOException("background merge hit exception: " + merge.SegString(directory), t);
+                                }
+                            }
+
+                            // If any of our merges are still running, wait:
+                            if (running)
+                            {
+                                DoWait();
+                            }
+                        }
                     }
                 }
             }
-
-            mergeScheduler.Merge(this, MergeTrigger.EXPLICIT, newMergesFound);
-
-            if (spec != null && doWait)
+            catch (Exception ie) when (ie.IsInterruptedException())
             {
-                int numMerges = spec.Merges.Count;
-                lock (this)
-                {
-                    bool running = true;
-                    while (running)
-                    {
-                        if (hitOOM)
-                        {
-                            throw IllegalStateException.Create("this writer hit an OutOfMemoryError; cannot complete forceMergeDeletes");
-                        }
-
-                        // Check each merge that MergePolicy asked us to
-                        // do, to see if any of them are still running and
-                        // if any of them have hit an exception.
-                        running = false;
-                        for (int i = 0; i < numMerges; i++)
-                        {
-                            MergePolicy.OneMerge merge = spec.Merges[i];
-                            if (pendingMerges.Contains(merge) || runningMerges.Contains(merge))
-                            {
-                                running = true;
-                            }
-                            Exception t = merge.Exception;
-                            if (t != null)
-                            {
-                                throw new IOException("background merge hit exception: " + merge.SegString(directory), t);
-                            }
-                        }
-
-                        // If any of our merges are still running, wait:
-                        if (running)
-                        {
-                            DoWait();
-                        }
-                    }
-                }
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
 
             // NOTE: in the ConcurrentMergeScheduler case, when
@@ -2359,51 +2545,59 @@ namespace Lucene.Net.Index
 
         private bool UpdatePendingMerges(MergeTrigger trigger, int maxNumSegments)
         {
-            lock (this)
+            try
             {
-                if (Debugging.AssertsEnabled) Debugging.Assert(maxNumSegments == -1 || maxNumSegments > 0);
-                //if (Debugging.AssertsEnabled) Debugging.Assert(trigger != null); // LUCENENET NOTE: Enum cannot be null in .NET
-                if (stopMerges)
+                lock (this)
                 {
-                    return false;
-                }
+                    if (Debugging.AssertsEnabled) Debugging.Assert(maxNumSegments == -1 || maxNumSegments > 0);
+                    //if (Debugging.AssertsEnabled) Debugging.Assert(trigger != null); // LUCENENET NOTE: Enum cannot be null in .NET
+                    if (stopMerges)
+                    {
+                        return false;
+                    }
 
-                // Do not start new merges if we've hit OOME
-                if (hitOOM)
-                {
-                    return false;
-                }
-                bool newMergesFound = false;
-                MergePolicy.MergeSpecification spec;
-                if (maxNumSegments != UNBOUNDED_MAX_MERGE_SEGMENTS)
-                {
-                    if (Debugging.AssertsEnabled) Debugging.Assert(trigger == MergeTrigger.EXPLICIT || trigger == MergeTrigger.MERGE_FINISHED,"Expected EXPLICT or MERGE_FINISHED as trigger even with maxNumSegments set but was: {0}", trigger);
-                    spec = mergePolicy.FindForcedMerges(segmentInfos, maxNumSegments, segmentsToMerge);
+                    // Do not start new merges if we've hit OOME
+                    if (hitOOM)
+                    {
+                        return false;
+                    }
+                    bool newMergesFound = false;
+                    MergePolicy.MergeSpecification spec;
+                    if (maxNumSegments != UNBOUNDED_MAX_MERGE_SEGMENTS)
+                    {
+                        if (Debugging.AssertsEnabled) Debugging.Assert(trigger == MergeTrigger.EXPLICIT || trigger == MergeTrigger.MERGE_FINISHED, "Expected EXPLICT or MERGE_FINISHED as trigger even with maxNumSegments set but was: {0}", trigger);
+                        spec = mergePolicy.FindForcedMerges(segmentInfos, maxNumSegments, segmentsToMerge);
+                        newMergesFound = spec != null;
+                        if (newMergesFound)
+                        {
+                            int numMerges = spec.Merges.Count;
+                            for (int i = 0; i < numMerges; i++)
+                            {
+                                MergePolicy.OneMerge merge = spec.Merges[i];
+                                merge.MaxNumSegments = maxNumSegments;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        spec = mergePolicy.FindMerges(trigger, segmentInfos);
+                    }
                     newMergesFound = spec != null;
                     if (newMergesFound)
                     {
                         int numMerges = spec.Merges.Count;
                         for (int i = 0; i < numMerges; i++)
                         {
-                            MergePolicy.OneMerge merge = spec.Merges[i];
-                            merge.MaxNumSegments = maxNumSegments;
+                            RegisterMerge(spec.Merges[i]);
                         }
                     }
+                    return newMergesFound;
                 }
-                else
-                {
-                    spec = mergePolicy.FindMerges(trigger, segmentInfos);
-                }
-                newMergesFound = spec != null;
-                if (newMergesFound)
-                {
-                    int numMerges = spec.Merges.Count;
-                    for (int i = 0; i < numMerges; i++)
-                    {
-                        RegisterMerge(spec.Merges[i]);
-                    }
-                }
-                return newMergesFound;
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -2436,19 +2630,27 @@ namespace Lucene.Net.Index
         /// </summary>
         public virtual MergePolicy.OneMerge NextMerge()
         {
-            lock (this)
+            try
             {
-                if (pendingMerges.Count == 0)
+                lock (this)
                 {
-                    return null;
+                    if (pendingMerges.Count == 0)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        // Advance the merge from pending to running
+                        MergePolicy.OneMerge merge = pendingMerges.Dequeue();
+                        runningMerges.Add(merge);
+                        return merge;
+                    }
                 }
-                else
-                {
-                    // Advance the merge from pending to running
-                    MergePolicy.OneMerge merge = pendingMerges.Dequeue();
-                    runningMerges.Add(merge);
-                    return merge;
-                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -2459,9 +2661,17 @@ namespace Lucene.Net.Index
         /// </summary>
         public virtual bool HasPendingMerges()
         {
-            lock (this)
+            try
             {
-                return pendingMerges.Count != 0;
+                lock (this)
+                {
+                    return pendingMerges.Count != 0;
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -2571,6 +2781,11 @@ namespace Lucene.Net.Index
                 }
 
                 success = true;
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
             catch (Exception oom) when (oom.IsOutOfMemoryError())
             {
@@ -2708,66 +2923,74 @@ namespace Lucene.Net.Index
 
         private void FinishMerges(bool waitForMerges)
         {
-            lock (this)
+            try
             {
-                if (!waitForMerges)
+                lock (this)
                 {
-                    stopMerges = true;
-
-                    // Abort all pending & running merges:
-                    foreach (MergePolicy.OneMerge merge in pendingMerges)
+                    if (!waitForMerges)
                     {
+                        stopMerges = true;
+
+                        // Abort all pending & running merges:
+                        foreach (MergePolicy.OneMerge merge in pendingMerges)
+                        {
+                            if (infoStream.IsEnabled("IW"))
+                            {
+                                infoStream.Message("IW", "now abort pending merge " + SegString(merge.Segments));
+                            }
+                            merge.Abort();
+                            MergeFinish(merge);
+                        }
+                        pendingMerges.Clear();
+
+                        foreach (MergePolicy.OneMerge merge in runningMerges)
+                        {
+                            if (infoStream.IsEnabled("IW"))
+                            {
+                                infoStream.Message("IW", "now abort running merge " + SegString(merge.Segments));
+                            }
+                            merge.Abort();
+                        }
+
+                        // These merges periodically check whether they have
+                        // been aborted, and stop if so.  We wait here to make
+                        // sure they all stop.  It should not take very long
+                        // because the merge threads periodically check if
+                        // they are aborted.
+                        while (runningMerges.Count > 0)
+                        {
+                            if (infoStream.IsEnabled("IW"))
+                            {
+                                infoStream.Message("IW", "now wait for " + runningMerges.Count + " running merge/s to abort");
+                            }
+                            DoWait();
+                        }
+
+                        stopMerges = false;
+                        Monitor.PulseAll(this);
+
+                        if (Debugging.AssertsEnabled) Debugging.Assert(0 == mergingSegments.Count);
+
                         if (infoStream.IsEnabled("IW"))
                         {
-                            infoStream.Message("IW", "now abort pending merge " + SegString(merge.Segments));
+                            infoStream.Message("IW", "all running merges have aborted");
                         }
-                        merge.Abort();
-                        MergeFinish(merge);
                     }
-                    pendingMerges.Clear();
-
-                    foreach (MergePolicy.OneMerge merge in runningMerges)
+                    else
                     {
-                        if (infoStream.IsEnabled("IW"))
-                        {
-                            infoStream.Message("IW", "now abort running merge " + SegString(merge.Segments));
-                        }
-                        merge.Abort();
-                    }
-
-                    // These merges periodically check whether they have
-                    // been aborted, and stop if so.  We wait here to make
-                    // sure they all stop.  It should not take very long
-                    // because the merge threads periodically check if
-                    // they are aborted.
-                    while (runningMerges.Count > 0)
-                    {
-                        if (infoStream.IsEnabled("IW"))
-                        {
-                            infoStream.Message("IW", "now wait for " + runningMerges.Count + " running merge/s to abort");
-                        }
-                        DoWait();
-                    }
-
-                    stopMerges = false;
-                    Monitor.PulseAll(this);
-
-                    if (Debugging.AssertsEnabled) Debugging.Assert(0 == mergingSegments.Count);
-
-                    if (infoStream.IsEnabled("IW"))
-                    {
-                        infoStream.Message("IW", "all running merges have aborted");
+                        // waitForMerges() will ensure any running addIndexes finishes.
+                        // It's fine if a new one attempts to start because from our
+                        // caller above the call will see that we are in the
+                        // process of closing, and will throw an
+                        // ObjectDisposedException.
+                        WaitForMerges();
                     }
                 }
-                else
-                {
-                    // waitForMerges() will ensure any running addIndexes finishes.
-                    // It's fine if a new one attempts to start because from our
-                    // caller above the call will see that we are in the
-                    // process of closing, and will throw an
-                    // ObjectDisposedException.
-                    WaitForMerges();
-                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -2779,25 +3002,33 @@ namespace Lucene.Net.Index
         /// </summary>
         public virtual void WaitForMerges()
         {
-            lock (this)
+            try
             {
-                EnsureOpen(false);
-                if (infoStream.IsEnabled("IW"))
+                lock (this)
                 {
-                    infoStream.Message("IW", "waitForMerges");
-                }
-                while (pendingMerges.Count > 0 || runningMerges.Count > 0)
-                {
-                    DoWait();
-                }
+                    EnsureOpen(false);
+                    if (infoStream.IsEnabled("IW"))
+                    {
+                        infoStream.Message("IW", "waitForMerges");
+                    }
+                    while (pendingMerges.Count > 0 || runningMerges.Count > 0)
+                    {
+                        DoWait();
+                    }
 
-                // sanity check
-                if (Debugging.AssertsEnabled) Debugging.Assert(0 == mergingSegments.Count);
+                    // sanity check
+                    if (Debugging.AssertsEnabled) Debugging.Assert(0 == mergingSegments.Count);
 
-                if (infoStream.IsEnabled("IW"))
-                {
-                    infoStream.Message("IW", "waitForMerges done");
+                    if (infoStream.IsEnabled("IW"))
+                    {
+                        infoStream.Message("IW", "waitForMerges done");
+                    }
                 }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -2808,10 +3039,18 @@ namespace Lucene.Net.Index
         /// </summary>
         internal virtual void Checkpoint()
         {
-            lock (this)
+            try
             {
-                Changed();
-                deleter.Checkpoint(segmentInfos, false);
+                lock (this)
+                {
+                    Changed();
+                    deleter.Checkpoint(segmentInfos, false);
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -2823,10 +3062,18 @@ namespace Lucene.Net.Index
         /// </summary>
         internal virtual void CheckpointNoSIS()
         {
-            lock (this)
+            try
             {
-                changeCount++;
-                deleter.Checkpoint(segmentInfos, false);
+                lock (this)
+                {
+                    changeCount++;
+                    deleter.Checkpoint(segmentInfos, false);
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -2834,22 +3081,38 @@ namespace Lucene.Net.Index
         /// Called internally if any index state has changed. </summary>
         internal void Changed()
         {
-            lock (this)
+            try
             {
-                changeCount++;
-                segmentInfos.Changed();
+                lock (this)
+                {
+                    changeCount++;
+                    segmentInfos.Changed();
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
         internal virtual void PublishFrozenUpdates(FrozenBufferedUpdates packet)
         {
-            lock (this)
+            try
             {
-                if (Debugging.AssertsEnabled) Debugging.Assert(packet != null && packet.Any());
-                lock (bufferedUpdatesStream)
+                lock (this)
                 {
-                    bufferedUpdatesStream.Push(packet);
+                    if (Debugging.AssertsEnabled) Debugging.Assert(packet != null && packet.Any());
+                    lock (bufferedUpdatesStream)
+                    {
+                        bufferedUpdatesStream.Push(packet);
+                    }
                 }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -2898,6 +3161,11 @@ namespace Lucene.Net.Index
                     }
                 }
             }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
+            }
             finally
             {
                 flushCount.IncrementAndGet();
@@ -2907,10 +3175,18 @@ namespace Lucene.Net.Index
 
         private void ResetMergeExceptions()
         {
-            lock (this)
+            try
             {
-                mergeExceptions = new List<MergePolicy.OneMerge>();
-                mergeGen++;
+                lock (this)
+                {
+                    mergeExceptions = new List<MergePolicy.OneMerge>();
+                    mergeGen++;
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -3114,6 +3390,11 @@ namespace Lucene.Net.Index
 
                 successTop = true;
             }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
+            }
             catch (Exception oom) when (oom.IsOutOfMemoryError())
             {
                 HandleOOM(oom, "AddIndexes(Directory...)");
@@ -3300,6 +3581,11 @@ namespace Lucene.Net.Index
                     segmentInfos.Add(infoPerCommit);
                     Checkpoint();
                 }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
             catch (Exception oom) when (oom.IsOutOfMemoryError())
             {
@@ -3574,6 +3860,11 @@ namespace Lucene.Net.Index
                             }
                             success = true;
                         }
+                        catch (Exception ie) when (ie.IsInterruptedException())
+                        {
+                            // LUCENENET TODO: Should we re-throw on lock (this)?
+                            throw new Util.ThreadInterruptedException(ie);
+                        }
                         finally
                         {
                             if (!success)
@@ -3608,13 +3899,21 @@ namespace Lucene.Net.Index
                 {
                     if (!success_)
                     {
-                        lock (this)
+                        try
                         {
-                            if (filesToCommit != null)
+                            lock (this)
                             {
-                                deleter.DecRef(filesToCommit);
-                                filesToCommit = null;
+                                if (filesToCommit != null)
+                                {
+                                    deleter.DecRef(filesToCommit);
+                                    filesToCommit = null;
+                                }
                             }
+                        }
+                        catch (Exception ie) when (ie.IsInterruptedException())
+                        {
+                            // LUCENENET TODO: Should we re-throw on lock (this)?
+                            throw new Util.ThreadInterruptedException(ie);
                         }
                     }
                 }
@@ -3633,10 +3932,18 @@ namespace Lucene.Net.Index
         /// </summary>
         public void SetCommitData(IDictionary<string, string> commitUserData)
         {
-            lock (this)
+            try
             {
-                segmentInfos.UserData = new Dictionary<string, string>(commitUserData);
-                ++changeCount;
+                lock (this)
+                {
+                    segmentInfos.UserData = new Dictionary<string, string>(commitUserData);
+                    ++changeCount;
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -3648,9 +3955,17 @@ namespace Lucene.Net.Index
         {
             get
             {
-                lock (this)
+                try
                 {
-                    return segmentInfos.UserData;
+                    lock (this)
+                    {
+                        return segmentInfos.UserData;
+                    }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
         }
@@ -3748,49 +4063,57 @@ namespace Lucene.Net.Index
 
         private void FinishCommit()
         {
-            lock (this)
+            try
             {
-                if (pendingCommit != null)
+                lock (this)
                 {
-                    try
+                    if (pendingCommit != null)
+                    {
+                        try
+                        {
+                            if (infoStream.IsEnabled("IW"))
+                            {
+                                infoStream.Message("IW", "commit: pendingCommit != null");
+                            }
+                            pendingCommit.FinishCommit(directory);
+                            if (infoStream.IsEnabled("IW"))
+                            {
+                                infoStream.Message("IW", "commit: wrote segments file \"" + pendingCommit.GetSegmentsFileName() + "\"");
+                            }
+                            segmentInfos.UpdateGeneration(pendingCommit);
+                            lastCommitChangeCount = pendingCommitChangeCount;
+                            rollbackSegments = pendingCommit.CreateBackupSegmentInfos();
+                            // NOTE: don't use this.checkpoint() here, because
+                            // we do not want to increment changeCount:
+                            deleter.Checkpoint(pendingCommit, true);
+                        }
+                        finally
+                        {
+                            // Matches the incRef done in prepareCommit:
+                            deleter.DecRef(filesToCommit);
+                            filesToCommit = null;
+                            pendingCommit = null;
+                            Monitor.PulseAll(this);
+                        }
+                    }
+                    else
                     {
                         if (infoStream.IsEnabled("IW"))
                         {
-                            infoStream.Message("IW", "commit: pendingCommit != null");
+                            infoStream.Message("IW", "commit: pendingCommit == null; skip");
                         }
-                        pendingCommit.FinishCommit(directory);
-                        if (infoStream.IsEnabled("IW"))
-                        {
-                            infoStream.Message("IW", "commit: wrote segments file \"" + pendingCommit.GetSegmentsFileName() + "\"");
-                        }
-                        segmentInfos.UpdateGeneration(pendingCommit);
-                        lastCommitChangeCount = pendingCommitChangeCount;
-                        rollbackSegments = pendingCommit.CreateBackupSegmentInfos();
-                        // NOTE: don't use this.checkpoint() here, because
-                        // we do not want to increment changeCount:
-                        deleter.Checkpoint(pendingCommit, true);
                     }
-                    finally
-                    {
-                        // Matches the incRef done in prepareCommit:
-                        deleter.DecRef(filesToCommit);
-                        filesToCommit = null;
-                        pendingCommit = null;
-                        Monitor.PulseAll(this);
-                    }
-                }
-                else
-                {
+
                     if (infoStream.IsEnabled("IW"))
                     {
-                        infoStream.Message("IW", "commit: pendingCommit == null; skip");
+                        infoStream.Message("IW", "commit: done");
                     }
                 }
-
-                if (infoStream.IsEnabled("IW"))
-                {
-                    infoStream.Message("IW", "commit: done");
-                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -3874,6 +4197,11 @@ namespace Lucene.Net.Index
                     return anySegmentFlushed;
                 }
             }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
+            }
             catch (Exception oom) when (oom.IsOutOfMemoryError())
             {
                 HandleOOM(oom, "DoFlush");
@@ -3894,55 +4222,71 @@ namespace Lucene.Net.Index
 
         internal void MaybeApplyDeletes(bool applyAllDeletes)
         {
-            lock (this)
+            try
             {
-                if (applyAllDeletes)
+                lock (this)
                 {
-                    if (infoStream.IsEnabled("IW"))
+                    if (applyAllDeletes)
                     {
-                        infoStream.Message("IW", "apply all deletes during flush");
+                        if (infoStream.IsEnabled("IW"))
+                        {
+                            infoStream.Message("IW", "apply all deletes during flush");
+                        }
+                        ApplyAllDeletesAndUpdates();
                     }
-                    ApplyAllDeletesAndUpdates();
+                    else if (infoStream.IsEnabled("IW"))
+                    {
+                        infoStream.Message("IW", "don't apply deletes now delTermCount=" + bufferedUpdatesStream.NumTerms + " bytesUsed=" + bufferedUpdatesStream.BytesUsed);
+                    }
                 }
-                else if (infoStream.IsEnabled("IW"))
-                {
-                    infoStream.Message("IW", "don't apply deletes now delTermCount=" + bufferedUpdatesStream.NumTerms + " bytesUsed=" + bufferedUpdatesStream.BytesUsed);
-                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
         internal void ApplyAllDeletesAndUpdates()
         {
-            lock (this)
+            try
             {
-                flushDeletesCount.IncrementAndGet();
-                BufferedUpdatesStream.ApplyDeletesResult result;
-                result = bufferedUpdatesStream.ApplyDeletesAndUpdates(readerPool, segmentInfos.AsList());
-                if (result.AnyDeletes)
+                lock (this)
                 {
-                    Checkpoint();
-                }
-                if (!keepFullyDeletedSegments && result.AllDeleted != null)
-                {
-                    if (infoStream.IsEnabled("IW"))
+                    flushDeletesCount.IncrementAndGet();
+                    BufferedUpdatesStream.ApplyDeletesResult result;
+                    result = bufferedUpdatesStream.ApplyDeletesAndUpdates(readerPool, segmentInfos.AsList());
+                    if (result.AnyDeletes)
                     {
-                        infoStream.Message("IW", "drop 100% deleted segments: " + SegString(result.AllDeleted));
+                        Checkpoint();
                     }
-                    foreach (SegmentCommitInfo info in result.AllDeleted)
+                    if (!keepFullyDeletedSegments && result.AllDeleted != null)
                     {
-                        // If a merge has already registered for this
-                        // segment, we leave it in the readerPool; the
-                        // merge will skip merging it and will then drop
-                        // it once it's done:
-                        if (!mergingSegments.Contains(info))
+                        if (infoStream.IsEnabled("IW"))
                         {
-                            segmentInfos.Remove(info);
-                            readerPool.Drop(info);
+                            infoStream.Message("IW", "drop 100% deleted segments: " + SegString(result.AllDeleted));
                         }
+                        foreach (SegmentCommitInfo info in result.AllDeleted)
+                        {
+                            // If a merge has already registered for this
+                            // segment, we leave it in the readerPool; the
+                            // merge will skip merging it and will then drop
+                            // it once it's done:
+                            if (!mergingSegments.Contains(info))
+                            {
+                                segmentInfos.Remove(info);
+                                readerPool.Drop(info);
+                            }
+                        }
+                        Checkpoint();
                     }
-                    Checkpoint();
+                    bufferedUpdatesStream.Prune(segmentInfos);
                 }
-                bufferedUpdatesStream.Prune(segmentInfos);
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -3966,24 +4310,40 @@ namespace Lucene.Net.Index
         /// </summary>
         public int NumRamDocs()
         {
-            lock (this)
+            try
             {
-                EnsureOpen();
-                return docWriter.NumDocs;
+                lock (this)
+                {
+                    EnsureOpen();
+                    return docWriter.NumDocs;
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
         private void EnsureValidMerge(MergePolicy.OneMerge merge)
         {
-            lock (this)
+            try
             {
-                foreach (SegmentCommitInfo info in merge.Segments)
+                lock (this)
                 {
-                    if (!segmentInfos.Contains(info))
+                    foreach (SegmentCommitInfo info in merge.Segments)
                     {
-                        throw new MergePolicy.MergeException("MergePolicy selected a segment (" + info.Info.Name + ") that is not in the current index " + SegString(), directory);
+                        if (!segmentInfos.Contains(info))
+                        {
+                            throw new MergePolicy.MergeException("MergePolicy selected a segment (" + info.Info.Name + ") that is not in the current index " + SegString(), directory);
+                        }
                     }
                 }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -4067,401 +4427,417 @@ namespace Lucene.Net.Index
         /// </summary>
         private ReadersAndUpdates CommitMergedDeletesAndUpdates(MergePolicy.OneMerge merge, MergeState mergeState)
         {
-            lock (this)
+            try
             {
-                if (Debugging.AssertsEnabled) Debugging.Assert(TestPoint("startCommitMergeDeletes"));
-
-                IList<SegmentCommitInfo> sourceSegments = merge.Segments;
-
-                if (infoStream.IsEnabled("IW"))
+                lock (this)
                 {
-                    infoStream.Message("IW", "commitMergeDeletes " + SegString(merge.Segments));
-                }
+                    if (Debugging.AssertsEnabled) Debugging.Assert(TestPoint("startCommitMergeDeletes"));
 
-                // Carefully merge deletes that occurred after we
-                // started merging:
-                int docUpto = 0;
-                long minGen = long.MaxValue;
+                    IList<SegmentCommitInfo> sourceSegments = merge.Segments;
 
-                // Lazy init (only when we find a delete to carry over):
-                MergedDeletesAndUpdates holder = new MergedDeletesAndUpdates();
-                DocValuesFieldUpdates.Container mergedDVUpdates = new DocValuesFieldUpdates.Container();
-
-                for (int i = 0; i < sourceSegments.Count; i++)
-                {
-                    SegmentCommitInfo info = sourceSegments[i];
-                    minGen = Math.Min(info.BufferedDeletesGen, minGen);
-                    int docCount = info.Info.DocCount;
-                    IBits prevLiveDocs = merge.readers[i].LiveDocs;
-                    ReadersAndUpdates rld = readerPool.Get(info, false);
-                    // We hold a ref so it should still be in the pool:
-                    if (Debugging.AssertsEnabled) Debugging.Assert(rld != null,"seg={0}", info.Info.Name);
-                    IBits currentLiveDocs = rld.LiveDocs;
-                    IDictionary<string, DocValuesFieldUpdates> mergingFieldUpdates = rld.MergingFieldUpdates;
-                    string[] mergingFields;
-                    DocValuesFieldUpdates[] dvFieldUpdates;
-                    DocValuesFieldUpdates.Iterator[] updatesIters;
-                    if (mergingFieldUpdates.Count == 0)
+                    if (infoStream.IsEnabled("IW"))
                     {
-                        mergingFields = null;
-                        updatesIters = null;
-                        dvFieldUpdates = null;
+                        infoStream.Message("IW", "commitMergeDeletes " + SegString(merge.Segments));
                     }
-                    else
+
+                    // Carefully merge deletes that occurred after we
+                    // started merging:
+                    int docUpto = 0;
+                    long minGen = long.MaxValue;
+
+                    // Lazy init (only when we find a delete to carry over):
+                    MergedDeletesAndUpdates holder = new MergedDeletesAndUpdates();
+                    DocValuesFieldUpdates.Container mergedDVUpdates = new DocValuesFieldUpdates.Container();
+
+                    for (int i = 0; i < sourceSegments.Count; i++)
                     {
-                        mergingFields = new string[mergingFieldUpdates.Count];
-                        dvFieldUpdates = new DocValuesFieldUpdates[mergingFieldUpdates.Count];
-                        updatesIters = new DocValuesFieldUpdates.Iterator[mergingFieldUpdates.Count];
-                        int idx = 0;
-                        foreach (KeyValuePair<string, DocValuesFieldUpdates> e in mergingFieldUpdates)
+                        SegmentCommitInfo info = sourceSegments[i];
+                        minGen = Math.Min(info.BufferedDeletesGen, minGen);
+                        int docCount = info.Info.DocCount;
+                        IBits prevLiveDocs = merge.readers[i].LiveDocs;
+                        ReadersAndUpdates rld = readerPool.Get(info, false);
+                        // We hold a ref so it should still be in the pool:
+                        if (Debugging.AssertsEnabled) Debugging.Assert(rld != null, "seg={0}", info.Info.Name);
+                        IBits currentLiveDocs = rld.LiveDocs;
+                        IDictionary<string, DocValuesFieldUpdates> mergingFieldUpdates = rld.MergingFieldUpdates;
+                        string[] mergingFields;
+                        DocValuesFieldUpdates[] dvFieldUpdates;
+                        DocValuesFieldUpdates.Iterator[] updatesIters;
+                        if (mergingFieldUpdates.Count == 0)
                         {
-                            string field = e.Key;
-                            DocValuesFieldUpdates updates = e.Value;
-                            mergingFields[idx] = field;
-                            dvFieldUpdates[idx] = mergedDVUpdates.GetUpdates(field, updates.type);
-                            if (dvFieldUpdates[idx] == null)
-                            {
-                                dvFieldUpdates[idx] = mergedDVUpdates.NewUpdates(field, updates.type, mergeState.SegmentInfo.DocCount);
-                            }
-                            updatesIters[idx] = updates.GetIterator();
-                            updatesIters[idx].NextDoc(); // advance to first update doc
-                            ++idx;
-                        }
-                    }
-                    //      System.out.println("[" + Thread.currentThread().getName() + "] IW.commitMergedDeletes: info=" + info + ", mergingUpdates=" + mergingUpdates);
-
-                    if (prevLiveDocs != null)
-                    {
-                        // If we had deletions on starting the merge we must
-                        // still have deletions now:
-                        if (Debugging.AssertsEnabled)
-                        {
-                            Debugging.Assert(currentLiveDocs != null);
-                            Debugging.Assert(prevLiveDocs.Length == docCount);
-                            Debugging.Assert(currentLiveDocs.Length == docCount);
-                        }
-
-                        // There were deletes on this segment when the merge
-                        // started.  The merge has collapsed away those
-                        // deletes, but, if new deletes were flushed since
-                        // the merge started, we must now carefully keep any
-                        // newly flushed deletes but mapping them to the new
-                        // docIDs.
-
-                        // Since we copy-on-write, if any new deletes were
-                        // applied after merging has started, we can just
-                        // check if the before/after liveDocs have changed.
-                        // If so, we must carefully merge the liveDocs one
-                        // doc at a time:
-                        if (currentLiveDocs != prevLiveDocs)
-                        {
-                            // this means this segment received new deletes
-                            // since we started the merge, so we
-                            // must merge them:
-                            for (int j = 0; j < docCount; j++)
-                            {
-                                if (!prevLiveDocs.Get(j))
-                                {
-                                    if (Debugging.AssertsEnabled) Debugging.Assert(!currentLiveDocs.Get(j));
-                                }
-                                else
-                                {
-                                    if (!currentLiveDocs.Get(j))
-                                    {
-                                        if (holder.mergedDeletesAndUpdates == null || !holder.initializedWritableLiveDocs)
-                                        {
-                                            holder.Init(readerPool, merge, mergeState, true);
-                                        }
-                                        holder.mergedDeletesAndUpdates.Delete(holder.docMap.Map(docUpto));
-                                        if (mergingFields != null) // advance all iters beyond the deleted document
-                                        {
-                                            SkipDeletedDoc(updatesIters, j);
-                                        }
-                                    }
-                                    else if (mergingFields != null)
-                                    {
-                                        MaybeApplyMergedDVUpdates(merge, mergeState, docUpto, holder, mergingFields, dvFieldUpdates, updatesIters, j);
-                                    }
-                                    docUpto++;
-                                }
-                            }
-                        }
-                        else if (mergingFields != null)
-                        {
-                            // need to check each non-deleted document if it has any updates
-                            for (int j = 0; j < docCount; j++)
-                            {
-                                if (prevLiveDocs.Get(j))
-                                {
-                                    // document isn't deleted, check if any of the fields have an update to it
-                                    MaybeApplyMergedDVUpdates(merge, mergeState, docUpto, holder, mergingFields, dvFieldUpdates, updatesIters, j);
-                                    // advance docUpto for every non-deleted document
-                                    docUpto++;
-                                }
-                                else
-                                {
-                                    // advance all iters beyond the deleted document
-                                    SkipDeletedDoc(updatesIters, j);
-                                }
-                            }
+                            mergingFields = null;
+                            updatesIters = null;
+                            dvFieldUpdates = null;
                         }
                         else
                         {
-                            docUpto += info.Info.DocCount - info.DelCount - rld.PendingDeleteCount;
-                        }
-                    }
-                    else if (currentLiveDocs != null)
-                    {
-                        if (Debugging.AssertsEnabled) Debugging.Assert(currentLiveDocs.Length == docCount);
-                        // this segment had no deletes before but now it
-                        // does:
-                        for (int j = 0; j < docCount; j++)
-                        {
-                            if (!currentLiveDocs.Get(j))
+                            mergingFields = new string[mergingFieldUpdates.Count];
+                            dvFieldUpdates = new DocValuesFieldUpdates[mergingFieldUpdates.Count];
+                            updatesIters = new DocValuesFieldUpdates.Iterator[mergingFieldUpdates.Count];
+                            int idx = 0;
+                            foreach (KeyValuePair<string, DocValuesFieldUpdates> e in mergingFieldUpdates)
                             {
-                                if (holder.mergedDeletesAndUpdates == null || !holder.initializedWritableLiveDocs)
+                                string field = e.Key;
+                                DocValuesFieldUpdates updates = e.Value;
+                                mergingFields[idx] = field;
+                                dvFieldUpdates[idx] = mergedDVUpdates.GetUpdates(field, updates.type);
+                                if (dvFieldUpdates[idx] == null)
                                 {
-                                    holder.Init(readerPool, merge, mergeState, true);
+                                    dvFieldUpdates[idx] = mergedDVUpdates.NewUpdates(field, updates.type, mergeState.SegmentInfo.DocCount);
                                 }
-                                holder.mergedDeletesAndUpdates.Delete(holder.docMap.Map(docUpto));
-                                if (mergingFields != null) // advance all iters beyond the deleted document
+                                updatesIters[idx] = updates.GetIterator();
+                                updatesIters[idx].NextDoc(); // advance to first update doc
+                                ++idx;
+                            }
+                        }
+                        //      System.out.println("[" + Thread.currentThread().getName() + "] IW.commitMergedDeletes: info=" + info + ", mergingUpdates=" + mergingUpdates);
+
+                        if (prevLiveDocs != null)
+                        {
+                            // If we had deletions on starting the merge we must
+                            // still have deletions now:
+                            if (Debugging.AssertsEnabled)
+                            {
+                                Debugging.Assert(currentLiveDocs != null);
+                                Debugging.Assert(prevLiveDocs.Length == docCount);
+                                Debugging.Assert(currentLiveDocs.Length == docCount);
+                            }
+
+                            // There were deletes on this segment when the merge
+                            // started.  The merge has collapsed away those
+                            // deletes, but, if new deletes were flushed since
+                            // the merge started, we must now carefully keep any
+                            // newly flushed deletes but mapping them to the new
+                            // docIDs.
+
+                            // Since we copy-on-write, if any new deletes were
+                            // applied after merging has started, we can just
+                            // check if the before/after liveDocs have changed.
+                            // If so, we must carefully merge the liveDocs one
+                            // doc at a time:
+                            if (currentLiveDocs != prevLiveDocs)
+                            {
+                                // this means this segment received new deletes
+                                // since we started the merge, so we
+                                // must merge them:
+                                for (int j = 0; j < docCount; j++)
                                 {
-                                    SkipDeletedDoc(updatesIters, j);
+                                    if (!prevLiveDocs.Get(j))
+                                    {
+                                        if (Debugging.AssertsEnabled) Debugging.Assert(!currentLiveDocs.Get(j));
+                                    }
+                                    else
+                                    {
+                                        if (!currentLiveDocs.Get(j))
+                                        {
+                                            if (holder.mergedDeletesAndUpdates == null || !holder.initializedWritableLiveDocs)
+                                            {
+                                                holder.Init(readerPool, merge, mergeState, true);
+                                            }
+                                            holder.mergedDeletesAndUpdates.Delete(holder.docMap.Map(docUpto));
+                                            if (mergingFields != null) // advance all iters beyond the deleted document
+                                            {
+                                                SkipDeletedDoc(updatesIters, j);
+                                            }
+                                        }
+                                        else if (mergingFields != null)
+                                        {
+                                            MaybeApplyMergedDVUpdates(merge, mergeState, docUpto, holder, mergingFields, dvFieldUpdates, updatesIters, j);
+                                        }
+                                        docUpto++;
+                                    }
                                 }
                             }
                             else if (mergingFields != null)
                             {
-                                MaybeApplyMergedDVUpdates(merge, mergeState, docUpto, holder, mergingFields, dvFieldUpdates, updatesIters, j);
+                                // need to check each non-deleted document if it has any updates
+                                for (int j = 0; j < docCount; j++)
+                                {
+                                    if (prevLiveDocs.Get(j))
+                                    {
+                                        // document isn't deleted, check if any of the fields have an update to it
+                                        MaybeApplyMergedDVUpdates(merge, mergeState, docUpto, holder, mergingFields, dvFieldUpdates, updatesIters, j);
+                                        // advance docUpto for every non-deleted document
+                                        docUpto++;
+                                    }
+                                    else
+                                    {
+                                        // advance all iters beyond the deleted document
+                                        SkipDeletedDoc(updatesIters, j);
+                                    }
+                                }
                             }
-                            docUpto++;
+                            else
+                            {
+                                docUpto += info.Info.DocCount - info.DelCount - rld.PendingDeleteCount;
+                            }
                         }
-                    }
-                    else if (mergingFields != null)
-                    {
-                        // no deletions before or after, but there were updates
-                        for (int j = 0; j < docCount; j++)
+                        else if (currentLiveDocs != null)
                         {
-                            MaybeApplyMergedDVUpdates(merge, mergeState, docUpto, holder, mergingFields, dvFieldUpdates, updatesIters, j);
-                            // advance docUpto for every non-deleted document
-                            docUpto++;
+                            if (Debugging.AssertsEnabled) Debugging.Assert(currentLiveDocs.Length == docCount);
+                            // this segment had no deletes before but now it
+                            // does:
+                            for (int j = 0; j < docCount; j++)
+                            {
+                                if (!currentLiveDocs.Get(j))
+                                {
+                                    if (holder.mergedDeletesAndUpdates == null || !holder.initializedWritableLiveDocs)
+                                    {
+                                        holder.Init(readerPool, merge, mergeState, true);
+                                    }
+                                    holder.mergedDeletesAndUpdates.Delete(holder.docMap.Map(docUpto));
+                                    if (mergingFields != null) // advance all iters beyond the deleted document
+                                    {
+                                        SkipDeletedDoc(updatesIters, j);
+                                    }
+                                }
+                                else if (mergingFields != null)
+                                {
+                                    MaybeApplyMergedDVUpdates(merge, mergeState, docUpto, holder, mergingFields, dvFieldUpdates, updatesIters, j);
+                                }
+                                docUpto++;
+                            }
                         }
-                    }
-                    else
-                    {
-                        // No deletes or updates before or after
-                        docUpto += info.Info.DocCount;
-                    }
-                }
-
-                if (Debugging.AssertsEnabled) Debugging.Assert(docUpto == merge.info.Info.DocCount);
-
-                if (mergedDVUpdates.Any())
-                {
-                    //      System.out.println("[" + Thread.currentThread().getName() + "] IW.commitMergedDeletes: mergedDeletes.info=" + mergedDeletes.info + ", mergedFieldUpdates=" + mergedFieldUpdates);
-                    bool success = false;
-                    try
-                    {
-                        // if any error occurs while writing the field updates we should release
-                        // the info, otherwise it stays in the pool but is considered not "live"
-                        // which later causes false exceptions in pool.dropAll().
-                        // NOTE: currently this is the only place which throws a true
-                        // IOException. If this ever changes, we need to extend that try/finally
-                        // block to the rest of the method too.
-                        holder.mergedDeletesAndUpdates.WriteFieldUpdates(directory, mergedDVUpdates);
-                        success = true;
-                    }
-                    finally
-                    {
-                        if (!success)
+                        else if (mergingFields != null)
                         {
-                            holder.mergedDeletesAndUpdates.DropChanges();
-                            readerPool.Drop(merge.info);
+                            // no deletions before or after, but there were updates
+                            for (int j = 0; j < docCount; j++)
+                            {
+                                MaybeApplyMergedDVUpdates(merge, mergeState, docUpto, holder, mergingFields, dvFieldUpdates, updatesIters, j);
+                                // advance docUpto for every non-deleted document
+                                docUpto++;
+                            }
                         }
-                    }
-                }
-
-                if (infoStream.IsEnabled("IW"))
-                {
-                    if (holder.mergedDeletesAndUpdates == null)
-                    {
-                        infoStream.Message("IW", "no new deletes or field updates since merge started");
-                    }
-                    else
-                    {
-                        string msg = holder.mergedDeletesAndUpdates.PendingDeleteCount + " new deletes";
-                        if (mergedDVUpdates.Any())
+                        else
                         {
-                            msg += " and " + mergedDVUpdates.Count + " new field updates";
+                            // No deletes or updates before or after
+                            docUpto += info.Info.DocCount;
                         }
-                        msg += " since merge started";
-                        infoStream.Message("IW", msg);
                     }
+
+                    if (Debugging.AssertsEnabled) Debugging.Assert(docUpto == merge.info.Info.DocCount);
+
+                    if (mergedDVUpdates.Any())
+                    {
+                        //      System.out.println("[" + Thread.currentThread().getName() + "] IW.commitMergedDeletes: mergedDeletes.info=" + mergedDeletes.info + ", mergedFieldUpdates=" + mergedFieldUpdates);
+                        bool success = false;
+                        try
+                        {
+                            // if any error occurs while writing the field updates we should release
+                            // the info, otherwise it stays in the pool but is considered not "live"
+                            // which later causes false exceptions in pool.dropAll().
+                            // NOTE: currently this is the only place which throws a true
+                            // IOException. If this ever changes, we need to extend that try/finally
+                            // block to the rest of the method too.
+                            holder.mergedDeletesAndUpdates.WriteFieldUpdates(directory, mergedDVUpdates);
+                            success = true;
+                        }
+                        finally
+                        {
+                            if (!success)
+                            {
+                                holder.mergedDeletesAndUpdates.DropChanges();
+                                readerPool.Drop(merge.info);
+                            }
+                        }
+                    }
+
+                    if (infoStream.IsEnabled("IW"))
+                    {
+                        if (holder.mergedDeletesAndUpdates == null)
+                        {
+                            infoStream.Message("IW", "no new deletes or field updates since merge started");
+                        }
+                        else
+                        {
+                            string msg = holder.mergedDeletesAndUpdates.PendingDeleteCount + " new deletes";
+                            if (mergedDVUpdates.Any())
+                            {
+                                msg += " and " + mergedDVUpdates.Count + " new field updates";
+                            }
+                            msg += " since merge started";
+                            infoStream.Message("IW", msg);
+                        }
+                    }
+
+                    merge.info.SetBufferedDeletesGen(minGen);
+
+                    return holder.mergedDeletesAndUpdates;
                 }
-
-                merge.info.SetBufferedDeletesGen(minGen);
-
-                return holder.mergedDeletesAndUpdates;
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
         private bool CommitMerge(MergePolicy.OneMerge merge, MergeState mergeState)
         {
-            lock (this)
+            try
             {
-                if (Debugging.AssertsEnabled) Debugging.Assert(TestPoint("startCommitMerge"));
-
-                if (hitOOM)
+                lock (this)
                 {
-                    throw IllegalStateException.Create("this writer hit an OutOfMemoryError; cannot complete merge");
-                }
+                    if (Debugging.AssertsEnabled) Debugging.Assert(TestPoint("startCommitMerge"));
 
-                if (infoStream.IsEnabled("IW"))
-                {
-                    infoStream.Message("IW", "commitMerge: " + SegString(merge.Segments) + " index=" + SegString());
-                }
+                    if (hitOOM)
+                    {
+                        throw IllegalStateException.Create("this writer hit an OutOfMemoryError; cannot complete merge");
+                    }
 
-                if (Debugging.AssertsEnabled) Debugging.Assert(merge.registerDone);
-
-                // If merge was explicitly aborted, or, if rollback() or
-                // rollbackTransaction() had been called since our merge
-                // started (which results in an unqualified
-                // deleter.refresh() call that will remove any index
-                // file that current segments does not reference), we
-                // abort this merge
-                if (merge.IsAborted)
-                {
                     if (infoStream.IsEnabled("IW"))
                     {
-                        infoStream.Message("IW", "commitMerge: skip: it was aborted");
+                        infoStream.Message("IW", "commitMerge: " + SegString(merge.Segments) + " index=" + SegString());
                     }
-                    // In case we opened and pooled a reader for this
-                    // segment, drop it now.  this ensures that we close
-                    // the reader before trying to delete any of its
-                    // files.  this is not a very big deal, since this
-                    // reader will never be used by any NRT reader, and
-                    // another thread is currently running close(false)
-                    // so it will be dropped shortly anyway, but not
-                    // doing this  makes  MockDirWrapper angry in
-                    // TestNRTThreads (LUCENE-5434):
-                    readerPool.Drop(merge.info);
-                    deleter.DeleteNewFiles(merge.info.GetFiles());
-                    return false;
-                }
 
-                ReadersAndUpdates mergedUpdates = merge.info.Info.DocCount == 0 ? null : CommitMergedDeletesAndUpdates(merge, mergeState);
-                //    System.out.println("[" + Thread.currentThread().getName() + "] IW.commitMerge: mergedDeletes=" + mergedDeletes);
+                    if (Debugging.AssertsEnabled) Debugging.Assert(merge.registerDone);
 
-                // If the doc store we are using has been closed and
-                // is in now compound format (but wasn't when we
-                // started), then we will switch to the compound
-                // format as well:
-
-                if (Debugging.AssertsEnabled) Debugging.Assert(!segmentInfos.Contains(merge.info));
-
-                bool allDeleted = merge.Segments.Count == 0 || merge.info.Info.DocCount == 0 || (mergedUpdates != null && mergedUpdates.PendingDeleteCount == merge.info.Info.DocCount);
-
-                if (infoStream.IsEnabled("IW"))
-                {
-                    if (allDeleted)
+                    // If merge was explicitly aborted, or, if rollback() or
+                    // rollbackTransaction() had been called since our merge
+                    // started (which results in an unqualified
+                    // deleter.refresh() call that will remove any index
+                    // file that current segments does not reference), we
+                    // abort this merge
+                    if (merge.IsAborted)
                     {
-                        infoStream.Message("IW", "merged segment " + merge.info + " is 100% deleted" + (keepFullyDeletedSegments ? "" : "; skipping insert"));
+                        if (infoStream.IsEnabled("IW"))
+                        {
+                            infoStream.Message("IW", "commitMerge: skip: it was aborted");
+                        }
+                        // In case we opened and pooled a reader for this
+                        // segment, drop it now.  this ensures that we close
+                        // the reader before trying to delete any of its
+                        // files.  this is not a very big deal, since this
+                        // reader will never be used by any NRT reader, and
+                        // another thread is currently running close(false)
+                        // so it will be dropped shortly anyway, but not
+                        // doing this  makes  MockDirWrapper angry in
+                        // TestNRTThreads (LUCENE-5434):
+                        readerPool.Drop(merge.info);
+                        deleter.DeleteNewFiles(merge.info.GetFiles());
+                        return false;
                     }
-                }
 
-                bool dropSegment = allDeleted && !keepFullyDeletedSegments;
+                    ReadersAndUpdates mergedUpdates = merge.info.Info.DocCount == 0 ? null : CommitMergedDeletesAndUpdates(merge, mergeState);
+                    //    System.out.println("[" + Thread.currentThread().getName() + "] IW.commitMerge: mergedDeletes=" + mergedDeletes);
 
-                // If we merged no segments then we better be dropping
-                // the new segment:
-                if (Debugging.AssertsEnabled) Debugging.Assert(merge.Segments.Count > 0 || dropSegment);
+                    // If the doc store we are using has been closed and
+                    // is in now compound format (but wasn't when we
+                    // started), then we will switch to the compound
+                    // format as well:
 
-                if (Debugging.AssertsEnabled) Debugging.Assert(merge.info.Info.DocCount != 0 || keepFullyDeletedSegments || dropSegment);
+                    if (Debugging.AssertsEnabled) Debugging.Assert(!segmentInfos.Contains(merge.info));
 
-                if (mergedUpdates != null)
-                {
-                    bool success = false;
+                    bool allDeleted = merge.Segments.Count == 0 || merge.info.Info.DocCount == 0 || (mergedUpdates != null && mergedUpdates.PendingDeleteCount == merge.info.Info.DocCount);
+
+                    if (infoStream.IsEnabled("IW"))
+                    {
+                        if (allDeleted)
+                        {
+                            infoStream.Message("IW", "merged segment " + merge.info + " is 100% deleted" + (keepFullyDeletedSegments ? "" : "; skipping insert"));
+                        }
+                    }
+
+                    bool dropSegment = allDeleted && !keepFullyDeletedSegments;
+
+                    // If we merged no segments then we better be dropping
+                    // the new segment:
+                    if (Debugging.AssertsEnabled) Debugging.Assert(merge.Segments.Count > 0 || dropSegment);
+
+                    if (Debugging.AssertsEnabled) Debugging.Assert(merge.info.Info.DocCount != 0 || keepFullyDeletedSegments || dropSegment);
+
+                    if (mergedUpdates != null)
+                    {
+                        bool success = false;
+                        try
+                        {
+                            if (dropSegment)
+                            {
+                                mergedUpdates.DropChanges();
+                            }
+                            // Pass false for assertInfoLive because the merged
+                            // segment is not yet live (only below do we commit it
+                            // to the segmentInfos):
+                            readerPool.Release(mergedUpdates, false);
+                            success = true;
+                        }
+                        finally
+                        {
+                            if (!success)
+                            {
+                                mergedUpdates.DropChanges();
+                                readerPool.Drop(merge.info);
+                            }
+                        }
+                    }
+
+                    // Must do this after readerPool.release, in case an
+                    // exception is hit e.g. writing the live docs for the
+                    // merge segment, in which case we need to abort the
+                    // merge:
+                    segmentInfos.ApplyMergeChanges(merge, dropSegment);
+
+                    if (dropSegment)
+                    {
+                        if (Debugging.AssertsEnabled) Debugging.Assert(!segmentInfos.Contains(merge.info));
+                        readerPool.Drop(merge.info);
+                        deleter.DeleteNewFiles(merge.info.GetFiles());
+                    }
+
+                    bool success_ = false;
                     try
                     {
-                        if (dropSegment)
-                        {
-                            mergedUpdates.DropChanges();
-                        }
-                        // Pass false for assertInfoLive because the merged
-                        // segment is not yet live (only below do we commit it
-                        // to the segmentInfos):
-                        readerPool.Release(mergedUpdates, false);
-                        success = true;
+                        // Must close before checkpoint, otherwise IFD won't be
+                        // able to delete the held-open files from the merge
+                        // readers:
+                        CloseMergeReaders(merge, false);
+                        success_ = true;
                     }
                     finally
                     {
-                        if (!success)
-                        {
-                            mergedUpdates.DropChanges();
-                            readerPool.Drop(merge.info);
-                        }
-                    }
-                }
-
-                // Must do this after readerPool.release, in case an
-                // exception is hit e.g. writing the live docs for the
-                // merge segment, in which case we need to abort the
-                // merge:
-                segmentInfos.ApplyMergeChanges(merge, dropSegment);
-
-                if (dropSegment)
-                {
-                    if (Debugging.AssertsEnabled) Debugging.Assert(!segmentInfos.Contains(merge.info));
-                    readerPool.Drop(merge.info);
-                    deleter.DeleteNewFiles(merge.info.GetFiles());
-                }
-
-                bool success_ = false;
-                try
-                {
-                    // Must close before checkpoint, otherwise IFD won't be
-                    // able to delete the held-open files from the merge
-                    // readers:
-                    CloseMergeReaders(merge, false);
-                    success_ = true;
-                }
-                finally
-                {
-                    // Must note the change to segmentInfos so any commits
-                    // in-flight don't lose it (IFD will incRef/protect the
-                    // new files we created):
-                    if (success_)
-                    {
-                        Checkpoint();
-                    }
-                    else
-                    {
-                        try
+                        // Must note the change to segmentInfos so any commits
+                        // in-flight don't lose it (IFD will incRef/protect the
+                        // new files we created):
+                        if (success_)
                         {
                             Checkpoint();
                         }
-                        catch (Exception t) when (t.IsThrowable())
+                        else
                         {
-                            // Ignore so we keep throwing original exception.
+                            try
+                            {
+                                Checkpoint();
+                            }
+                            catch (Exception t) when (t.IsThrowable())
+                            {
+                                // Ignore so we keep throwing original exception.
+                            }
                         }
                     }
-                }
 
-                deleter.DeletePendingFiles();
+                    deleter.DeletePendingFiles();
 
-                if (infoStream.IsEnabled("IW"))
-                {
-                    infoStream.Message("IW", "after commitMerge: " + SegString());
-                }
-
-                if (merge.MaxNumSegments != -1 && !dropSegment)
-                {
-                    // cascade the forceMerge:
-                    if (!segmentsToMerge.ContainsKey(merge.info))
+                    if (infoStream.IsEnabled("IW"))
                     {
-                        segmentsToMerge[merge.info] = false;
+                        infoStream.Message("IW", "after commitMerge: " + SegString());
                     }
-                }
 
-                return true;
+                    if (merge.MaxNumSegments != -1 && !dropSegment)
+                    {
+                        // cascade the forceMerge:
+                        if (!segmentsToMerge.ContainsKey(merge.info))
+                        {
+                            segmentsToMerge[merge.info] = false;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -4563,6 +4939,11 @@ namespace Lucene.Net.Index
                     }
                 }
             }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
+            }
             catch (Exception oom) when (oom.IsOutOfMemoryError())
             {
                 HandleOOM(oom, "Merge");
@@ -4592,110 +4973,118 @@ namespace Lucene.Net.Index
         /// </summary>
         internal bool RegisterMerge(MergePolicy.OneMerge merge)
         {
-            lock (this)
+            try
             {
-                if (merge.registerDone)
+                lock (this)
                 {
+                    if (merge.registerDone)
+                    {
+                        return true;
+                    }
+                    if (Debugging.AssertsEnabled) Debugging.Assert(merge.Segments.Count > 0);
+
+                    if (stopMerges)
+                    {
+                        merge.Abort();
+                        throw new MergePolicy.MergeAbortedException("merge is aborted: " + SegString(merge.Segments));
+                    }
+
+                    bool isExternal = false;
+                    foreach (SegmentCommitInfo info in merge.Segments)
+                    {
+                        if (mergingSegments.Contains(info))
+                        {
+                            if (infoStream.IsEnabled("IW"))
+                            {
+                                infoStream.Message("IW", "reject merge " + SegString(merge.Segments) + ": segment " + SegString(info) + " is already marked for merge");
+                            }
+                            return false;
+                        }
+                        if (!segmentInfos.Contains(info))
+                        {
+                            if (infoStream.IsEnabled("IW"))
+                            {
+                                infoStream.Message("IW", "reject merge " + SegString(merge.Segments) + ": segment " + SegString(info) + " does not exist in live infos");
+                            }
+                            return false;
+                        }
+                        if (info.Info.Dir != directory)
+                        {
+                            isExternal = true;
+                        }
+                        if (segmentsToMerge.ContainsKey(info))
+                        {
+                            merge.MaxNumSegments = mergeMaxNumSegments;
+                        }
+                    }
+
+                    EnsureValidMerge(merge);
+
+                    pendingMerges.Enqueue(merge);
+
+                    if (infoStream.IsEnabled("IW"))
+                    {
+                        infoStream.Message("IW", "add merge to pendingMerges: " + SegString(merge.Segments) + " [total " + pendingMerges.Count + " pending]");
+                    }
+
+                    merge.mergeGen = mergeGen;
+                    merge.isExternal = isExternal;
+
+                    // OK it does not conflict; now record that this merge
+                    // is running (while synchronized) to avoid race
+                    // condition where two conflicting merges from different
+                    // threads, start
+                    if (infoStream.IsEnabled("IW"))
+                    {
+                        StringBuilder builder = new StringBuilder("registerMerge merging= [");
+                        foreach (SegmentCommitInfo info in mergingSegments)
+                        {
+                            builder.Append(info.Info.Name).Append(", ");
+                        }
+                        builder.Append("]");
+                        // don't call mergingSegments.toString() could lead to ConcurrentModException
+                        // since merge updates the segments FieldInfos
+                        if (infoStream.IsEnabled("IW"))
+                        {
+                            infoStream.Message("IW", builder.ToString());
+                        }
+                    }
+                    foreach (SegmentCommitInfo info in merge.Segments)
+                    {
+                        if (infoStream.IsEnabled("IW"))
+                        {
+                            infoStream.Message("IW", "registerMerge info=" + SegString(info));
+                        }
+                        mergingSegments.Add(info);
+                    }
+
+                    if (Debugging.AssertsEnabled)
+                    {
+                        Debugging.Assert(merge.EstimatedMergeBytes == 0);
+                        Debugging.Assert(merge.totalMergeBytes == 0);
+                    }
+                    foreach (SegmentCommitInfo info in merge.Segments)
+                    {
+                        if (info.Info.DocCount > 0)
+                        {
+                            int delCount = NumDeletedDocs(info);
+                            if (Debugging.AssertsEnabled) Debugging.Assert(delCount <= info.Info.DocCount);
+                            double delRatio = ((double)delCount) / info.Info.DocCount;
+                            merge.EstimatedMergeBytes += (long)(info.GetSizeInBytes() * (1.0 - delRatio));
+                            merge.totalMergeBytes += info.GetSizeInBytes();
+                        }
+                    }
+
+                    // Merge is now registered
+                    merge.registerDone = true;
+
                     return true;
                 }
-                if (Debugging.AssertsEnabled) Debugging.Assert(merge.Segments.Count > 0);
-
-                if (stopMerges)
-                {
-                    merge.Abort();
-                    throw new MergePolicy.MergeAbortedException("merge is aborted: " + SegString(merge.Segments));
-                }
-
-                bool isExternal = false;
-                foreach (SegmentCommitInfo info in merge.Segments)
-                {
-                    if (mergingSegments.Contains(info))
-                    {
-                        if (infoStream.IsEnabled("IW"))
-                        {
-                            infoStream.Message("IW", "reject merge " + SegString(merge.Segments) + ": segment " + SegString(info) + " is already marked for merge");
-                        }
-                        return false;
-                    }
-                    if (!segmentInfos.Contains(info))
-                    {
-                        if (infoStream.IsEnabled("IW"))
-                        {
-                            infoStream.Message("IW", "reject merge " + SegString(merge.Segments) + ": segment " + SegString(info) + " does not exist in live infos");
-                        }
-                        return false;
-                    }
-                    if (info.Info.Dir != directory)
-                    {
-                        isExternal = true;
-                    }
-                    if (segmentsToMerge.ContainsKey(info))
-                    {
-                        merge.MaxNumSegments = mergeMaxNumSegments;
-                    }
-                }
-
-                EnsureValidMerge(merge);
-
-                pendingMerges.Enqueue(merge);
-
-                if (infoStream.IsEnabled("IW"))
-                {
-                    infoStream.Message("IW", "add merge to pendingMerges: " + SegString(merge.Segments) + " [total " + pendingMerges.Count + " pending]");
-                }
-
-                merge.mergeGen = mergeGen;
-                merge.isExternal = isExternal;
-
-                // OK it does not conflict; now record that this merge
-                // is running (while synchronized) to avoid race
-                // condition where two conflicting merges from different
-                // threads, start
-                if (infoStream.IsEnabled("IW"))
-                {
-                    StringBuilder builder = new StringBuilder("registerMerge merging= [");
-                    foreach (SegmentCommitInfo info in mergingSegments)
-                    {
-                        builder.Append(info.Info.Name).Append(", ");
-                    }
-                    builder.Append("]");
-                    // don't call mergingSegments.toString() could lead to ConcurrentModException
-                    // since merge updates the segments FieldInfos
-                    if (infoStream.IsEnabled("IW"))
-                    {
-                        infoStream.Message("IW", builder.ToString());
-                    }
-                }
-                foreach (SegmentCommitInfo info in merge.Segments)
-                {
-                    if (infoStream.IsEnabled("IW"))
-                    {
-                        infoStream.Message("IW", "registerMerge info=" + SegString(info));
-                    }
-                    mergingSegments.Add(info);
-                }
-
-                if (Debugging.AssertsEnabled)
-                {
-                    Debugging.Assert(merge.EstimatedMergeBytes == 0);
-                    Debugging.Assert(merge.totalMergeBytes == 0);
-                }
-                foreach (SegmentCommitInfo info in merge.Segments)
-                {
-                    if (info.Info.DocCount > 0)
-                    {
-                        int delCount = NumDeletedDocs(info);
-                        if (Debugging.AssertsEnabled) Debugging.Assert(delCount <= info.Info.DocCount);
-                        double delRatio = ((double)delCount) / info.Info.DocCount;
-                        merge.EstimatedMergeBytes += (long)(info.GetSizeInBytes() * (1.0 - delRatio));
-                        merge.totalMergeBytes += info.GetSizeInBytes();
-                    }
-                }
-
-                // Merge is now registered
-                merge.registerDone = true;
-
-                return true;
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -4705,110 +5094,126 @@ namespace Lucene.Net.Index
         /// </summary>
         internal void MergeInit(MergePolicy.OneMerge merge)
         {
-            lock (this)
+            try
             {
-                bool success = false;
-                try
+                lock (this)
                 {
-                    MergeInitImpl(merge);
-                    success = true;
-                }
-                finally
-                {
-                    if (!success)
+                    bool success = false;
+                    try
                     {
-                        if (infoStream.IsEnabled("IW"))
+                        MergeInitImpl(merge);
+                        success = true;
+                    }
+                    finally
+                    {
+                        if (!success)
                         {
-                            infoStream.Message("IW", "hit exception in mergeInit");
+                            if (infoStream.IsEnabled("IW"))
+                            {
+                                infoStream.Message("IW", "hit exception in mergeInit");
+                            }
+                            MergeFinish(merge);
                         }
-                        MergeFinish(merge);
                     }
                 }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
         private void MergeInitImpl(MergePolicy.OneMerge merge) // LUCENENET specific: renamed from _mergeInit
         {
-            lock (this)
+            try
             {
-                if (Debugging.AssertsEnabled)
+                lock (this)
                 {
-                    Debugging.Assert(TestPoint("startMergeInit"));
+                    if (Debugging.AssertsEnabled)
+                    {
+                        Debugging.Assert(TestPoint("startMergeInit"));
 
-                    Debugging.Assert(merge.registerDone);
-                    Debugging.Assert(merge.MaxNumSegments == -1 || merge.MaxNumSegments > 0);
-                }
+                        Debugging.Assert(merge.registerDone);
+                        Debugging.Assert(merge.MaxNumSegments == -1 || merge.MaxNumSegments > 0);
+                    }
 
-                if (hitOOM)
-                {
-                    throw IllegalStateException.Create("this writer hit an OutOfMemoryError; cannot merge");
-                }
+                    if (hitOOM)
+                    {
+                        throw IllegalStateException.Create("this writer hit an OutOfMemoryError; cannot merge");
+                    }
 
-                if (merge.info != null)
-                {
-                    // mergeInit already done
-                    return;
-                }
+                    if (merge.info != null)
+                    {
+                        // mergeInit already done
+                        return;
+                    }
 
-                if (merge.IsAborted)
-                {
-                    return;
-                }
+                    if (merge.IsAborted)
+                    {
+                        return;
+                    }
 
-                // TODO: in the non-pool'd case this is somewhat
-                // wasteful, because we open these readers, close them,
-                // and then open them again for merging.  Maybe  we
-                // could pre-pool them somehow in that case...
+                    // TODO: in the non-pool'd case this is somewhat
+                    // wasteful, because we open these readers, close them,
+                    // and then open them again for merging.  Maybe  we
+                    // could pre-pool them somehow in that case...
 
-                // Lock order: IW -> BD
-                BufferedUpdatesStream.ApplyDeletesResult result = bufferedUpdatesStream.ApplyDeletesAndUpdates(readerPool, merge.Segments);
+                    // Lock order: IW -> BD
+                    BufferedUpdatesStream.ApplyDeletesResult result = bufferedUpdatesStream.ApplyDeletesAndUpdates(readerPool, merge.Segments);
 
-                if (result.AnyDeletes)
-                {
-                    Checkpoint();
-                }
+                    if (result.AnyDeletes)
+                    {
+                        Checkpoint();
+                    }
 
-                if (!keepFullyDeletedSegments && result.AllDeleted != null)
-                {
+                    if (!keepFullyDeletedSegments && result.AllDeleted != null)
+                    {
+                        if (infoStream.IsEnabled("IW"))
+                        {
+                            infoStream.Message("IW", "drop 100% deleted segments: " + result.AllDeleted);
+                        }
+                        foreach (SegmentCommitInfo info in result.AllDeleted)
+                        {
+                            segmentInfos.Remove(info);
+                            if (merge.Segments.Contains(info))
+                            {
+                                mergingSegments.Remove(info);
+                                merge.Segments.Remove(info);
+                            }
+                            readerPool.Drop(info);
+                        }
+                        Checkpoint();
+                    }
+
+                    // Bind a new segment name here so even with
+                    // ConcurrentMergePolicy we keep deterministic segment
+                    // names.
+                    string mergeSegmentName = NewSegmentName();
+                    SegmentInfo si = new SegmentInfo(directory, Constants.LUCENE_MAIN_VERSION, mergeSegmentName, -1, false, codec, null);
+                    IDictionary<string, string> details = new Dictionary<string, string>
+                    {
+                        ["mergeMaxNumSegments"] = "" + merge.MaxNumSegments,
+                        ["mergeFactor"] = Convert.ToString(merge.Segments.Count)
+                    };
+                    SetDiagnostics(si, SOURCE_MERGE, details);
+                    merge.Info = new SegmentCommitInfo(si, 0, -1L, -1L);
+
+                    //    System.out.println("[" + Thread.currentThread().getName() + "] IW._mergeInit: " + segString(merge.segments) + " into " + si);
+
+                    // Lock order: IW -> BD
+                    bufferedUpdatesStream.Prune(segmentInfos);
+
                     if (infoStream.IsEnabled("IW"))
                     {
-                        infoStream.Message("IW", "drop 100% deleted segments: " + result.AllDeleted);
+                        infoStream.Message("IW", "merge seg=" + merge.info.Info.Name + " " + SegString(merge.Segments));
                     }
-                    foreach (SegmentCommitInfo info in result.AllDeleted)
-                    {
-                        segmentInfos.Remove(info);
-                        if (merge.Segments.Contains(info))
-                        {
-                            mergingSegments.Remove(info);
-                            merge.Segments.Remove(info);
-                        }
-                        readerPool.Drop(info);
-                    }
-                    Checkpoint();
                 }
-
-                // Bind a new segment name here so even with
-                // ConcurrentMergePolicy we keep deterministic segment
-                // names.
-                string mergeSegmentName = NewSegmentName();
-                SegmentInfo si = new SegmentInfo(directory, Constants.LUCENE_MAIN_VERSION, mergeSegmentName, -1, false, codec, null);
-                IDictionary<string, string> details = new Dictionary<string, string>
-                {
-                    ["mergeMaxNumSegments"] = "" + merge.MaxNumSegments,
-                    ["mergeFactor"] = Convert.ToString(merge.Segments.Count)
-                };
-                SetDiagnostics(si, SOURCE_MERGE, details);
-                merge.Info = new SegmentCommitInfo(si, 0, -1L, -1L);
-
-                //    System.out.println("[" + Thread.currentThread().getName() + "] IW._mergeInit: " + segString(merge.segments) + " into " + si);
-
-                // Lock order: IW -> BD
-                bufferedUpdatesStream.Prune(segmentInfos);
-
-                if (infoStream.IsEnabled("IW"))
-                {
-                    infoStream.Message("IW", "merge seg=" + merge.info.Info.Name + " " + SegString(merge.Segments));
-                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -4843,78 +5248,94 @@ namespace Lucene.Net.Index
         /// </summary>
         public void MergeFinish(MergePolicy.OneMerge merge)
         {
-            lock (this)
+            try
             {
-                // forceMerge, addIndexes or finishMerges may be waiting
-                // on merges to finish.
-                Monitor.PulseAll(this);
-
-                // It's possible we are called twice, eg if there was an
-                // exception inside mergeInit
-                if (merge.registerDone)
+                lock (this)
                 {
-                    IList<SegmentCommitInfo> sourceSegments = merge.Segments;
-                    foreach (SegmentCommitInfo info in sourceSegments)
-                    {
-                        mergingSegments.Remove(info);
-                    }
-                    merge.registerDone = false;
-                }
+                    // forceMerge, addIndexes or finishMerges may be waiting
+                    // on merges to finish.
+                    Monitor.PulseAll(this);
 
-                runningMerges.Remove(merge);
+                    // It's possible we are called twice, eg if there was an
+                    // exception inside mergeInit
+                    if (merge.registerDone)
+                    {
+                        IList<SegmentCommitInfo> sourceSegments = merge.Segments;
+                        foreach (SegmentCommitInfo info in sourceSegments)
+                        {
+                            mergingSegments.Remove(info);
+                        }
+                        merge.registerDone = false;
+                    }
+
+                    runningMerges.Remove(merge);
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
         private void CloseMergeReaders(MergePolicy.OneMerge merge, bool suppressExceptions)
         {
-            lock (this)
+            try
             {
-                int numSegments = merge.readers.Count;
-                Exception th = null;
-
-                bool drop = !suppressExceptions;
-
-                for (int i = 0; i < numSegments; i++)
+                lock (this)
                 {
-                    SegmentReader sr = merge.readers[i];
-                    if (sr != null)
+                    int numSegments = merge.readers.Count;
+                    Exception th = null;
+
+                    bool drop = !suppressExceptions;
+
+                    for (int i = 0; i < numSegments; i++)
                     {
-                        try
+                        SegmentReader sr = merge.readers[i];
+                        if (sr != null)
                         {
-                            ReadersAndUpdates rld = readerPool.Get(sr.SegmentInfo, false);
-                            // We still hold a ref so it should not have been removed:
-                            if (Debugging.AssertsEnabled) Debugging.Assert(rld != null);
-                            if (drop)
+                            try
                             {
-                                rld.DropChanges();
+                                ReadersAndUpdates rld = readerPool.Get(sr.SegmentInfo, false);
+                                // We still hold a ref so it should not have been removed:
+                                if (Debugging.AssertsEnabled) Debugging.Assert(rld != null);
+                                if (drop)
+                                {
+                                    rld.DropChanges();
+                                }
+                                else
+                                {
+                                    rld.DropMergingUpdates();
+                                }
+                                rld.Release(sr);
+                                readerPool.Release(rld);
+                                if (drop)
+                                {
+                                    readerPool.Drop(rld.Info);
+                                }
                             }
-                            else
+                            catch (Exception t) when (t.IsThrowable())
                             {
-                                rld.DropMergingUpdates();
+                                if (th == null)
+                                {
+                                    th = t;
+                                }
                             }
-                            rld.Release(sr);
-                            readerPool.Release(rld);
-                            if (drop)
-                            {
-                                readerPool.Drop(rld.Info);
-                            }
+                            merge.readers[i] = null;
                         }
-                        catch (Exception t) when (t.IsThrowable())
-                        {
-                            if (th == null)
-                            {
-                                th = t;
-                            }
-                        }
-                        merge.readers[i] = null;
+                    }
+
+                    // If any error occured, throw it.
+                    if (!suppressExceptions)
+                    {
+                        IOUtils.ReThrow(th);
                     }
                 }
-
-                // If any error occured, throw it.
-                if (!suppressExceptions)
-                {
-                    IOUtils.ReThrow(th);
-                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5228,6 +5649,11 @@ namespace Lucene.Net.Index
 
                 success = true;
             }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
+            }
             finally
             {
                 // Readers are already closed in commitMerge if we didn't hit
@@ -5243,13 +5669,21 @@ namespace Lucene.Net.Index
 
         internal virtual void AddMergeException(MergePolicy.OneMerge merge)
         {
-            lock (this)
+            try
             {
-                if (Debugging.AssertsEnabled) Debugging.Assert(merge.Exception != null);
-                if (!mergeExceptions.Contains(merge) && mergeGen == merge.mergeGen)
+                lock (this)
                 {
-                    mergeExceptions.Add(merge);
+                    if (Debugging.AssertsEnabled) Debugging.Assert(merge.Exception != null);
+                    if (!mergeExceptions.Contains(merge) && mergeGen == merge.mergeGen)
+                    {
+                        mergeExceptions.Add(merge);
+                    }
                 }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5262,9 +5696,17 @@ namespace Lucene.Net.Index
         // utility routines for tests
         internal virtual SegmentCommitInfo NewestSegment()
         {
-            lock (this)
+            try
             {
-                return segmentInfos.Count > 0 ? segmentInfos.Info(segmentInfos.Count - 1) : null;
+                lock (this)
+                {
+                    return segmentInfos.Count > 0 ? segmentInfos.Info(segmentInfos.Count - 1) : null;
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5276,9 +5718,17 @@ namespace Lucene.Net.Index
         /// </summary>
         public virtual string SegString()
         {
-            lock (this)
+            try
             {
-                return SegString(segmentInfos.Segments);
+                lock (this)
+                {
+                    return SegString(segmentInfos.Segments);
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5290,18 +5740,26 @@ namespace Lucene.Net.Index
         /// </summary>
         public virtual string SegString(IEnumerable<SegmentCommitInfo> infos)
         {
-            lock (this)
+            try
             {
-                StringBuilder buffer = new StringBuilder();
-                foreach (SegmentCommitInfo info in infos)
+                lock (this)
                 {
-                    if (buffer.Length > 0)
+                    StringBuilder buffer = new StringBuilder();
+                    foreach (SegmentCommitInfo info in infos)
                     {
-                        buffer.Append(' ');
+                        if (buffer.Length > 0)
+                        {
+                            buffer.Append(' ');
+                        }
+                        buffer.Append(SegString(info));
                     }
-                    buffer.Append(SegString(info));
+                    return buffer.ToString();
                 }
-                return buffer.ToString();
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5313,30 +5771,46 @@ namespace Lucene.Net.Index
         /// </summary>
         public virtual string SegString(SegmentCommitInfo info)
         {
-            lock (this)
+            try
             {
-                return info.ToString(info.Info.Dir, NumDeletedDocs(info) - info.DelCount);
+                lock (this)
+                {
+                    return info.ToString(info.Info.Dir, NumDeletedDocs(info) - info.DelCount);
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
         private void DoWait()
         {
-            lock (this)
+            try
             {
-                // NOTE: the callers of this method should in theory
-                // be able to do simply wait(), but, as a defense
-                // against thread timing hazards where notifyAll()
-                // fails to be called, we wait for at most 1 second
-                // and then return so caller can check if wait
-                // conditions are satisfied:
-                try
+                lock (this)
                 {
-                    Monitor.Wait(this, TimeSpan.FromMilliseconds(1000));
+                    // NOTE: the callers of this method should in theory
+                    // be able to do simply wait(), but, as a defense
+                    // against thread timing hazards where notifyAll()
+                    // fails to be called, we wait for at most 1 second
+                    // and then return so caller can check if wait
+                    // conditions are satisfied:
+                    try
+                    {
+                        Monitor.Wait(this, TimeSpan.FromMilliseconds(1000));
+                    }
+                    catch (Exception ie) when (ie.IsInterruptedException())
+                    {
+                        throw new Util.ThreadInterruptedException(ie);
+                    }
                 }
-                catch (Exception ie) when (ie.IsInterruptedException())
-                {
-                    throw new Util.ThreadInterruptedException(ie);
-                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5377,25 +5851,33 @@ namespace Lucene.Net.Index
         // For infoStream output
         internal virtual SegmentInfos ToLiveInfos(SegmentInfos sis)
         {
-            lock (this)
+            try
             {
-                SegmentInfos newSIS = new SegmentInfos();
-                IDictionary<SegmentCommitInfo, SegmentCommitInfo> liveSIS = new Dictionary<SegmentCommitInfo, SegmentCommitInfo>();
-                foreach (SegmentCommitInfo info in segmentInfos.Segments)
+                lock (this)
                 {
-                    liveSIS[info] = info;
-                }
-                foreach (SegmentCommitInfo info in sis.Segments)
-                {
-                    SegmentCommitInfo infoMod = info;
-                    if (liveSIS.TryGetValue(info, out SegmentCommitInfo liveInfo))
+                    SegmentInfos newSIS = new SegmentInfos();
+                    IDictionary<SegmentCommitInfo, SegmentCommitInfo> liveSIS = new Dictionary<SegmentCommitInfo, SegmentCommitInfo>();
+                    foreach (SegmentCommitInfo info in segmentInfos.Segments)
                     {
-                        infoMod = liveInfo;
+                        liveSIS[info] = info;
                     }
-                    newSIS.Add(infoMod);
-                }
+                    foreach (SegmentCommitInfo info in sis.Segments)
+                    {
+                        SegmentCommitInfo infoMod = info;
+                        if (liveSIS.TryGetValue(info, out SegmentCommitInfo liveInfo))
+                        {
+                            infoMod = liveInfo;
+                        }
+                        newSIS.Add(infoMod);
+                    }
 
-                return newSIS;
+                    return newSIS;
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5502,27 +5984,40 @@ namespace Lucene.Net.Index
                 }
                 finally
                 {
-                    lock (this)
+                    try
                     {
-                        // Have our master segmentInfos record the
-                        // generations we just prepared.  We do this
-                        // on error or success so we don't
-                        // double-write a segments_N file.
-                        segmentInfos.UpdateGeneration(toSync);
-
-                        if (!pendingCommitSet)
+                        lock (this)
                         {
-                            if (infoStream.IsEnabled("IW"))
-                            {
-                                infoStream.Message("IW", "hit exception committing segments file");
-                            }
+                            // Have our master segmentInfos record the
+                            // generations we just prepared.  We do this
+                            // on error or success so we don't
+                            // double-write a segments_N file.
+                            segmentInfos.UpdateGeneration(toSync);
 
-                            // Hit exception
-                            deleter.DecRef(filesToCommit);
-                            filesToCommit = null;
+                            if (!pendingCommitSet)
+                            {
+                                if (infoStream.IsEnabled("IW"))
+                                {
+                                    infoStream.Message("IW", "hit exception committing segments file");
+                                }
+
+                                // Hit exception
+                                deleter.DecRef(filesToCommit);
+                                filesToCommit = null;
+                            }
                         }
                     }
+                    catch (Exception ie) when (ie.IsInterruptedException())
+                    {
+                        // LUCENENET TODO: Should we re-throw on lock (this)?
+                        throw new Util.ThreadInterruptedException(ie);
+                    }
                 }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
             catch (Exception oom) when (oom.IsOutOfMemoryError())
             {
@@ -5618,15 +6113,23 @@ namespace Lucene.Net.Index
 
         internal virtual bool NrtIsCurrent(SegmentInfos infos)
         {
-            lock (this)
+            try
             {
-                //System.out.println("IW.nrtIsCurrent " + (infos.version == segmentInfos.version && !docWriter.anyChanges() && !bufferedDeletesStream.any()));
-                EnsureOpen();
-                if (infoStream.IsEnabled("IW"))
+                lock (this)
                 {
-                    infoStream.Message("IW", "nrtIsCurrent: infoVersion matches: " + (infos.Version == segmentInfos.Version) + "; DW changes: " + docWriter.AnyChanges() + "; BD changes: " + bufferedUpdatesStream.Any());
+                    //System.out.println("IW.nrtIsCurrent " + (infos.version == segmentInfos.version && !docWriter.anyChanges() && !bufferedDeletesStream.any()));
+                    EnsureOpen();
+                    if (infoStream.IsEnabled("IW"))
+                    {
+                        infoStream.Message("IW", "nrtIsCurrent: infoVersion matches: " + (infos.Version == segmentInfos.Version) + "; DW changes: " + docWriter.AnyChanges() + "; BD changes: " + bufferedUpdatesStream.Any());
+                    }
+                    return infos.Version == segmentInfos.Version && !docWriter.AnyChanges() && !bufferedUpdatesStream.Any();
                 }
-                return infos.Version == segmentInfos.Version && !docWriter.AnyChanges() && !bufferedUpdatesStream.Any();
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5634,9 +6137,17 @@ namespace Lucene.Net.Index
         {
             get
             {
-                lock (this)
+                try
                 {
-                    return closed;
+                    lock (this)
+                    {
+                        return closed;
+                    }
+                }
+                catch (Exception ie) when (ie.IsInterruptedException())
+                {
+                    // LUCENENET TODO: Should we re-throw on lock (this)?
+                    throw new Util.ThreadInterruptedException(ie);
                 }
             }
         }
@@ -5669,11 +6180,19 @@ namespace Lucene.Net.Index
         /// </summary>
         public virtual void DeleteUnusedFiles()
         {
-            lock (this)
+            try
             {
-                EnsureOpen(false);
-                deleter.DeletePendingFiles();
-                deleter.RevisitPolicy();
+                lock (this)
+                {
+                    EnsureOpen(false);
+                    deleter.DeletePendingFiles();
+                    deleter.RevisitPolicy();
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5752,9 +6271,17 @@ namespace Lucene.Net.Index
         /// <seealso cref="IndexFileDeleter.DeleteNewFiles(ICollection{string})"/>
         internal void DeleteNewFiles(ICollection<string> files)
         {
-            lock (this)
+            try
             {
-                deleter.DeleteNewFiles(files);
+                lock (this)
+                {
+                    deleter.DeleteNewFiles(files);
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5763,9 +6290,17 @@ namespace Lucene.Net.Index
         /// <seealso cref="IndexFileDeleter.Refresh(string)"/>
         internal void FlushFailed(SegmentInfo info)
         {
-            lock (this)
+            try
             {
-                deleter.Refresh(info.Name);
+                lock (this)
+                {
+                    deleter.Refresh(info.Name);
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -5804,19 +6339,35 @@ namespace Lucene.Net.Index
 
         internal virtual void IncRefDeleter(SegmentInfos segmentInfos)
         {
-            lock (this)
+            try
             {
-                EnsureOpen();
-                deleter.IncRef(segmentInfos, false);
+                lock (this)
+                {
+                    EnsureOpen();
+                    deleter.IncRef(segmentInfos, false);
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
         internal virtual void DecRefDeleter(SegmentInfos segmentInfos)
         {
-            lock (this)
+            try
             {
-                EnsureOpen();
-                deleter.DecRef(segmentInfos);
+                lock (this)
+                {
+                    EnsureOpen();
+                    deleter.DecRef(segmentInfos);
+                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 

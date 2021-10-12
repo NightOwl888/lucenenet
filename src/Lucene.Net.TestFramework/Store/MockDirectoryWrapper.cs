@@ -598,90 +598,98 @@ namespace Lucene.Net.Store
 
         public override IndexOutput CreateOutput(string name, IOContext context)
         {
-            lock (this)
+            try
             {
-                MaybeThrowDeterministicException();
-                MaybeThrowIOExceptionOnOpen(name);
-                MaybeYield();
-                if (failOnCreateOutput)
-                {
-                    MaybeThrowDeterministicException();
-                }
-                if (crashed)
-                {
-                    throw new IOException("cannot createOutput after crash");
-                }
-                Init();
                 lock (this)
                 {
-                    if (preventDoubleWrite && createdFiles.Contains(name) && !name.Equals("segments.gen", StringComparison.Ordinal))
+                    MaybeThrowDeterministicException();
+                    MaybeThrowIOExceptionOnOpen(name);
+                    MaybeYield();
+                    if (failOnCreateOutput)
                     {
-                        throw new IOException("file \"" + name + "\" was already written to");
+                        MaybeThrowDeterministicException();
                     }
-                }
-                if ((noDeleteOpenFile || assertNoDeleteOpenFile) && openFiles.ContainsKey(name))
-                {
-                    if (!assertNoDeleteOpenFile)
+                    if (crashed)
                     {
-                        throw new IOException("MockDirectoryWrapper: file \"" + name + "\" is still open: cannot overwrite");
+                        throw new IOException("cannot createOutput after crash");
                     }
-                    else
+                    Init();
+                    lock (this)
                     {
-                        throw AssertionError.Create("MockDirectoryWrapper: file \"" + name + "\" is still open: cannot overwrite");
-                    }
-                }
-
-                if (crashed)
-                {
-                    throw new IOException("cannot createOutput after crash");
-                }
-                unSyncedFiles.Add(name);
-                createdFiles.Add(name);
-
-                if (m_input is RAMDirectory ramdir)
-                {
-                    RAMFile file = new RAMFile(ramdir);
-                    ramdir.m_fileMap.TryGetValue(name, out RAMFile existing);
-
-                    // Enforce write once:
-                    if (existing != null && !name.Equals("segments.gen", StringComparison.Ordinal) && preventDoubleWrite)
-                    {
-                        throw new IOException("file " + name + " already exists");
-                    }
-                    else
-                    {
-                        if (existing != null)
+                        if (preventDoubleWrite && createdFiles.Contains(name) && !name.Equals("segments.gen", StringComparison.Ordinal))
                         {
-                            ramdir.m_sizeInBytes.AddAndGet(-existing.GetSizeInBytes()); // LUCENENET: GetAndAdd in Lucene, but we are not using the value
-                            existing.directory = null;
+                            throw new IOException("file \"" + name + "\" was already written to");
                         }
-                        ramdir.m_fileMap[name] = file;
                     }
-                }
-                //System.out.println(Thread.currentThread().getName() + ": MDW: create " + name);
-                IndexOutput delegateOutput = m_input.CreateOutput(name, LuceneTestCase.NewIOContext(randomState, context));
-                if (randomState.Next(10) == 0)
-                {
-                    // once in a while wrap the IO in a Buffered IO with random buffer sizes
-                    delegateOutput = new BufferedIndexOutputWrapper(1 + randomState.Next(BufferedIndexOutput.DEFAULT_BUFFER_SIZE), delegateOutput);
-                }
-                IndexOutput io = new MockIndexOutputWrapper(this, delegateOutput, name);
-                AddFileHandle(io, name, Handle.Output);
-                openFilesForWrite.Add(name);
-
-                // throttling REALLY slows down tests, so don't do it very often for SOMETIMES.
-                if (throttling == Throttling.ALWAYS || (throttling == Throttling.SOMETIMES && randomState.Next(50) == 0) && !(m_input is RateLimitedDirectoryWrapper))
-                {
-                    if (LuceneTestCase.Verbose)
+                    if ((noDeleteOpenFile || assertNoDeleteOpenFile) && openFiles.ContainsKey(name))
                     {
-                        Console.WriteLine("MockDirectoryWrapper: throttling indexOutput (" + name + ")");
+                        if (!assertNoDeleteOpenFile)
+                        {
+                            throw new IOException("MockDirectoryWrapper: file \"" + name + "\" is still open: cannot overwrite");
+                        }
+                        else
+                        {
+                            throw AssertionError.Create("MockDirectoryWrapper: file \"" + name + "\" is still open: cannot overwrite");
+                        }
                     }
-                    return throttledOutput.NewFromDelegate(io);
+
+                    if (crashed)
+                    {
+                        throw new IOException("cannot createOutput after crash");
+                    }
+                    unSyncedFiles.Add(name);
+                    createdFiles.Add(name);
+
+                    if (m_input is RAMDirectory ramdir)
+                    {
+                        RAMFile file = new RAMFile(ramdir);
+                        ramdir.m_fileMap.TryGetValue(name, out RAMFile existing);
+
+                        // Enforce write once:
+                        if (existing != null && !name.Equals("segments.gen", StringComparison.Ordinal) && preventDoubleWrite)
+                        {
+                            throw new IOException("file " + name + " already exists");
+                        }
+                        else
+                        {
+                            if (existing != null)
+                            {
+                                ramdir.m_sizeInBytes.AddAndGet(-existing.GetSizeInBytes()); // LUCENENET: GetAndAdd in Lucene, but we are not using the value
+                                existing.directory = null;
+                            }
+                            ramdir.m_fileMap[name] = file;
+                        }
+                    }
+                    //System.out.println(Thread.currentThread().getName() + ": MDW: create " + name);
+                    IndexOutput delegateOutput = m_input.CreateOutput(name, LuceneTestCase.NewIOContext(randomState, context));
+                    if (randomState.Next(10) == 0)
+                    {
+                        // once in a while wrap the IO in a Buffered IO with random buffer sizes
+                        delegateOutput = new BufferedIndexOutputWrapper(1 + randomState.Next(BufferedIndexOutput.DEFAULT_BUFFER_SIZE), delegateOutput);
+                    }
+                    IndexOutput io = new MockIndexOutputWrapper(this, delegateOutput, name);
+                    AddFileHandle(io, name, Handle.Output);
+                    openFilesForWrite.Add(name);
+
+                    // throttling REALLY slows down tests, so don't do it very often for SOMETIMES.
+                    if (throttling == Throttling.ALWAYS || (throttling == Throttling.SOMETIMES && randomState.Next(50) == 0) && !(m_input is RateLimitedDirectoryWrapper))
+                    {
+                        if (LuceneTestCase.Verbose)
+                        {
+                            Console.WriteLine("MockDirectoryWrapper: throttling indexOutput (" + name + ")");
+                        }
+                        return throttledOutput.NewFromDelegate(io);
+                    }
+                    else
+                    {
+                        return io;
+                    }
                 }
-                else
-                {
-                    return io;
-                }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
@@ -1094,15 +1102,23 @@ namespace Lucene.Net.Store
         /// </summary>
         internal virtual void MaybeThrowDeterministicException()
         {
-            lock (this)
+            try
             {
-                if (failures != null)
+                lock (this)
                 {
-                    for (int i = 0; i < failures.Count; i++)
+                    if (failures != null)
                     {
-                        failures[i].Eval(this);
+                        for (int i = 0; i < failures.Count; i++)
+                        {
+                            failures[i].Eval(this);
+                        }
                     }
                 }
+            }
+            catch (Exception ie) when (ie.IsInterruptedException())
+            {
+                // LUCENENET TODO: Should we re-throw on lock (this)?
+                throw new Util.ThreadInterruptedException(ie);
             }
         }
 
