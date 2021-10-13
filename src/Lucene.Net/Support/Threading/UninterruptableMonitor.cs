@@ -22,7 +22,7 @@ namespace Lucene.Net.Support.Threading
 
     /// <summary>
     /// A drop-in replacement for <see cref="Monitor"/> that doesn't throw <see cref="ThreadInterruptedException"/>
-    /// when entering locks, but defers the excepetion until a wait, or a pulse occurs. This is to mimic the behavior in Java,
+    /// when entering locks, but defers the excepetion until a wait or sleep occurs. This is to mimic the behavior in Java,
     /// which does not throw when entering a lock.
     /// </summary>
     internal static class UninterruptableMonitor
@@ -112,13 +112,11 @@ namespace Lucene.Net.Support.Threading
 
         public static void Pulse(object obj)
         {
-            RestoreInterrupt();
             Monitor.Pulse(obj);
         }
 
         public static void PulseAll(object obj)
         {
-            RestoreInterrupt();
             Monitor.PulseAll(obj);
         }
 
