@@ -1,6 +1,8 @@
 ﻿using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Analysis.Util;
+using Lucene.Net.Attributes;
+using Lucene.Net.Store;
 using Lucene.Net.Util;
 using NUnit.Framework;
 using System;
@@ -217,6 +219,109 @@ namespace Lucene.Net.Search.Suggest.Analyzing
             }
 
             return -1;
+        }
+
+        [Test]
+        [LuceneNetSpecific]
+        public void TestGH527()
+        {
+            const LuceneVersion LUCENE_VERSION = LuceneVersion.LUCENE_48;
+
+            var analyzer = new StandardAnalyzer(LUCENE_VERSION);
+
+            var suggester = new BlendedInfixSuggester(LUCENE_VERSION,
+                new MMapDirectory("search"),
+                analyzer,
+                analyzer,
+                4,
+                BlendedInfixSuggester.BlenderType.POSITION_LINEAR,
+                1
+            );
+
+            var items = new[]
+            {
+                new PlaceItem
+                {
+                    Key = "D|B(C)"
+                }
+            };
+
+            suggester.Build(new PlaceIterator(items));
+
+            var result = suggester.DoLookup("B(C)", false, 5);
+        }
+
+        class PlaceItem
+        {
+            public string Key { get; set; }
+        }
+
+        //internal class PlaceIterator : IInputEnumerator
+        //{
+        //    private readonly IEnumerator<PlaceItem> _enumerator;
+
+        //    public BytesRef Current => _enumerator.Current is { } ? new BytesRef(_enumerator.Current.Key) : null;
+
+        //    public IComparer<BytesRef> Comparer => null;
+        //    public long Weight => 0;
+        //    public BytesRef Payload => null;
+        //    public bool HasPayloads => true;
+        //    public ICollection<BytesRef> Contexts => Array.Empty<BytesRef>();
+        //    public bool HasContexts => true;
+
+        //    public PlaceIterator(IEnumerable<PlaceItem> placeItems)
+        //    {
+        //        _enumerator = placeItems.GetEnumerator();
+        //    }
+
+        //    public bool MoveNext() => _enumerator.MoveNext();
+        //}
+
+        class PlaceIterator : IInputEnumerator
+        {
+            private readonly IEnumerator<PlaceItem> _enumerator;
+
+            private PlaceItem _current = null;
+            public BytesRef Current => _current != null ? new BytesRef(_current.Key) : null;
+
+            public IComparer<BytesRef> Comparer => null;
+            public long Weight => 0;
+            public BytesRef Payload => null;
+            public bool HasPayloads => false;
+            public ICollection<BytesRef> Contexts => Array.Empty<BytesRef>();
+            public bool HasContexts => false;
+
+            public PlaceIterator(IEnumerable<PlaceItem> placeItems)
+            {
+                _enumerator = placeItems.GetEnumerator();
+
+                if (_enumerator.MoveNext())
+                {
+                    first = true;
+                    _current = _enumerator.Current;
+                }
+            }
+
+            private bool first;
+
+            public bool MoveNext()
+            {
+                if (first && _current != null)
+                {
+                    first = false;
+                }
+                else if (_enumerator.MoveNext())
+                {
+                    _current = _enumerator.Current;
+                }
+                else
+                {
+                    _current = null;
+                    return false;
+                }
+
+                return true;
+            }
         }
     }
 }
