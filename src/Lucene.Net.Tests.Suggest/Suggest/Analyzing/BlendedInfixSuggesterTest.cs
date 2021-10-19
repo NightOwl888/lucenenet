@@ -242,7 +242,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
             {
                 new PlaceItem
                 {
-                    Key = "D|B(C)"
+                    Key = new BytesRef("D|B(C)")
                 }
             };
 
@@ -251,9 +251,83 @@ namespace Lucene.Net.Search.Suggest.Analyzing
             var result = suggester.DoLookup("B(C)", false, 5);
         }
 
+        //class PlaceItem
+        //{
+        //    public string Key { get; set; }
+        //}
+
+        ////internal class PlaceIterator : IInputEnumerator
+        ////{
+        ////    private readonly IEnumerator<PlaceItem> _enumerator;
+
+        ////    public BytesRef Current => _enumerator.Current is { } ? new BytesRef(_enumerator.Current.Key) : null;
+
+        ////    public IComparer<BytesRef> Comparer => null;
+        ////    public long Weight => 0;
+        ////    public BytesRef Payload => null;
+        ////    public bool HasPayloads => true;
+        ////    public ICollection<BytesRef> Contexts => Array.Empty<BytesRef>();
+        ////    public bool HasContexts => true;
+
+        ////    public PlaceIterator(IEnumerable<PlaceItem> placeItems)
+        ////    {
+        ////        _enumerator = placeItems.GetEnumerator();
+        ////    }
+
+        ////    public bool MoveNext() => _enumerator.MoveNext();
+        ////}
+
+        //class PlaceIterator : IInputEnumerator
+        //{
+        //    private readonly IEnumerator<PlaceItem> _enumerator;
+        //    //private readonly BytesRef _spare;
+
+        //    private PlaceItem _current = null;
+        //    public BytesRef Current => _current != null ? new BytesRef(_current.Key) : null;
+
+        //    public IComparer<BytesRef> Comparer => null;
+        //    public long Weight => 0;
+        //    public BytesRef Payload => null;
+        //    public bool HasPayloads => false;
+        //    public ICollection<BytesRef> Contexts => Array.Empty<BytesRef>();
+        //    public bool HasContexts => false;
+
+        //    public PlaceIterator(IEnumerable<PlaceItem> placeItems)
+        //    {
+        //        _enumerator = placeItems.GetEnumerator();
+
+        //        if (_enumerator.MoveNext())
+        //        {
+        //            first = true;
+        //            _current = _enumerator.Current;
+        //        }
+        //    }
+
+        //    private bool first;
+
+        //    public bool MoveNext()
+        //    {
+        //        if (first && _current != null)
+        //        {
+        //            first = false;
+        //        }
+        //        else if (_enumerator.MoveNext())
+        //        {
+        //            _current = _enumerator.Current;
+        //        }
+        //        else
+        //        {
+        //            _current = null;
+        //            return false;
+        //        }
+
+        //        return true;
+        //    }
+        //}
+
         class PlaceItem
         {
-            public string Key { get; set; }
+            public BytesRef Key { get; set; }
         }
 
         //internal class PlaceIterator : IInputEnumerator
@@ -280,12 +354,13 @@ namespace Lucene.Net.Search.Suggest.Analyzing
         class PlaceIterator : IInputEnumerator
         {
             private readonly IEnumerator<PlaceItem> _enumerator;
+            private readonly BytesRef _spare = new BytesRef(); // the current BytesRef value
 
             private PlaceItem _current = null;
-            public BytesRef Current => _current != null ? new BytesRef(_current.Key) : null;
+            public BytesRef Current => _spare;
 
             public IComparer<BytesRef> Comparer => null;
-            public long Weight => 0;
+            public long Weight => 1;
             public BytesRef Payload => null;
             public bool HasPayloads => false;
             public ICollection<BytesRef> Contexts => Array.Empty<BytesRef>();
@@ -299,6 +374,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                 {
                     first = true;
                     _current = _enumerator.Current;
+                    _spare.CopyBytes(_current.Key);
                 }
             }
 
@@ -313,6 +389,7 @@ namespace Lucene.Net.Search.Suggest.Analyzing
                 else if (_enumerator.MoveNext())
                 {
                     _current = _enumerator.Current;
+                    _spare.CopyBytes(_current.Key);
                 }
                 else
                 {
