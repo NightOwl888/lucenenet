@@ -283,6 +283,9 @@ namespace Lucene.Net.Index
                         threadState.Unlock();
                     }
                 }
+
+                // In case any threads are waiting for indexing:
+                UninterruptableMonitor.PulseAll(this); // LUCENENET: This is from Lucene 4.8.1
             }
             finally
             {
