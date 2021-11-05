@@ -1,10 +1,16 @@
-using Lucene.Net.Replicator.Http;
+﻿using Lucene.Net.Replicator.Http;
 using Lucene.Net.Replicator.Http.Abstractions;
 using Lucene.Net.Util;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Lucene.Net.Replicator
 {
@@ -28,13 +34,32 @@ namespace Lucene.Net.Replicator
     [SuppressCodecs("Lucene3x")]
     public class ReplicatorTestCase : LuceneTestCase
     {
-        public static TestServer NewHttpServer<TStartUp>(IReplicationService service) where TStartUp : class
+        public static TestServer NewHttpServer<TStartUp>(IReplicationService service, MockErrorConfig mockErrorConfig) where TStartUp : class
         {
             var server = new TestServer(new WebHostBuilder()
                 .ConfigureServices(container =>
                 {
                     container.AddSingleton(service);
-                }).UseStartup<TStartUp>());
+                    container.AddSingleton(mockErrorConfig);
+                })
+                .Configure(app =>
+                {
+                    app.UseMiddleware<MockErrorMiddleware>();
+
+                    //app.Use(
+                    //    async (context, next) =>
+                    //{
+                    //    if (mockErrorConfig.RespondWithError)
+                    //    {
+                    //        //throw new HttpResponseException();
+                    //        throw new Exception("This failed");
+                    //    }
+
+                    //    // Call the next delegate/middleware in the pipeline
+                    //    await next();
+                    //});
+                })
+                .UseStartup<TStartUp>());
             server.BaseAddress = new Uri("http://localhost" + ReplicationService.REPLICATION_CONTEXT);
             return server;
         }
@@ -61,6 +86,41 @@ namespace Lucene.Net.Replicator
         public static void StopHttpServer(TestServer server)
         {
             server.Dispose();
+        }
+
+        public class HttpResponseException : Exception
+        {
+            public int Status { get; set; } = 500;
+
+            public object Value { get; set; }
+        }
+
+        public class MockErrorMiddleware
+        {
+            private readonly RequestDelegate next;
+            private readonly MockErrorConfig mockErrorConfig;
+
+            public MockErrorMiddleware(RequestDelegate next, MockErrorConfig mockErrorConfig)
+            {
+                this.next = next ?? throw new ArgumentNullException(nameof(next));
+                this.mockErrorConfig = mockErrorConfig ?? throw new ArgumentNullException(nameof(mockErrorConfig));
+            }
+
+            public async Task InvokeAsync(HttpContext context)
+            {
+                if (mockErrorConfig.RespondWithError)
+                {
+                    throw new HttpResponseException();
+                }
+
+                // Call the next delegate/middleware in the pipeline
+                await next(context);
+            }
+        }
+
+        public class MockErrorConfig
+        {
+            public bool RespondWithError { get; set; } = false;
         }
     }
 }
