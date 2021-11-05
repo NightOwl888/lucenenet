@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.ExceptionServices;
 using System.Text;
+using System.Threading;
 
 namespace Lucene.Net.Replicator.Http
 {
@@ -38,11 +39,12 @@ namespace Lucene.Net.Replicator.Http
     /// </remarks>
     public abstract class HttpClientBase : IDisposable
     {
+        // LUCENENET specific - removed DEFAULT_CONNECTION_TIMEOUT because it is irrelevant
+
         /// <summary>
-        /// Default connection timeout for this client, in milliseconds.
-        /// <see cref="ConnectionTimeout"/>
+        /// Default request timeout for this client (100 seconds).
         /// </summary>
-        public const int DEFAULT_CONNECTION_TIMEOUT = 1000;
+        public static TimeSpan DEFAULT_TIMEOUT = TimeSpan.FromSeconds(100); // LUCENENET: This was DEFAULT_SO_TIMEOUT in Lucene, using .NET's default timeout value of 100 instead of 61 seconds
 
         // TODO compression?
 
@@ -84,7 +86,7 @@ namespace Lucene.Net.Replicator.Http
         /// <param name="messageHandler">Optional, The HTTP handler stack to use for sending requests.</param>
         //Note: LUCENENET Specific
         protected HttpClientBase(string url, HttpMessageHandler messageHandler = null)
-            : this(url, new HttpClient(messageHandler ?? new HttpClientHandler()) { Timeout = TimeSpan.FromMilliseconds(DEFAULT_CONNECTION_TIMEOUT) })
+            : this(url, new HttpClient(messageHandler ?? new HttpClientHandler()) {  Timeout = DEFAULT_TIMEOUT })
         {
         }
 
@@ -102,17 +104,17 @@ namespace Lucene.Net.Replicator.Http
         {
             Url = url;
             httpc = client;
-            ConnectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
+            Timeout = DEFAULT_TIMEOUT;
         }
 
         /// <summary>
         /// Gets or Sets the connection timeout for this client, in milliseconds. This setting
         /// is used to modify <see cref="HttpClient.Timeout"/>.
         /// </summary>
-        public virtual int ConnectionTimeout
+        public virtual TimeSpan Timeout
         {
-            get => (int)httpc.Timeout.TotalMilliseconds;
-            set => httpc.Timeout = TimeSpan.FromMilliseconds(value);
+            get => httpc.Timeout;
+            set => httpc.Timeout = value;
         }
 
         /// <summary>
