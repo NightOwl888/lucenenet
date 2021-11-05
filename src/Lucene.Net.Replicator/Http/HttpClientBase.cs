@@ -123,7 +123,7 @@ namespace Lucene.Net.Replicator.Http
         /// <exception cref="ObjectDisposedException">client is already disposed.</exception>
         protected void EnsureOpen()
         {
-            if (IsDisposed)
+            if (isDisposed)
             {
                 throw AlreadyClosedException.Create(this.GetType().FullName, "HttpClient already disposed.");
             }
@@ -267,13 +267,6 @@ namespace Lucene.Net.Replicator.Http
         }
 
         /// <summary>
-        /// Returns <c>true</c> if this instance was <see cref="Dispose(bool)"/>ed, otherwise
-        /// returns <c>false</c>. Note that if you override <see cref="Dispose(bool)"/>, you must call
-        /// <see cref="Dispose(bool)"/> on the base class, in order for this instance to be properly disposed.
-        /// </summary>
-        public bool IsDisposed => isDisposed;
-
-        /// <summary>
         /// Calls the overload <see cref="DoAction{T}(HttpResponseMessage, bool, Func{T})"/> passing <c>true</c> to consume.
         /// </summary>
         protected virtual T DoAction<T>(HttpResponseMessage response, Func<T> call)
@@ -329,7 +322,7 @@ namespace Lucene.Net.Replicator.Http
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing && !IsDisposed)
+            if (disposing && !isDisposed)
             {
                 httpc.Dispose();
             }
