@@ -30,7 +30,7 @@
   <Import Project="$(SolutionDir).build/nuget.props" />
 
   <PropertyGroup>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFrameworks>net6.0;netcoreapp3.1;net461</TargetFrameworks>
 
     <AssemblyTitle>Lucene.Net.Analysis.OpenNLP</AssemblyTitle>
     <PackageTags>$(PackageTags);analysis;natural;language;processing;opennlp</PackageTags>
@@ -39,16 +39,15 @@
     <RootNamespace>Lucene.Net.Analysis.OpenNlp</RootNamespace>
   </PropertyGroup>
 
-  
-
   <ItemGroup>
-    <ProjectReference Include="..\dotnet\Lucene.Net.ICU\Lucene.Net.ICU.csproj" />
     <ProjectReference Include="..\Lucene.Net\Lucene.Net.csproj" />
     <ProjectReference Include="..\Lucene.Net.Analysis.Common\Lucene.Net.Analysis.Common.csproj" />
+    <ProjectReference Include="..\dotnet\Lucene.Net.ICU\Lucene.Net.ICU.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ICU4N" Version="$(ICU4NPackageVersion)" />
+    <PackageReference Include="IKVM" Version="$(IKVMPackageVersion)" />
     <PackageReference Include="OpenNLP.NET" Version="$(OpenNLPNETPackageVersion)" />
   </ItemGroup>
 

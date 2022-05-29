@@ -24,16 +24,13 @@
   <Import Project="$(SolutionDir)TestTargetFramework.props" />
 
   <PropertyGroup>
-    <TargetFrameworks></TargetFrameworks>
-    <TargetFramework>net48</TargetFramework>
-
     <AssemblyTitle>Lucene.Net.Tests.Analysis.OpenNLP</AssemblyTitle>
     <RootNamespace>Lucene.Net.Analysis.OpenNlp</RootNamespace>
 
-    <IsPublishable>false</IsPublishable>
-    <IsPublishable Condition=" '$(TargetFramework)' == 'net48' ">true</IsPublishable>
+    <IsPublishable>true</IsPublishable>
+    <IsPublishable Condition=" $(TargetFramework.StartsWith('net45')) Or '$(TargetFramework)' == 'net46' ">false</IsPublishable>
 
-    <!-- Workaround since there are no targets on non-Windows OS. We need at least 1 TargetFramework
+    <!-- Workaround since there are no targets prior to .net461. We need at least 1 TargetFramework
         registered or MSBuild's validation will fail, so we explicitly disable it as a test project instead. -->
     <IsTestProject>false</IsTestProject>
     <IsTestProject Condition="$([MSBuild]::IsOsPlatform('Windows'))">true</IsTestProject>
@@ -45,10 +42,37 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lucene.Net.Analysis.Common\Lucene.Net.Analysis.Common.csproj" />
+    <ProjectReference Include="..\Lucene.Net.Analysis.Common\Lucene.Net.Analysis.Common.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+    <!-- This project has no netstandard2.0 support, so we delegate SetTargetFramework to the project under test -->
     <ProjectReference Include="..\Lucene.Net.Analysis.OpenNLP\Lucene.Net.Analysis.OpenNLP.csproj" />
-    <ProjectReference Include="..\Lucene.Net.Codecs\Lucene.Net.Codecs.csproj" />
-    <ProjectReference Include="..\Lucene.Net.TestFramework\Lucene.Net.TestFramework.csproj" />
+    <ProjectReference Include="..\Lucene.Net.Codecs\Lucene.Net.Codecs.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+    <ProjectReference Include="..\Lucene.Net.TestFramework\Lucene.Net.TestFramework.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- We must force our dependencies with SetTargetFramework to netstandard2.0 in the net461 case -->
+    <!-- These are not dependencies of this project, they are dependencies of dependencies -->
+    <ProjectReference Include="..\Lucene.Net\Lucene.Net.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+    <ProjectReference Include="..\Lucene.Net.Highlighter\Lucene.Net.Highlighter.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+    <ProjectReference Include="..\dotnet\Lucene.Net.ICU\Lucene.Net.ICU.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+    <ProjectReference Include="..\Lucene.Net.Memory\Lucene.Net.Memory.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
+    <ProjectReference Include="..\Lucene.Net.Queries\Lucene.Net.Queries.csproj">
+      <SetTargetFramework>$(SetTargetFramework)</SetTargetFramework>
+    </ProjectReference>
   </ItemGroup>
 
   <Import Project="$(SolutionDir).build/TestReferences.Common.targets" />
