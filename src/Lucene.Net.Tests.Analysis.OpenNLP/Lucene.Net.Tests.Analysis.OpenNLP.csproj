@@ -32,8 +32,8 @@
 
     <!-- Workaround since there are no targets prior to .net461. We need at least 1 TargetFramework
         registered or MSBuild's validation will fail, so we explicitly disable it as a test project instead. -->
-    <IsTestProject>false</IsTestProject>
-    <IsTestProject Condition="$([MSBuild]::IsOsPlatform('Windows'))">true</IsTestProject>
+    <IsTestProject>true</IsTestProject>
+    <IsTestProject Condition=" $(TargetFramework.StartsWith('net45')) Or $(TargetFramework.StartsWith('net46')) ">false</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
