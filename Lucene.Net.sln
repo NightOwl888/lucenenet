@@ -41,10 +41,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{4016BD
 		build = build
 		build.bat = build.bat
 		build.ps1 = build.ps1
-		.build\runbuild.ps1 = .build\runbuild.ps1
 		.build\dependencies.props = .build\dependencies.props
 		.build\nuget.props = .build\nuget.props
 		.build\release.targets = .build\release.targets
+		.build\runbuild.ps1 = .build\runbuild.ps1
 		.build\TestReferences.Common.targets = .build\TestReferences.Common.targets
 		TestTargetFramework.props = TestTargetFramework.props
 	EndProjectSection
@@ -281,6 +281,10 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "websites", "websites\", "{8
 		VWDPort = "59352"
 		SlnRelativePath = "websites\"
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lucene.Net.Analysis.Nori", "src\Lucene.Net.Analysis.Nori\Lucene.Net.Analysis.Nori.csproj", "{E7C688D1-EB79-45E3-A1D7-F1C2DCD4D12E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lucene.Net.Tests.Analysis.Nori", "src\Lucene.Net.Tests.Analysis.Nori\Lucene.Net.Tests.Analysis.Nori.csproj", "{E6953210-A871-49D7-A452-8E5AD4A9B01B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -554,6 +558,14 @@ Global
 		{9880B87D-8D14-476B-B093-9C3AA0DA8B24}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8988CDA4-8420-4BEE-869A-66825055EED2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8988CDA4-8420-4BEE-869A-66825055EED2}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7C688D1-EB79-45E3-A1D7-F1C2DCD4D12E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7C688D1-EB79-45E3-A1D7-F1C2DCD4D12E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7C688D1-EB79-45E3-A1D7-F1C2DCD4D12E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7C688D1-EB79-45E3-A1D7-F1C2DCD4D12E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6953210-A871-49D7-A452-8E5AD4A9B01B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6953210-A871-49D7-A452-8E5AD4A9B01B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6953210-A871-49D7-A452-8E5AD4A9B01B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6953210-A871-49D7-A452-8E5AD4A9B01B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

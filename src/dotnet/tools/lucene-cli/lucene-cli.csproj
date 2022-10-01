@@ -62,6 +62,7 @@
     <ProjectReference Include="..\..\..\Lucene.Net\Lucene.Net.csproj" />
     <ProjectReference Include="..\..\..\Lucene.Net.Analysis.Common\Lucene.Net.Analysis.Common.csproj" />
     <ProjectReference Include="..\..\..\Lucene.Net.Analysis.Kuromoji\Lucene.Net.Analysis.Kuromoji.csproj" />
+    <ProjectReference Include="..\..\..\Lucene.Net.Analysis.Nori\Lucene.Net.Analysis.Nori.csproj" />
     <ProjectReference Include="..\..\..\Lucene.Net.Analysis.Stempel\Lucene.Net.Analysis.Stempel.csproj" />
     <ProjectReference Include="..\..\..\Lucene.Net.Benchmark\Lucene.Net.Benchmark.csproj" />
     <ProjectReference Include="..\..\..\Lucene.Net.Demo\Lucene.Net.Demo.csproj" />

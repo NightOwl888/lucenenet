@@ -1,24 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--
-
- Licensed to the Apache Software Foundation (ASF) under one
- or more contributor license agreements.  See the NOTICE file
- distributed with this work for additional information
- regarding copyright ownership.  The ASF licenses this file
- to you under the Apache License, Version 2.0 (the
- "License"); you may not use this file except in compliance
- with the License.  You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing,
- software distributed under the License is distributed on an
- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- KIND, either express or implied.  See the License for the
- specific language governing permissions and limitations
- under the License.
-
--->
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -173,6 +153,38 @@ See this blog post (http://mentaldetritus.blogspot.com/2013/03/compiling-custom-
     <value>Normalize the entries using normalization form KC.</value>
   </data>
   <data name="AnalysisKuromojiBuildDictionaryCommandOutputDirectoryDescription" xml:space="preserve">
+    <value>The directory to put the dictionary output.</value>
+  </data>
+  <data name="AnalysisNoriBuildDictionaryCommandDescription" xml:space="preserve">
+    <value>Generates a set of custom dictionary files for the Lucene.Net.Analysis.Nori library.</value>
+  </data>
+  <data name="AnalysisNoriBuildDictionaryCommandExtendedHelpText" xml:space="preserve">
+    <value>Generates the following set of binary files:
+
+- CharacterDefinition.dat
+- ConnectionCosts.dat
+- TokenInfoDictionary$buffer.dat
+- TokenInfoDictionary$fst.dat
+- TokenInfoDictionary$posDict.dat
+- TokenInfoDictionary$targetMap.dat
+- UnknownDictionary$buffer.dat
+- UnknownDictionary$posDict.dat
+- UnknownDictionary$targetMap.dat
+
+If these files are placed into a subdirectory of your application named 'nori-data', they will be used automatically by Lucene.Net.Analysis.Nori features such as the KoreanAnalyzer or KoreanTokenizer. To use an alternate directory location, put the path in an environment variable named 'nori.data.dir'. The files must be placed in a subdirectory of this location named 'nori-data'.
+
+See the wiki post (https://github.com/jimczi/nori/blob/14579127f7e8e4316f4dbfad64601c31d746d652/how-to-custom-dict.asciidoc#how-to-use-a-custom-dictionary-in-nori) for information about the dictionary format and how to customize it. Note that the instructions are for Java Lucene and Solr which only makes them useful for acquiring and modifying the data. For .NET it is generally best not to recompile the application, but to use this tool to generate the data files and then place them into a subdirectory of your application named 'nori-data'.</value>
+  </data>
+  <data name="AnalysisNoriBuildDictionaryCommandInputDirectoryDescription" xml:space="preserve">
+    <value>The directory where the dictionary input files are located.</value>
+  </data>
+  <data name="AnalysisNoriBuildDictionaryCommandInputDirectoryEncodingDescription" xml:space="preserve">
+    <value>The file encoding used by the input files. If not supplied, the default value is UTF-8.</value>
+  </data>
+  <data name="AnalysisNoriBuildDictionaryCommandNormalizeDescription" xml:space="preserve">
+    <value>Normalize the entries using normalization form KC.</value>
+  </data>
+  <data name="AnalysisNoriBuildDictionaryCommandOutputDirectoryDescription" xml:space="preserve">
     <value>The directory to put the dictionary output.</value>
   </data>
   <data name="AnalysisStempelCompileStemsCommandDescription" xml:space="preserve">
