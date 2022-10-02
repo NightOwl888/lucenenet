@@ -1,6 +1,6 @@
 ﻿// Lucene version compatibility level 8.2.0
 using Lucene.Net.Analysis.Ko.Dict;
-using Lucene.Net.Util.Fst;
+using Lucene.Net.Support.Util.Fst;
 using System.IO;
 using Long = J2N.Numerics.Int64;
 

@@ -1,6 +1,6 @@
 ﻿// Lucene version compatibility level 8.2.0
 using Lucene.Net.Util;
-using Lucene.Net.Util.Fst;
+using Lucene.Net.Support.Util.Fst;
 using NUnit.Framework;
 using System;
 using System.Linq;

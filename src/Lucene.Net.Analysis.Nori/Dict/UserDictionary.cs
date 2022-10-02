@@ -1,7 +1,7 @@
 ﻿// Lucene version compatibility level 8.2.0
 using J2N.Text;
 using Lucene.Net.Util;
-using Lucene.Net.Util.Fst;
+using Lucene.Net.Support.Util.Fst;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -110,7 +110,7 @@ namespace Lucene.Net.Analysis.Ko.Dict
             }));
 
             PositiveInt32Outputs fstOutput = PositiveInt32Outputs.Singleton;
-            Builder<Long> fstBuilder = new Builder<Long>(Lucene.Net.Util.Fst.FST.INPUT_TYPE.BYTE2, fstOutput);
+            Builder<Long> fstBuilder = new Builder<Long>(Lucene.Net.Support.Util.Fst.FST.INPUT_TYPE.BYTE2, fstOutput);
             Int32sRef scratch = new Int32sRef();
 
             string lastToken = null;

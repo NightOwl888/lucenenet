@@ -8,7 +8,7 @@ using Lucene.Net.Analysis.Util;
 using Lucene.Net.Diagnostics;
 using Lucene.Net.Support;
 using Lucene.Net.Util;
-using Lucene.Net.Util.Fst;
+using Lucene.Net.Support.Util.Fst;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
