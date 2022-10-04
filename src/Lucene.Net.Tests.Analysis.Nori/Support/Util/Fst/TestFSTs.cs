@@ -47,7 +47,7 @@ namespace Lucene.Net.Support.Util.Fst
      * limitations under the License.
      */
 
-    [SuppressCodecs("SimpleText", "Memory", "Direct")]
+    [SuppressCodecs("SimpleText", /*"Memory",*/ "Direct")]
     [Slow]
     [TestFixture]
     public class TestFSTs : LuceneTestCase
@@ -60,7 +60,6 @@ namespace Lucene.Net.Support.Util.Fst
         {
             base.SetUp();
             dir = NewMockDirectory();
-            dir.PreventDoubleWrite = false;
         }
 
         [TearDown]
@@ -111,10 +110,11 @@ namespace Lucene.Net.Support.Util.Fst
                     {
                         pairs.Add(new InputOutput<object>(term, NO_OUTPUT));
                     }
-                    FST<object> fst = (new FSTTester<object>(Random, dir, inputMode, pairs, outputs, false)).DoTest(0, 0, false);
+                    FSTTester<object> tester = new FSTTester<object>(Random, dir, inputMode, pairs, outputs, false);
+                    FST<object> fst = tester.DoTest(0, 0, false);
                     Assert.IsNotNull(fst);
-                    Assert.AreEqual(22, fst.NodeCount);
-                    Assert.AreEqual(27, fst.ArcCount);
+                    Assert.AreEqual(22, tester.nodeCount);
+                    Assert.AreEqual(27, tester.arcCount);
                 }
 
                 // FST ord pos int
@@ -125,10 +125,11 @@ namespace Lucene.Net.Support.Util.Fst
                     {
                         pairs.Add(new InputOutput<Int64>(terms2[idx], idx));
                     }
-                    FST<Int64> fst = (new FSTTester<Int64>(Random, dir, inputMode, pairs, outputs, true)).DoTest(0, 0, false);
+                    FSTTester<Int64> tester = new FSTTester<Int64>(Random, dir, inputMode, pairs, outputs, true);
+                    FST<Int64> fst = tester.DoTest(0, 0, false);
                     Assert.IsNotNull(fst);
-                    Assert.AreEqual(22, fst.NodeCount);
-                    Assert.AreEqual(27, fst.ArcCount);
+                    Assert.AreEqual(22, tester.nodeCount);
+                    Assert.AreEqual(27, tester.arcCount);
                 }
 
                 // FST byte sequence ord
@@ -141,10 +142,11 @@ namespace Lucene.Net.Support.Util.Fst
                         BytesRef output = Random.Next(30) == 17 ? NO_OUTPUT : new BytesRef(Convert.ToString(idx));
                         pairs.Add(new InputOutput<BytesRef>(terms2[idx], output));
                     }
-                    FST<BytesRef> fst = (new FSTTester<BytesRef>(Random, dir, inputMode, pairs, outputs, false)).DoTest(0, 0, false);
-                    Assert.IsNotNull(fst);
-                    Assert.AreEqual(24, fst.NodeCount);
-                    Assert.AreEqual(30, fst.ArcCount);
+                    FSTTester<BytesRef> tester = new FSTTester<BytesRef>(Random, dir, inputMode, pairs, outputs, false);
+                    FST<BytesRef> fst = tester.DoTest(0, 0, false);
+                    Assert.IsNotNull(tester);
+                    Assert.AreEqual(24, tester.nodeCount);
+                    Assert.AreEqual(30, tester.arcCount);
                 }
             }
         }
@@ -225,7 +227,7 @@ namespace Lucene.Net.Support.Util.Fst
                 IList<InputOutput<BytesRef>> pairs = new JCG.List<InputOutput<BytesRef>>(terms.Length);
                 for (int idx = 0; idx < terms.Length; idx++)
                 {
-                    BytesRef output = Random.Next(30) == 17 ? NO_OUTPUT : new BytesRef(Convert.ToString(idx));
+                    BytesRef output = Random.Next(30) == 17 ? NO_OUTPUT : new BytesRef(J2N.Numerics.Int32.ToString(idx, NumberFormatInfo.InvariantInfo));
                     pairs.Add(new InputOutput<BytesRef>(terms[idx], output));
                 }
                 (new FSTTester<BytesRef>(Random, dir, inputMode, pairs, outputs, false)).DoTest(true);
@@ -257,8 +259,10 @@ namespace Lucene.Net.Support.Util.Fst
         [Test]
         public virtual void TestRandomWords()
         {
-            TestRandomWords(1000, AtLeast(2));
-            //testRandomWords(100, 1);
+            if (TestNightly)
+                TestRandomWords(1000, AtLeast(2));
+            else
+                TestRandomWords(100, 1);
         }
 
         internal virtual string InputModeToString(int mode)
@@ -305,13 +309,13 @@ namespace Lucene.Net.Support.Util.Fst
         }
 
         // Build FST for all unique terms in the test line docs
-        // file, up until a time limit
+        // file, up until a doc limit
         [Test]
         public virtual void TestRealTerms()
         {
 
-            LineFileDocs docs = new LineFileDocs(Random, DefaultCodecSupportsDocValues);
-            int RUN_TIME_MSEC = AtLeast(500);
+            LineFileDocs docs = new LineFileDocs(Random);
+            int numDocs = TestNightly ? AtLeast(1000) : AtLeast(100);
             MockAnalyzer analyzer = new MockAnalyzer(Random);
             analyzer.MaxTokenLength = TestUtil.NextInt32(Random, 1, IndexWriter.MAX_TERM_LENGTH);
 
@@ -319,10 +323,9 @@ namespace Lucene.Net.Support.Util.Fst
             DirectoryInfo tempDir = CreateTempDir("fstlines");
             Directory dir = NewFSDirectory(tempDir);
             IndexWriter writer = new IndexWriter(dir, conf);
-            long stopTime = (J2N.Time.NanoTime() / J2N.Time.MillisecondsPerNanosecond) + RUN_TIME_MSEC; // LUCENENET: Use NanoTime() rather than CurrentTimeMilliseconds() for more accurate/reliable results
             Document doc;
             int docCount = 0;
-            while ((doc = docs.NextDoc()) != null && J2N.Time.NanoTime() / J2N.Time.MillisecondsPerNanosecond < stopTime) // LUCENENET: Use NanoTime() rather than CurrentTimeMilliseconds() for more accurate/reliable results
+            while ((doc = docs.NextDoc()) != null && docCount < numDocs)
             {
                 writer.AddDocument(doc);
                 docCount++;
@@ -331,9 +334,7 @@ namespace Lucene.Net.Support.Util.Fst
             writer.Dispose();
             PositiveInt32Outputs outputs = PositiveInt32Outputs.Singleton;
 
-            bool doRewrite = Random.NextBoolean();
-
-            Builder<Int64> builder = new Builder<Int64>(FST.INPUT_TYPE.BYTE1, 0, 0, true, true, int.MaxValue, outputs, null, doRewrite, PackedInt32s.DEFAULT, true, 15);
+            Builder<Int64> builder = new Builder<Int64>(FST.INPUT_TYPE.BYTE1, 0, 0, true, true, int.MaxValue, outputs, true, 15);
 
             bool storeOrd = Random.NextBoolean();
             if (Verbose)
@@ -405,7 +406,7 @@ namespace Lucene.Net.Support.Util.Fst
                 FST<Int64> fst = builder.Finish();
                 if (Verbose)
                 {
-                    Console.WriteLine("FST: " + docCount + " docs; " + ord + " terms; " + fst.NodeCount + " nodes; " + fst.ArcCount + " arcs;" + " " + fst.GetSizeInBytes() + " bytes");
+                    Console.WriteLine("FST: " + docCount + " docs; " + ord + " terms; " + builder.NodeCount + " nodes; " + builder.ArcCount + " arcs;" + " " + fst.GetRamBytesUsed() + " bytes");
                 }
 
                 if (ord > 0)
@@ -509,17 +510,15 @@ namespace Lucene.Net.Support.Util.Fst
             private readonly int inputMode;
             private readonly Outputs<T> outputs;
             private readonly Builder<T> builder;
-            //private readonly bool doPack; // LUCENENET: Not used
 
-            public VisitTerms(string dirOut, string wordsFileIn, int inputMode, int prune, Outputs<T> outputs, bool doPack, bool noArcArrays)
+            public VisitTerms(string dirOut, string wordsFileIn, int inputMode, int prune, Outputs<T> outputs, bool noArcArrays)
             {
                 this.dirOut = dirOut;
                 this.wordsFileIn = wordsFileIn;
                 this.inputMode = inputMode;
                 this.outputs = outputs;
-                //this.doPack = doPack; // LUCENENET: Not used
 
-                builder = new Builder<T>(inputMode == 0 ? FST.INPUT_TYPE.BYTE1 : FST.INPUT_TYPE.BYTE4, 0, prune, prune == 0, true, int.MaxValue, outputs, null, doPack, PackedInt32s.DEFAULT, !noArcArrays, 15);
+                builder = new Builder<T>(inputMode == 0 ? FST.INPUT_TYPE.BYTE1 : FST.INPUT_TYPE.BYTE4, 0, prune, prune == 0, true, int.MaxValue, outputs, !noArcArrays, 15);
             }
 
             protected internal abstract T GetOutput(Int32sRef input, int ord);
@@ -571,8 +570,8 @@ namespace Lucene.Net.Support.Util.Fst
                         return;
                     }
 
-                    Console.WriteLine(ord + " terms; " + fst.NodeCount + " nodes; " + fst.ArcCount + " arcs; " + fst.ArcWithOutputCount + " arcs w/ output; tot size " + fst.GetSizeInBytes());
-                    if (fst.NodeCount < 100)
+                    Console.WriteLine(ord + " terms; " + builder.NodeCount + " nodes; " + builder.ArcCount + " arcs; tot size " + fst.GetRamBytesUsed());
+                    if (builder.NodeCount < 100)
                     {
                         TextWriter w = new StreamWriter(new FileStream("out.dot", FileMode.Create), Encoding.UTF8);
                         Util.ToDot(fst, w, false, false);
@@ -633,7 +632,9 @@ namespace Lucene.Net.Support.Util.Fst
                                 {
                                     // Get by output
                                     Int64 output = (Int64)(object)GetOutput(intsRef, ord);
+#pragma warning disable 612, 618
                                     Int32sRef actual = Util.GetByOutput(fst as FST<Int64>, output);
+#pragma warning restore 612, 618
                                     if (actual is null)
                                     {
                                         throw RuntimeException.Create("unexpected null input from output=" + output);
@@ -691,7 +692,6 @@ namespace Lucene.Net.Support.Util.Fst
             bool storeOrds = false;
             bool storeDocFreqs = false;
             bool verify = true;
-            bool doPack = false;
             bool noArcArrays = false;
             string wordsFileIn = null;
             string dirOut = null;
@@ -775,26 +775,26 @@ namespace Lucene.Net.Support.Util.Fst
                 PositiveIntOutputs o1 = PositiveIntOutputs.Singleton;
                 PositiveIntOutputs o2 = PositiveIntOutputs.Singleton;
                 PairOutputs<long, long> outputs = new PairOutputs<long, long>(o1, o2);
-                new VisitTermsAnonymousClass(dirOut, wordsFileIn, inputMode, prune, outputs, doPack, noArcArrays).Run(limit, verify, false);
+                new VisitTermsAnonymousClass(dirOut, wordsFileIn, inputMode, prune, outputs, noArcArrays).Run(limit, verify, false);
             }
             else if (storeOrds)
             {
                 // Store only ords
                 PositiveIntOutputs outputs = PositiveIntOutputs.Singleton;
-                new VisitTermsAnonymousClass2(dirOut, wordsFileIn, inputMode, prune, outputs, doPack, noArcArrays).Run(limit, verify, true);
+                new VisitTermsAnonymousClass2(dirOut, wordsFileIn, inputMode, prune, outputs, noArcArrays).Run(limit, verify, true);
             }
             else if (storeDocFreqs)
             {
                 // Store only docFreq
                 PositiveIntOutputs outputs = PositiveIntOutputs.Singleton;
-                new VisitTermsAnonymousClass3(dirOut, wordsFileIn, inputMode, prune, outputs, doPack, noArcArrays).Run(limit, verify, false);
+                new VisitTermsAnonymousClass3(dirOut, wordsFileIn, inputMode, prune, outputs, noArcArrays).Run(limit, verify, false);
             }
             else
             {
                 // Store nothing
                 NoOutputs outputs = NoOutputs.Singleton;
                 object NO_OUTPUT = outputs.NoOutput;
-                new VisitTermsAnonymousClass4(dirOut, wordsFileIn, inputMode, prune, outputs, doPack, noArcArrays, NO_OUTPUT).Run(limit, verify, false);
+                new VisitTermsAnonymousClass4(dirOut, wordsFileIn, inputMode, prune, outputs, noArcArrays, NO_OUTPUT).Run(limit, verify, false);
             }
         }*/
 
@@ -802,8 +802,8 @@ namespace Lucene.Net.Support.Util.Fst
         {
             private readonly PairOutputs<Int64, Int64> outputs;
 
-            public VisitTermsAnonymousClass(string dirOut, string wordsFileIn, int inputMode, int prune, PairOutputs<Int64, Int64> outputs, bool doPack, bool noArcArrays)
-                : base(dirOut, wordsFileIn, inputMode, prune, outputs, doPack, noArcArrays)
+            public VisitTermsAnonymousClass(string dirOut, string wordsFileIn, int inputMode, int prune, PairOutputs<Int64, Int64> outputs, bool noArcArrays)
+                : base(dirOut, wordsFileIn, inputMode, prune, outputs, noArcArrays)
             {
                 this.outputs = outputs;
             }
@@ -821,8 +821,8 @@ namespace Lucene.Net.Support.Util.Fst
 
         private class VisitTermsAnonymousClass2 : VisitTerms<Int64>
         {
-            public VisitTermsAnonymousClass2(string dirOut, string wordsFileIn, int inputMode, int prune, PositiveInt32Outputs outputs, bool doPack, bool noArcArrays)
-                : base(dirOut, wordsFileIn, inputMode, prune, outputs, doPack, noArcArrays)
+            public VisitTermsAnonymousClass2(string dirOut, string wordsFileIn, int inputMode, int prune, PositiveInt32Outputs outputs, bool noArcArrays)
+                : base(dirOut, wordsFileIn, inputMode, prune, outputs, noArcArrays)
             {
             }
 
@@ -834,8 +834,8 @@ namespace Lucene.Net.Support.Util.Fst
 
         private class VisitTermsAnonymousClass3 : VisitTerms<Int64>
         {
-            public VisitTermsAnonymousClass3(string dirOut, string wordsFileIn, int inputMode, int prune, PositiveInt32Outputs outputs, bool doPack, bool noArcArrays)
-                : base(dirOut, wordsFileIn, inputMode, prune, outputs, doPack, noArcArrays)
+            public VisitTermsAnonymousClass3(string dirOut, string wordsFileIn, int inputMode, int prune, PositiveInt32Outputs outputs, bool noArcArrays)
+                : base(dirOut, wordsFileIn, inputMode, prune, outputs, noArcArrays)
             {
             }
 
@@ -854,8 +854,8 @@ namespace Lucene.Net.Support.Util.Fst
         {
             private readonly object NO_OUTPUT;
 
-            public VisitTermsAnonymousClass4(string dirOut, string wordsFileIn, int inputMode, int prune, NoOutputs outputs, bool doPack, bool noArcArrays, object NO_OUTPUT)
-                : base(dirOut, wordsFileIn, inputMode, prune, outputs, doPack, noArcArrays)
+            public VisitTermsAnonymousClass4(string dirOut, string wordsFileIn, int inputMode, int prune, NoOutputs outputs, bool noArcArrays, object NO_OUTPUT)
+                : base(dirOut, wordsFileIn, inputMode, prune, outputs, noArcArrays)
             {
                 this.NO_OUTPUT = NO_OUTPUT;
             }
@@ -989,10 +989,12 @@ namespace Lucene.Net.Support.Util.Fst
             Assert.AreEqual(b, seekResult.Input);
             Assert.AreEqual(42, seekResult.Output);
 
+#pragma warning disable 612, 618
             Assert.AreEqual(Util.ToInt32sRef(new BytesRef("c"), new Int32sRef()), Util.GetByOutput(fst, 13824324872317238L));
             Assert.IsNull(Util.GetByOutput(fst, 47));
             Assert.AreEqual(Util.ToInt32sRef(new BytesRef("b"), new Int32sRef()), Util.GetByOutput(fst, 42));
             Assert.AreEqual(Util.ToInt32sRef(new BytesRef("a"), new Int32sRef()), Util.GetByOutput(fst, 17));
+#pragma warning restore 612, 618
         }
 
         [Test]
@@ -1276,7 +1278,7 @@ namespace Lucene.Net.Support.Util.Fst
                 return b.Finish();
             }
 
-            public void Generate(IList<string> @out, StringBuilder b, char from, char to, int depth)
+            internal void Generate(IList<string> @out, StringBuilder b, char from, char to, int depth)
             {
                 if (depth == 0 || from == to)
                 {
@@ -1296,7 +1298,7 @@ namespace Lucene.Net.Support.Util.Fst
 
             public int VerifyStateAndBelow(FST<object> fst, FST.Arc<object> arc, int depth)
             {
-                if (FST<object>.TargetHasArcs(arc))
+                if (FST.TargetHasArcs(arc))
                 {
                     int childCount = 0;
                     BytesReader fstReader = fst.GetBytesReader();
@@ -1323,7 +1325,7 @@ namespace Lucene.Net.Support.Util.Fst
         {
             PositiveInt32Outputs outputs = PositiveInt32Outputs.Singleton;
 
-            Builder<Int64> builder = new Builder<Int64>(FST.INPUT_TYPE.BYTE4, 2, 0, true, true, int.MaxValue, outputs, null, Random.NextBoolean(), PackedInt32s.DEFAULT, true, 15);
+            Builder<Int64> builder = new Builder<Int64>(FST.INPUT_TYPE.BYTE4, 2, 0, true, true, int.MaxValue, outputs, true, 15);
             builder.Add(Util.ToUTF32("stat", new Int32sRef()), 17L);
             builder.Add(Util.ToUTF32("station", new Int32sRef()), 10L);
             FST<Int64> fst = builder.Finish();
@@ -1339,8 +1341,7 @@ namespace Lucene.Net.Support.Util.Fst
         public virtual void TestInternalFinalState()
         {
             PositiveInt32Outputs outputs = PositiveInt32Outputs.Singleton;
-            bool willRewrite = Random.NextBoolean();
-            Builder<Int64> builder = new Builder<Int64>(FST.INPUT_TYPE.BYTE1, 0, 0, true, true, int.MaxValue, outputs, null, willRewrite, PackedInt32s.DEFAULT, true, 15);
+            Builder<Int64> builder = new Builder<Int64>(FST.INPUT_TYPE.BYTE1, 0, 0, true, true, int.MaxValue, outputs, true, 15);
             builder.Add(Util.ToInt32sRef(new BytesRef("stat"), new Int32sRef()), outputs.NoOutput);
             builder.Add(Util.ToInt32sRef(new BytesRef("station"), new Int32sRef()), outputs.NoOutput);
             FST<Int64> fst = builder.Finish();
@@ -1365,7 +1366,8 @@ namespace Lucene.Net.Support.Util.Fst
             long nothing = outputs.NoOutput;
             Builder<Int64> b = new Builder<Int64>(FST.INPUT_TYPE.BYTE1, outputs);
 
-            FST<Int64> fst = new FST<Int64>(FST.INPUT_TYPE.BYTE1, outputs, false, PackedInt32s.COMPACT, true, 15);
+            //FST<Int64> fst = new FST<Int64>(FST.INPUT_TYPE.BYTE1, outputs, false, PackedInt32s.COMPACT, true, 15);
+            FST<Int64> fst = b.Fst;
 
             Builder.UnCompiledNode<Int64> rootNode = new Builder.UnCompiledNode<Int64>(b, 0);
 
@@ -1375,7 +1377,7 @@ namespace Lucene.Net.Support.Util.Fst
                 node.IsFinal = true;
                 rootNode.AddArc('a', node);
                 Builder.CompiledNode frozen = new Builder.CompiledNode();
-                frozen.Node = fst.AddNode(node);
+                frozen.Node = fst.AddNode(b, node);
                 rootNode.Arcs[0].NextFinalOutput = 17L;
                 rootNode.Arcs[0].IsFinal = true;
                 rootNode.Arcs[0].Output = nothing;
@@ -1387,13 +1389,13 @@ namespace Lucene.Net.Support.Util.Fst
                 Builder.UnCompiledNode<Int64> node = new Builder.UnCompiledNode<Int64>(b, 0);
                 rootNode.AddArc('b', node);
                 Builder.CompiledNode frozen = new Builder.CompiledNode();
-                frozen.Node = fst.AddNode(node);
+                frozen.Node = fst.AddNode(b, node);
                 rootNode.Arcs[1].NextFinalOutput = nothing;
                 rootNode.Arcs[1].Output = 42L;
                 rootNode.Arcs[1].Target = frozen;
             }
 
-            fst.Finish(fst.AddNode(rootNode));
+            fst.Finish(fst.AddNode(b, rootNode));
 
             StringWriter w = new StringWriter();
             //Writer w = new OutputStreamWriter(new FileOutputStream("/x/tmp3/out.dot"));
@@ -1786,10 +1788,10 @@ namespace Lucene.Net.Support.Util.Fst
 
                 Util.TopResults<Pair> r = Util.ShortestPaths(fst, arc, fst.Outputs.NoOutput, minPairWeightComparer, topN, true);
                 Assert.IsTrue(r.IsComplete);
-                // 2. go thru whole treemap (slowCompletor) and check its actually the best suggestion
+                // 2. go thru whole treemap (slowCompletor) and check it's actually the best suggestion
                 JCG.List<Util.Result<Pair>> matches = new JCG.List<Util.Result<Pair>>();
 
-                // TODO: could be faster... but its slowCompletor for a reason
+                // TODO: could be faster... but it's slowCompletor for a reason
                 foreach (KeyValuePair<string, TwoLongs> e in slowCompletor)
                 {
                     if (e.Key.StartsWith(prefix, StringComparison.Ordinal))
@@ -1848,6 +1850,63 @@ namespace Lucene.Net.Support.Util.Fst
                 {
                     Assert.AreEqual((byte)0, result.Bytes[result.Offset + byteIDX]);
                 }
+            }
+        }
+
+        [Test]
+        public virtual void TestIllegallyModifyRootArc()
+        {
+            AssumeTrue("test relies on assertions", Debugging.AssertsEnabled);
+
+            ISet<BytesRef> terms = new JCG.HashSet<BytesRef>();
+            for (int i = 0; i < 100; i++)
+            {
+                String prefix = ((char)('a' + i)) + "";
+                terms.add(new BytesRef(prefix));
+                if (prefix.equals("m") == false)
+                {
+                    for (int j = 0; j < 20; j++)
+                    {
+                        // Make a big enough FST that the root cache will be created:
+                        String suffix = TestUtil.RandomRealisticUnicodeString(Random, 10, 20);
+                        terms.add(new BytesRef(prefix + suffix));
+                    }
+                }
+            }
+
+            JCG.List<BytesRef> termsList = new JCG.List<BytesRef>(terms);
+            termsList.Sort();
+
+            ByteSequenceOutputs outputs = ByteSequenceOutputs.Singleton;
+            Builder<BytesRef> builder = new Builder<BytesRef>(FST.INPUT_TYPE.BYTE1, outputs);
+
+            Int32sRef input = new Int32sRef();
+            foreach (BytesRef term in termsList)
+            {
+                Util.ToInt32sRef(term, input);
+                builder.Add(input, term);
+            }
+
+            FST<BytesRef> fst = builder.Finish();
+
+            FST.Arc<BytesRef> arc = new FST.Arc<BytesRef>();
+            fst.GetFirstArc(arc);
+            FST.BytesReader reader = fst.GetBytesReader();
+            arc = fst.FindTargetArc((int)'m', arc, arc, reader);
+            assertNotNull(arc);
+            assertEquals(new BytesRef("m"), arc.Output);
+
+            // NOTE: illegal:
+            arc.Output.Length = 0;
+
+            fst.GetFirstArc(arc);
+            try
+            {
+                arc = fst.FindTargetArc((int)'m', arc, arc, reader);
+            }
+            catch (Exception ae) when (ae.IsAssertionError())
+            {
+                // expected
             }
         }
     }

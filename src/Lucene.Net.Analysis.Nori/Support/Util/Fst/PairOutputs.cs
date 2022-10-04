@@ -1,5 +1,6 @@
 ﻿// Lucene version compatibility level 4.8.0
 using Lucene.Net.Diagnostics;
+using Lucene.Net.Util;
 using System.Runtime.CompilerServices;
 
 namespace Lucene.Net.Support.Util.Fst
@@ -149,6 +150,12 @@ namespace Lucene.Net.Support.Util.Fst
             return NewPair(output1, output2);
         }
 
+        public override void SkipOutput(DataInput input)
+        {
+            outputs1.SkipOutput(input);
+            outputs2.SkipOutput(input);
+        }
+
         public override Pair<A, B> NoOutput => NO_OUTPUT;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -161,6 +168,22 @@ namespace Lucene.Net.Support.Util.Fst
         public override string ToString()
         {
             return "PairOutputs<" + outputs1 + "," + outputs2 + ">";
+        }
+
+        private static readonly long BASE_NUM_BYTES = RamUsageEstimator.ShallowSizeOf(new Pair<A, B>(null, null));
+
+        public override long GetRamBytesUsed(Pair<A, B> output)
+        {
+            long ramBytesUsed = BASE_NUM_BYTES;
+            if (output.Output1 != null)
+            {
+                ramBytesUsed += outputs1.GetRamBytesUsed(output.Output1);
+            }
+            if (output.Output2 != null)
+            {
+                ramBytesUsed += outputs2.GetRamBytesUsed(output.Output2);
+            }
+            return ramBytesUsed;
         }
     }
 
@@ -187,6 +210,11 @@ namespace Lucene.Net.Support.Util.Fst
         public override int GetHashCode()
         {
             return Output1.GetHashCode() + Output2.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return $"Pair({Output1},{Output2})";
         }
     }
 }

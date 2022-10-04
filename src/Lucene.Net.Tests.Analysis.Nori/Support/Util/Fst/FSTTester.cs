@@ -67,6 +67,8 @@ namespace Lucene.Net.Support.Util.Fst
         internal readonly Outputs<T> outputs;
         internal readonly Directory dir;
         internal readonly bool doReverseLookup;
+        internal long nodeCount;
+        internal long arcCount;
 
         public FSTTester(Random random, Directory dir, int inputMode, IList<InputOutput<T>> pairs, Outputs<T> outputs, bool doReverseLookup)
         {
@@ -147,11 +149,13 @@ namespace Lucene.Net.Support.Util.Fst
             return new string(buffer, 0, end);
         }
 
+        // LUCENENET UPGRADE: Int32sRefBuilder
         internal static Int32sRef ToInt32sRef(string s, int inputMode)
         {
             return ToInt32sRef(s, inputMode, new Int32sRef(10));
         }
 
+        // LUCENENET UPGRADE: Int32sRefBuilder
         internal static Int32sRef ToInt32sRef(string s, int inputMode, Int32sRef ir)
         {
             if (inputMode == 0)
@@ -166,17 +170,16 @@ namespace Lucene.Net.Support.Util.Fst
             }
         }
 
+        // LUCENENET UPGRADE: Int32sRefBuilder
         internal static Int32sRef ToInt32sRefUTF32(string s, Int32sRef ir)
         {
             int charLength = s.Length;
             int charIdx = 0;
             int intIdx = 0;
+            
             while (charIdx < charLength)
             {
-                if (intIdx == ir.Int32s.Length)
-                {
-                    ir.Grow(intIdx + 1);
-                }
+                ir.Grow(intIdx + 1);
                 int utf32 = Character.CodePointAt(s, charIdx);
                 ir.Int32s[intIdx] = utf32;
                 charIdx += Character.CharCount(utf32);
@@ -317,30 +320,14 @@ namespace Lucene.Net.Support.Util.Fst
                 Console.WriteLine("\nTEST: prune1=" + prune1 + " prune2=" + prune2);
             }
 
-            bool willRewrite = random.NextBoolean();
-
             Builder<T> builder = new Builder<T>(inputMode == 0 ? FST.INPUT_TYPE.BYTE1 : FST.INPUT_TYPE.BYTE4,
                                                 prune1, prune2,
                                                 prune1 == 0 && prune2 == 0,
                                                 allowRandomSuffixSharing ? random.NextBoolean() : true,
                                                 allowRandomSuffixSharing ? TestUtil.NextInt32(random, 1, 10) : int.MaxValue,
                                                 outputs,
-                                                null,
-                                                willRewrite,
-                                                PackedInt32s.DEFAULT,
                                                 true,
                                                 15);
-            if (LuceneTestCase.Verbose)
-            {
-                if (willRewrite)
-                {
-                    Console.WriteLine("TEST: packed FST");
-                }
-                else
-                {
-                    Console.WriteLine("TEST: non-packed FST");
-                }
-            }
 
             foreach (InputOutput<T> pair in pairs)
             {
@@ -366,7 +353,7 @@ namespace Lucene.Net.Support.Util.Fst
             }
             FST<T> fst = builder.Finish();
 
-            if (random.NextBoolean() && fst != null && !willRewrite)
+            if (random.NextBoolean() && fst != null)
             {
                 IOContext context = LuceneTestCase.NewIOContext(random);
                 using (IndexOutput @out = dir.CreateOutput("fst.bin", context))
@@ -387,11 +374,13 @@ namespace Lucene.Net.Support.Util.Fst
 
             if (LuceneTestCase.Verbose && pairs.Count <= 20 && fst != null)
             {
-                using (TextWriter w = new StreamWriter(new FileStream("out.dot", FileMode.OpenOrCreate), Encoding.UTF8))
+                Console.Out.WriteLine("Printing FST as dot file to stdout:");
+                using (TextWriter w = Console.Out)
                 {
                     Util.ToDot(fst, w, false, false);
+                    w.Flush();
                 }
-                Console.WriteLine("SAVED out.dot");
+                Console.Out.WriteLine("END dot file");
             }
 
             if (LuceneTestCase.Verbose)
@@ -402,7 +391,7 @@ namespace Lucene.Net.Support.Util.Fst
                 }
                 else
                 {
-                    Console.WriteLine("  fst has " + fst.NodeCount + " nodes and " + fst.ArcCount + " arcs");
+                    Console.WriteLine("  fst has " + builder.NodeCount + " nodes and " + builder.ArcCount + " arcs");
                 }
             }
 
@@ -414,6 +403,9 @@ namespace Lucene.Net.Support.Util.Fst
             {
                 VerifyPruned(inputMode, fst, prune1, prune2);
             }
+
+            nodeCount = builder.NodeCount;
+            arcCount = builder.ArcCount;
 
             return fst;
         }
@@ -512,6 +504,7 @@ namespace Lucene.Net.Support.Util.Fst
 
             if (doReverseLookup && maxLong > minLong)
             {
+#pragma warning disable 612, 618
                 // Do random lookups so we test null (output doesn't
                 // exist) case:
                 Assert.IsNull(Util.GetByOutput(fstLong, minLong - 7));
@@ -524,6 +517,7 @@ namespace Lucene.Net.Support.Util.Fst
                     Int32sRef input = Util.GetByOutput(fstLong, v);
                     Assert.IsTrue(validOutputs.Contains(v) || input is null);
                 }
+#pragma warning restore 612, 618
             }
 
             // find random matching word and make sure it's valid
@@ -542,7 +536,9 @@ namespace Lucene.Net.Support.Util.Fst
                 if (doReverseLookup)
                 {
                     //System.out.println("lookup output=" + output + " outs=" + fst.Outputs);
+#pragma warning disable 612, 618
                     Int32sRef input = Util.GetByOutput(fstLong, (Int64)(object)output);
+#pragma warning restore 612, 618
                     Assert.IsNotNull(input);
                     //System.out.println("  got " + Util.toBytesRef(input, new BytesRef()).utf8ToString());
                     Assert.AreEqual(scratch, input);

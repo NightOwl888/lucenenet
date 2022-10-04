@@ -141,20 +141,20 @@ namespace Lucene.Net.Support.Util.Fst
             }
         }
 
-        public override void Write(CharsRef prefix, DataOutput @out)
+        public override void Write(CharsRef prefix, DataOutput output)
         {
             if (Debugging.AssertsEnabled) Debugging.Assert(prefix != null);
-            @out.WriteVInt32(prefix.Length);
+            output.WriteVInt32(prefix.Length);
             // TODO: maybe UTF8?
             for (int idx = 0; idx < prefix.Length; idx++)
             {
-                @out.WriteVInt32(prefix.Chars[prefix.Offset + idx]);
+                output.WriteVInt32(prefix.Chars[prefix.Offset + idx]);
             }
         }
 
-        public override CharsRef Read(DataInput @in)
+        public override CharsRef Read(DataInput input)
         {
-            int len = @in.ReadVInt32();
+            int len = input.ReadVInt32();
             if (len == 0)
             {
                 return NO_OUTPUT;
@@ -164,10 +164,19 @@ namespace Lucene.Net.Support.Util.Fst
                 CharsRef output = new CharsRef(len);
                 for (int idx = 0; idx < len; idx++)
                 {
-                    output.Chars[idx] = (char)@in.ReadVInt32();
+                    output.Chars[idx] = (char)input.ReadVInt32();
                 }
                 output.Length = len;
                 return output;
+            }
+        }
+
+        public override void SkipOutput(DataInput input)
+        {
+            int len = input.ReadVInt32();
+            for (int idx = 0; idx < len; idx++)
+            {
+                input.ReadVInt32();
             }
         }
 
@@ -177,6 +186,13 @@ namespace Lucene.Net.Support.Util.Fst
         public override string OutputToString(CharsRef output)
         {
             return output.ToString();
+        }
+
+        private static readonly long BASE_NUM_BYTES = RamUsageEstimator.ShallowSizeOf(NO_OUTPUT);
+
+        public override long GetRamBytesUsed(CharsRef output)
+        {
+            return BASE_NUM_BYTES + RamUsageEstimator.SizeOf(output.Chars);
         }
     }
 }

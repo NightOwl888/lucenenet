@@ -30,7 +30,7 @@ namespace Lucene.Net.Support.Util.Fst
      */
 
     //ORIGINAL LINE: @TimeoutSuite(millis = 100 * TimeUnits.HOUR) public class Test2BFST extends Lucene.Net.Util.LuceneTestCase
-    [Ignore("Requires tons of heap to run (420G works)")]
+    [Ignore("Requires tons of heap to run (30 GB hits OOME but 35 GB passes after ~4.5 hours)")]
     [TestFixture]
     public class Test2BFST : LuceneTestCase
     {
@@ -39,6 +39,8 @@ namespace Lucene.Net.Support.Util.Fst
         [Test]
         public virtual void Test()
         {
+            // assumeWorkingMMapOnWindows();
+
             int[] ints = new int[7];
             Int32sRef input = new Int32sRef(ints, 0, ints.Length);
             long seed = Random.NextInt64();
@@ -47,15 +49,13 @@ namespace Lucene.Net.Support.Util.Fst
 
             for (int doPackIter = 0; doPackIter < 2; doPackIter++)
             {
-                bool doPack = doPackIter == 1;
-
                 // Build FST w/ NoOutputs and stop when nodeCount > 2.2B
-                if (!doPack)
                 {
                     Console.WriteLine("\nTEST: 3B nodes; doPack=false output=NO_OUTPUTS");
                     Outputs<object> outputs = NoOutputs.Singleton;
                     object NO_OUTPUT = outputs.NoOutput;
-                    Builder<object> b = new Builder<object>(FST.INPUT_TYPE.BYTE1, 0, 0, true, true, int.MaxValue, outputs, null, doPack, PackedInt32s.COMPACT, true, 15);
+                    Builder<object> b = new Builder<object>(FST.INPUT_TYPE.BYTE1, 0, 0, true, true, int.MaxValue, outputs,
+                        true, 15);
 
                     int count = 0;
                     Random r = new J2N.Randomizer(seed);
@@ -72,9 +72,9 @@ namespace Lucene.Net.Support.Util.Fst
                         count++;
                         if (count % 100000 == 0)
                         {
-                            Console.WriteLine(count + ": " + b.GetFstSizeInBytes() + " bytes; " + b.TotStateCount + " nodes");
+                            Console.WriteLine(count + ": " + b.GetFstRamBytesUsed() + " bytes; " + b.NodeCount + " nodes");
                         }
-                        if (b.TotStateCount > int.MaxValue + 100L * 1024 * 1024)
+                        if (b.NodeCount > int.MaxValue + 100L * 1024 * 1024)
                         {
                             break;
                         }
@@ -85,7 +85,7 @@ namespace Lucene.Net.Support.Util.Fst
 
                     for (int verify = 0; verify < 2; verify++)
                     {
-                        Console.WriteLine("\nTEST: now verify [fst size=" + fst.GetSizeInBytes() + "; nodeCount=" + fst.NodeCount + "; arcCount=" + fst.ArcCount + "]");
+                        Console.WriteLine("\nTEST: now verify [fst size=" + fst.GetRamBytesUsed() + "; nodeCount=" + b.NodeCount + "; arcCount=" + b.ArcCount + "]");
 
                         Arrays.Fill(ints2, 0);
                         r = new J2N.Randomizer(seed);
@@ -144,9 +144,10 @@ namespace Lucene.Net.Support.Util.Fst
                 // Build FST w/ ByteSequenceOutputs and stop when FST
                 // size = 3GB
                 {
-                    Console.WriteLine("\nTEST: 3 GB size; doPack=" + doPack + " outputs=bytes");
+                    Console.WriteLine("\nTEST: 3 GB size; outputs=bytes");
                     Outputs<BytesRef> outputs = ByteSequenceOutputs.Singleton;
-                    Builder<BytesRef> b = new Builder<BytesRef>(FST.INPUT_TYPE.BYTE1, 0, 0, true, true, int.MaxValue, outputs, null, doPack, PackedInt32s.COMPACT, true, 15);
+                    Builder<BytesRef> b = new Builder<BytesRef>(FST.INPUT_TYPE.BYTE1, 0, 0, true, true, int.MaxValue, outputs,
+                        true, 15);
 
                     var outputBytes = new byte[20];
                     BytesRef output = new BytesRef(outputBytes);
@@ -159,13 +160,17 @@ namespace Lucene.Net.Support.Util.Fst
                         //System.out.println("add: " + input + " -> " + output);
                         b.Add(input, BytesRef.DeepCopyOf(output));
                         count++;
-                        if (count % 1000000 == 0)
+                        if (count % 10000 == 0)
                         {
-                            Console.WriteLine(count + "...: " + b.GetFstSizeInBytes() + " bytes");
-                        }
-                        if (b.GetFstSizeInBytes() > LIMIT)
-                        {
-                            break;
+                            long size = b.GetFstRamBytesUsed();
+                            if (count % 1000000 == 0)
+                            {
+                                Console.WriteLine(count + "...: " + size + " bytes");
+                            }
+                            if (size > LIMIT)
+                            {
+                                break;
+                            }
                         }
                         NextInput(r, ints);
                     }
@@ -173,7 +178,7 @@ namespace Lucene.Net.Support.Util.Fst
                     FST<BytesRef> fst = b.Finish();
                     for (int verify = 0; verify < 2; verify++)
                     {
-                        Console.WriteLine("\nTEST: now verify [fst size=" + fst.GetSizeInBytes() + "; nodeCount=" + fst.NodeCount + "; arcCount=" + fst.ArcCount + "]");
+                        Console.WriteLine("\nTEST: now verify [fst size=" + fst.GetRamBytesUsed() + "; nodeCount=" + b.NodeCount + "; arcCount=" + b.ArcCount + "]");
 
                         r = new J2N.Randomizer(seed);
                         Arrays.Fill(ints, 0);
@@ -226,9 +231,10 @@ namespace Lucene.Net.Support.Util.Fst
                 // Build FST w/ PositiveIntOutputs and stop when FST
                 // size = 3GB
                 {
-                    Console.WriteLine("\nTEST: 3 GB size; doPack=" + doPack + " outputs=long");
+                    Console.WriteLine("\nTEST: 3 GB size; outputs=long");
                     Outputs<Int64> outputs = PositiveInt32Outputs.Singleton;
-                    Builder<Int64> b = new Builder<Int64>(FST.INPUT_TYPE.BYTE1, 0, 0, true, true, int.MaxValue, outputs, null, doPack, PackedInt32s.COMPACT, true, 15);
+                    Builder<Int64> b = new Builder<Int64>(FST.INPUT_TYPE.BYTE1, 0, 0, true, true, int.MaxValue, outputs,
+                        true, 15);
 
                     long output = 1;
 
@@ -241,13 +247,17 @@ namespace Lucene.Net.Support.Util.Fst
                         b.Add(input, output);
                         output += 1 + r.Next(10);
                         count++;
-                        if (count % 1000000 == 0)
+                        if (count % 10000 == 0)
                         {
-                            Console.WriteLine(count + "...: " + b.GetFstSizeInBytes() + " bytes");
-                        }
-                        if (b.GetFstSizeInBytes() > LIMIT)
-                        {
-                            break;
+                            long size = b.GetFstRamBytesUsed();
+                            if (count % 1000000 == 0)
+                            {
+                                Console.WriteLine(count + "...: " + size + " bytes");
+                            }
+                            if (size > LIMIT)
+                            {
+                                break;
+                            }
                         }
                         NextInput(r, ints);
                     }
@@ -256,7 +266,7 @@ namespace Lucene.Net.Support.Util.Fst
 
                     for (int verify = 0; verify < 2; verify++)
                     {
-                        Console.WriteLine("\nTEST: now verify [fst size=" + fst.GetSizeInBytes() + "; nodeCount=" + fst.NodeCount + "; arcCount=" + fst.ArcCount + "]");
+                        Console.WriteLine("\nTEST: now verify [fst size=" + fst.GetRamBytesUsed() + "; nodeCount=" + b.NodeCount + "; arcCount=" + b.ArcCount + "]");
 
                         Arrays.Fill(ints, 0);
 
@@ -272,7 +282,9 @@ namespace Lucene.Net.Support.Util.Fst
                             // forward lookup:
                             Assert.AreEqual(output, (long)Util.Get(fst, input));
                             // reverse lookup:
+#pragma warning disable 612, 618
                             Assert.AreEqual(input, Util.GetByOutput(fst, output));
+#pragma warning restore 612, 618
                             output += 1 + r.Next(10);
                             NextInput(r, ints);
                         }

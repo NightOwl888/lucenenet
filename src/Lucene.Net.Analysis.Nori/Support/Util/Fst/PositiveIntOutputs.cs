@@ -1,6 +1,7 @@
 ﻿// Lucene version compatibility level 4.8.0
 using Lucene.Net.Diagnostics;
 using Lucene.Net.Store;
+using Lucene.Net.Util;
 using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -151,6 +152,12 @@ namespace Lucene.Net.Support.Util.Fst
         public override string ToString()
         {
             return "PositiveIntOutputs";
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override long GetRamBytesUsed(Int64 output)
+        {
+            return RamUsageEstimator.SizeOf(output);
         }
     }
 }

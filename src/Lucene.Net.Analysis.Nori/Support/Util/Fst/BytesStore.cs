@@ -1,6 +1,7 @@
 ﻿// Lucene version compatibility level 4.8.0
 using Lucene.Net.Diagnostics;
 using Lucene.Net.Store;
+using Lucene.Net.Util;
 using System;
 using System.Runtime.CompilerServices;
 using JCG = J2N.Collections.Generic;
@@ -26,8 +27,12 @@ namespace Lucene.Net.Support.Util.Fst
 
     // TODO: merge with PagedBytes, except PagedBytes doesn't
     // let you read while writing which FST needs
-    internal class BytesStore : DataOutput
+    internal class BytesStore : DataOutput, IAccountable
     {
+        private static readonly long BASE_RAM_BYTES_USED =
+            RamUsageEstimator.ShallowSizeOfInstance(typeof(BytesStore))
+            + RamUsageEstimator.ShallowSizeOfInstance(typeof(JCG.List<byte[]>));
+
         private readonly JCG.List<byte[]> blocks = new JCG.List<byte[]>();
 
         private readonly int blockSize;
@@ -46,7 +51,7 @@ namespace Lucene.Net.Support.Util.Fst
         }
 
         /// <summary>
-        /// Pulls bytes from the provided <see cref="Store.IndexInput"/>. </summary>
+        /// Pulls bytes from the provided <see cref="IndexInput"/>. </summary>
         public BytesStore(DataInput @in, long numBytes, int maxBlockSize)
         {
             int blockSize = 2;
@@ -77,11 +82,11 @@ namespace Lucene.Net.Support.Util.Fst
         /// Absolute write byte; you must ensure dest is &lt; max
         /// position written so far.
         /// </summary>
-        public virtual void WriteByte(int dest, byte b)
+        public virtual void WriteByte(long dest, byte b)
         {
-            int blockIndex = dest >> blockBits;
+            int blockIndex = (int)(dest >> blockBits);
             byte[] block = blocks[blockIndex];
-            block[dest & blockMask] = b;
+            block[(int)(dest & blockMask)] = b;
         }
 
         public override void WriteByte(byte b)
@@ -102,7 +107,12 @@ namespace Lucene.Net.Support.Util.Fst
                 int chunk = blockSize - nextWrite;
                 if (len <= chunk)
                 {
-                    System.Buffer.BlockCopy(b, offset, current, nextWrite, len);
+                    if (Debugging.AssertsEnabled)
+                    {
+                        Debugging.Assert(b != null);
+                        Debugging.Assert(current != null);
+                    }
+                    Array.Copy(b, offset, current, nextWrite, len);
                     nextWrite += len;
                     break;
                 }
@@ -409,14 +419,14 @@ namespace Lucene.Net.Support.Util.Fst
             {
                 return new ForwardBytesReader(blocks[0]);
             }
-            return new ForwardBytesReaderAnonymousInner(this);
+            return new ForwardBytesReaderAnonymousClass(this);
         }
 
-        private class ForwardBytesReaderAnonymousInner : FST.BytesReader
+        private class ForwardBytesReaderAnonymousClass : FST.BytesReader
         {
             private readonly BytesStore outerInstance;
 
-            public ForwardBytesReaderAnonymousInner(BytesStore outerInstance)
+            public ForwardBytesReaderAnonymousClass(BytesStore outerInstance)
             {
                 this.outerInstance = outerInstance;
                 nextRead = outerInstance.blockSize;
@@ -438,7 +448,7 @@ namespace Lucene.Net.Support.Util.Fst
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public override void SkipBytes(int count)
+            public override void SkipBytes(long count)
             {
                 Position += count;
             }
@@ -497,14 +507,14 @@ namespace Lucene.Net.Support.Util.Fst
             {
                 return new ReverseBytesReader(blocks[0]);
             }
-            return new ReverseBytesReaderAnonymousInner(this);
+            return new ReverseBytesReaderAnonymousClass(this);
         }
 
-        private class ReverseBytesReaderAnonymousInner : FST.BytesReader
+        private class ReverseBytesReaderAnonymousClass : FST.BytesReader
         {
             private readonly BytesStore outerInstance;
 
-            public ReverseBytesReaderAnonymousInner(BytesStore outerInstance)
+            public ReverseBytesReaderAnonymousClass(BytesStore outerInstance)
             {
                 this.outerInstance = outerInstance;
                 current = outerInstance.blocks.Count == 0 ? null : outerInstance.blocks[0];
@@ -528,7 +538,7 @@ namespace Lucene.Net.Support.Util.Fst
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public override void SkipBytes(int count)
+            public override void SkipBytes(long count)
             {
                 Position -= count;
             }
@@ -560,6 +570,21 @@ namespace Lucene.Net.Support.Util.Fst
             }
 
             public override bool IsReversed => true;
+        }
+
+        public long GetRamBytesUsed()
+        {
+            long size = BASE_RAM_BYTES_USED;
+            foreach (byte[] block in blocks)
+            {
+                size += RamUsageEstimator.SizeOf(block);
+            }
+            return size;
+        }
+
+        public override string ToString()
+        {
+            return GetType().Name + "(numBlocks=" + blocks.Count + ")";
         }
     }
 }

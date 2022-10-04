@@ -168,11 +168,8 @@ namespace Lucene.Net.Support.Util.Fst
     /// <para/>
     /// NOTE: This was Int32sRefFSTEnum{T} in Lucene
     /// </summary>
-    public sealed class Int32sRefFSTEnum
+    public static class Int32sRefFSTEnum
     {
-        private Int32sRefFSTEnum()
-        { }
-
         /// <summary>
         /// Holds a single input (<see cref="Int32sRef"/>) + output pair. </summary>
         public class InputOutput<T> where T : class // LUCENENET specific - added class constraint, since we compare reference equality

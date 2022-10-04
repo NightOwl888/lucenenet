@@ -74,7 +74,18 @@ namespace Lucene.Net.Support.Util.Fst
         /// Decode an output value previously written with
         /// <see cref="Write(T, DataOutput)"/>.
         /// </summary>
-        public abstract T Read(DataInput @in);
+        public abstract T Read(DataInput input);
+
+        /// <summary>
+        /// Skip the output; defaults to just calling <see cref="Read(DataInput)"/>
+        /// and discarding the result.
+        /// </summary>
+        /// <param name="input"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SkipOutput(DataInput input)
+        {
+            Read(input);
+        }
 
         /// <summary>
         /// Decode an output value previously written with
@@ -82,9 +93,20 @@ namespace Lucene.Net.Support.Util.Fst
         /// just calls <see cref="Read(DataInput)"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual T ReadFinalOutput(DataInput @in)
+        public virtual T ReadFinalOutput(DataInput input)
         {
-            return Read(@in);
+            return Read(input);
+        }
+
+        /// <summary>
+        /// Skip the output previously written with <see cref="WriteFinalOutput(T, DataOutput)"/>;
+        /// defaults to just calling <see cref="SkipOutput(DataInput)"/> and discarding
+        /// the result.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SkipFinalOutput(DataInput input)
+        {
+            SkipOutput(input);
         }
 
         /// <summary>
@@ -103,5 +125,10 @@ namespace Lucene.Net.Support.Util.Fst
         {
             throw UnsupportedOperationException.Create();
         }
+
+        /// <summary>
+        /// Return memory usage for the provided output.
+        /// </summary>
+        public abstract long GetRamBytesUsed(T output);
     }
 }

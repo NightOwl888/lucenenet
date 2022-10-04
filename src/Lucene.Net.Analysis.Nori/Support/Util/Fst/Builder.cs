@@ -53,6 +53,8 @@ namespace Lucene.Net.Support.Util.Fst
     public class Builder<T> : Builder
         where T : class // LUCENENET specific - added class constraint, since we compare reference equality
     {
+        // LUCENENET specific - DIRECT_ARC_LOAD_FACTOR moved to Builder class
+
         private readonly NodeHash<T> dedupHash;
         private readonly FST<T> fst;
         private readonly T NO_OUTPUT;
@@ -73,20 +75,28 @@ namespace Lucene.Net.Support.Util.Fst
 
         private readonly Int32sRef lastInput = new Int32sRef();
 
-        // for packing
-        private readonly bool doPackFST;
-
-        private readonly float acceptableOverheadRatio;
-
         // NOTE: cutting this over to ArrayList instead loses ~6%
         // in build performance on 9.8M Wikipedia terms; so we
         // left this as an array:
         // current "frontier"
         private UnCompiledNode<T>[] frontier;
 
-        // LUCENENET specific - FreezeTail class moved to non-generic type Builder
+        // Used for the BIT_TARGET_NEXT optimization (whereby
+        // instead of storing the address of the target node for
+        // a given arc, we mark a single bit noting that the next
+        // node in the byte[] is the target node):
+        internal long lastFrozenNode;
 
-        private readonly FreezeTail<T> freezeTail;
+        // Reused temporarily while building the FST:
+        internal int[] reusedBytesPerArc = new int[4];
+
+        internal long arcCount;
+        internal long nodeCount;
+
+        internal bool allowArrayArcs;
+
+        internal BytesStore bytes;
+
 
         // LUCENENET specific - allow external access through property
         internal FST<T> Fst => fst;
@@ -96,11 +106,11 @@ namespace Lucene.Net.Support.Util.Fst
 
         /// <summary>
         /// Instantiates an FST/FSA builder without any pruning. A shortcut
-        /// to <see cref="Builder{T}.Builder(FST.INPUT_TYPE, int, int, bool, bool, int, Outputs{T}, FreezeTail{T}, bool, float, bool, int)"/>
+        /// to <see cref="Builder{T}.Builder(FST.INPUT_TYPE, int, int, bool, bool, int, Outputs{T}, bool, int)"/>
         /// with pruning options turned off.
         /// </summary>
         public Builder(FST.INPUT_TYPE inputType, Outputs<T> outputs)
-            : this(inputType, 0, 0, true, true, int.MaxValue, outputs, null, false, PackedInt32s.COMPACT, true, 15)
+            : this(inputType, 0, 0, true, true, int.MaxValue, outputs, true, 15)
         {
         }
 
@@ -141,11 +151,6 @@ namespace Lucene.Net.Support.Util.Fst
         ///    FSA, use <see cref="NoOutputs.Singleton"/> and <see cref="NoOutputs.NoOutput"/> as the
         ///    singleton output object.
         /// </param>
-        /// <param name="doPackFST"> Pass <c>true</c> to create a packed FST.
-        /// </param>
-        /// <param name="acceptableOverheadRatio"> How to trade speed for space when building the FST. this option 
-        ///    is only relevant when doPackFST is true. <see cref="PackedInt32s.GetMutable(int, int, float)"/>
-        /// </param>
         /// <param name="allowArrayArcs"> Pass false to disable the array arc optimization
         ///    while building the FST; this will make the resulting
         ///    FST smaller but slower to traverse.
@@ -156,17 +161,16 @@ namespace Lucene.Net.Support.Util.Fst
         ///    bits = 32768 byte pages. </param>
         public Builder(FST.INPUT_TYPE inputType, int minSuffixCount1, int minSuffixCount2, bool doShareSuffix, 
             bool doShareNonSingletonNodes, int shareMaxTailLength, Outputs<T> outputs, 
-            FreezeTail<T> freezeTail, bool doPackFST, float acceptableOverheadRatio, bool allowArrayArcs, 
-            int bytesPageBits)
+            bool allowArrayArcs, int bytesPageBits)
         {
             this.minSuffixCount1 = minSuffixCount1;
             this.minSuffixCount2 = minSuffixCount2;
-            this.freezeTail = freezeTail;
             this.doShareNonSingletonNodes = doShareNonSingletonNodes;
             this.shareMaxTailLength = shareMaxTailLength;
-            this.doPackFST = doPackFST;
-            this.acceptableOverheadRatio = acceptableOverheadRatio;
-            fst = new FST<T>(inputType, outputs, doPackFST, acceptableOverheadRatio, allowArrayArcs, bytesPageBits);
+            this.allowArrayArcs = allowArrayArcs;
+            fst = new FST<T>(inputType, outputs, bytesPageBits);
+            bytes = fst.bytes;
+            if (Debugging.AssertsEnabled) Debugging.Assert(bytes != null);
             if (doShareSuffix)
             {
                 dedupHash = new NodeHash<T>(fst, fst.bytes.GetReverseReader(false));
@@ -185,145 +189,158 @@ namespace Lucene.Net.Support.Util.Fst
             }
         }
 
-        public virtual long TotStateCount => fst.nodeCount;
-
         public virtual long TermCount => frontier[0].InputCount;
 
-        public virtual long MappedStateCount => dedupHash is null ? 0 : fst.nodeCount;
+        public virtual long NodeCount
+            // 1+ in order to count the -1 implicit final node
+            => 1 + nodeCount;
+
+        public virtual long ArcCount => arcCount;
+
+        public virtual long MappedStateCount => dedupHash is null ? 0 : nodeCount;
 
         private CompiledNode CompileNode(UnCompiledNode<T> nodeIn, int tailLength)
         {
             long node;
+            long bytesPosStart = bytes.Position;
             if (dedupHash != null && (doShareNonSingletonNodes || nodeIn.NumArcs <= 1) && tailLength <= shareMaxTailLength)
             {
                 if (nodeIn.NumArcs == 0)
                 {
-                    node = fst.AddNode(nodeIn);
+                    node = fst.AddNode(this, nodeIn);
+                    lastFrozenNode = node;
                 }
                 else
                 {
-                    node = dedupHash.Add(nodeIn);
+                    node = dedupHash.Add(this, nodeIn);
                 }
             }
             else
             {
-                node = fst.AddNode(nodeIn);
+                node = fst.AddNode(this, nodeIn);
             }
             if (Debugging.AssertsEnabled) Debugging.Assert(node != -2);
+
+            long bytesPosEnd = bytes.Position;
+            if (bytesPosEnd != bytesPosStart)
+            {
+                // The FST added a new node:
+                if (Debugging.AssertsEnabled) Debugging.Assert(bytesPosEnd > bytesPosStart);
+                lastFrozenNode = node;
+            }
 
             nodeIn.Clear();
 
             return new CompiledNode { Node = node };
         }
 
-        private void DoFreezeTail(int prefixLenPlus1)
+        private void FreezeTail(int prefixLenPlus1)
         {
-            if (freezeTail != null)
+
+            //System.out.println("  compileTail " + prefixLenPlus1);
+            int downTo = Math.Max(1, prefixLenPlus1);
+            for (int idx = lastInput.Length; idx >= downTo; idx--)
             {
-                // Custom plugin:
-                freezeTail.Freeze(frontier, prefixLenPlus1, lastInput);
-            }
-            else
-            {
-                //System.out.println("  compileTail " + prefixLenPlus1);
-                int downTo = Math.Max(1, prefixLenPlus1);
-                for (int idx = lastInput.Length; idx >= downTo; idx--)
+                bool doPrune = false;
+                bool doCompile /*= false*/; // LUCENENET: Removed unnecessary assignment
+
+                UnCompiledNode<T> node = frontier[idx];
+                UnCompiledNode<T> parent = frontier[idx - 1];
+
+                if (node.InputCount < minSuffixCount1)
                 {
-                    bool doPrune = false;
-                    bool doCompile /*= false*/; // LUCENENET: Removed unnecessary assignment
-
-                    UnCompiledNode<T> node = frontier[idx];
-                    UnCompiledNode<T> parent = frontier[idx - 1];
-
-                    if (node.InputCount < minSuffixCount1)
+                    doPrune = true;
+                    doCompile = true;
+                }
+                else if (idx > prefixLenPlus1)
+                {
+                    // prune if parent's inputCount is less than suffixMinCount2
+                    if (parent.InputCount < minSuffixCount2 || (minSuffixCount2 == 1 && parent.InputCount == 1 && idx > 1))
                     {
+                        // my parent, about to be compiled, doesn't make the cut, so
+                        // I'm definitely pruned
+
+                        // if minSuffixCount2 is 1, we keep only up
+                        // until the 'distinguished edge', ie we keep only the
+                        // 'divergent' part of the FST. if my parent, about to be
+                        // compiled, has inputCount 1 then we are already past the
+                        // distinguished edge.  NOTE: this only works if
+                        // the FST outputs are not "compressible" (simple
+                        // ords ARE compressible).
                         doPrune = true;
-                        doCompile = true;
-                    }
-                    else if (idx > prefixLenPlus1)
-                    {
-                        // prune if parent's inputCount is less than suffixMinCount2
-                        if (parent.InputCount < minSuffixCount2 || (minSuffixCount2 == 1 && parent.InputCount == 1 && idx > 1))
-                        {
-                            // my parent, about to be compiled, doesn't make the cut, so
-                            // I'm definitely pruned
-
-                            // if minSuffixCount2 is 1, we keep only up
-                            // until the 'distinguished edge', ie we keep only the
-                            // 'divergent' part of the FST. if my parent, about to be
-                            // compiled, has inputCount 1 then we are already past the
-                            // distinguished edge.  NOTE: this only works if
-                            // the FST outputs are not "compressible" (simple
-                            // ords ARE compressible).
-                            doPrune = true;
-                        }
-                        else
-                        {
-                            // my parent, about to be compiled, does make the cut, so
-                            // I'm definitely not pruned
-                            doPrune = false;
-                        }
-                        doCompile = true;
                     }
                     else
                     {
-                        // if pruning is disabled (count is 0) we can always
-                        // compile current node
-                        doCompile = minSuffixCount2 == 0;
+                        // my parent, about to be compiled, does make the cut, so
+                        // I'm definitely not pruned
+                        doPrune = false;
                     }
+                    doCompile = true;
+                }
+                else
+                {
+                    // if pruning is disabled (count is 0) we can always
+                    // compile current node
+                    doCompile = minSuffixCount2 == 0;
+                }
 
-                    //System.out.println("    label=" + ((char) lastInput.ints[lastInput.offset+idx-1]) + " idx=" + idx + " inputCount=" + frontier[idx].inputCount + " doCompile=" + doCompile + " doPrune=" + doPrune);
+                //System.out.println("    label=" + ((char) lastInput.ints[lastInput.offset+idx-1]) + " idx=" + idx + " inputCount=" + frontier[idx].inputCount + " doCompile=" + doCompile + " doPrune=" + doPrune);
 
-                    if (node.InputCount < minSuffixCount2 || (minSuffixCount2 == 1 && node.InputCount == 1 && idx > 1))
+                if (node.InputCount < minSuffixCount2 || (minSuffixCount2 == 1 && node.InputCount == 1 && idx > 1))
+                {
+                    // drop all arcs
+                    for (int arcIdx = 0; arcIdx < node.NumArcs; arcIdx++)
                     {
-                        // drop all arcs
-                        for (int arcIdx = 0; arcIdx < node.NumArcs; arcIdx++)
-                        {
-                            UnCompiledNode<T> target = (UnCompiledNode<T>)node.Arcs[arcIdx].Target;
-                            target.Clear();
-                        }
-                        node.NumArcs = 0;
+                        UnCompiledNode<T> target = (UnCompiledNode<T>)node.Arcs[arcIdx].Target;
+                        target.Clear();
                     }
+                    node.NumArcs = 0;
+                }
 
-                    if (doPrune)
+                if (doPrune)
+                {
+                    // this node doesn't make it -- deref it
+                    node.Clear();
+                    parent.DeleteLast(lastInput.Int32s[idx - 1], node);
+                }
+                else
+                {
+                    if (minSuffixCount2 != 0)
                     {
-                        // this node doesn't make it -- deref it
-                        node.Clear();
-                        parent.DeleteLast(lastInput.Int32s[lastInput.Offset + idx - 1], node);
+                        CompileAllTargets(node, lastInput.Length - idx);
+                    }
+                    T nextFinalOutput = node.Output;
+
+                    // We "fake" the node as being final if it has no
+                    // outgoing arcs; in theory we could leave it
+                    // as non-final (the FST can represent this), but
+                    // FSTEnum, Util, etc., have trouble w/ non-final
+                    // dead-end states:
+                    bool isFinal = node.IsFinal || node.NumArcs == 0;
+
+                    if (doCompile)
+                    {
+                        // this node makes it and we now compile it.  first,
+                        // compile any targets that were previously
+                        // undecided:
+                        parent.ReplaceLast(lastInput.Int32s[idx - 1],
+                            CompileNode(node, 1 + lastInput.Length - idx),
+                            nextFinalOutput,
+                            isFinal);
                     }
                     else
                     {
-                        if (minSuffixCount2 != 0)
-                        {
-                            CompileAllTargets(node, lastInput.Length - idx);
-                        }
-                        T nextFinalOutput = node.Output;
-
-                        // We "fake" the node as being final if it has no
-                        // outgoing arcs; in theory we could leave it
-                        // as non-final (the FST can represent this), but
-                        // FSTEnum, Util, etc., have trouble w/ non-final
-                        // dead-end states:
-                        bool isFinal = node.IsFinal || node.NumArcs == 0;
-
-                        if (doCompile)
-                        {
-                            // this node makes it and we now compile it.  first,
-                            // compile any targets that were previously
-                            // undecided:
-                            parent.ReplaceLast(lastInput.Int32s[lastInput.Offset + idx - 1], CompileNode(node, 1 + lastInput.Length - idx), nextFinalOutput, isFinal);
-                        }
-                        else
-                        {
-                            // replaceLast just to install
-                            // nextFinalOutput/isFinal onto the arc
-                            parent.ReplaceLast(lastInput.Int32s[lastInput.Offset + idx - 1], node, nextFinalOutput, isFinal);
-                            // this node will stay in play for now, since we are
-                            // undecided on whether to prune it.  later, it
-                            // will be either compiled or pruned, so we must
-                            // allocate a new node:
-                            frontier[idx] = new UnCompiledNode<T>(this, idx);
-                        }
+                        // replaceLast just to install
+                        // nextFinalOutput/isFinal onto the arc
+                        parent.ReplaceLast(lastInput.Int32s[idx - 1],
+                            node,
+                            nextFinalOutput,
+                            isFinal);
+                        // this node will stay in play for now, since we are
+                        // undecided on whether to prune it.  later, it
+                        // will be either compiled or pruned, so we must
+                        // allocate a new node:
+                        frontier[idx] = new UnCompiledNode<T>(this, idx);
                     }
                 }
             }
@@ -341,8 +358,11 @@ namespace Lucene.Net.Support.Util.Fst
         */
 
         /// <summary>
-        /// It's OK to add the same input twice in a row with
-        /// different outputs, as long as outputs impls the merge
+        /// Add the next input/output pair.  The provided input
+        /// must be sorted after the previous one according to
+        /// <see cref="Int32sRef.CompareTo(Int32sRef)"/>.  It's also OK to add the same
+        /// input twice in a row with different outputs, as long
+        /// as <see cref="Outputs{T}"/> implements the <see cref="Outputs{T}.Merge(T, T)"/>
         /// method. Note that input is fully consumed after this
         /// method is returned (so caller is free to reuse), but
         /// output is not.  So if your outputs are changeable (eg
@@ -350,7 +370,7 @@ namespace Lucene.Net.Support.Util.Fst
         /// <see cref="Int32SequenceOutputs"/>) then you cannot reuse across
         /// calls.
         /// </summary>
-        public virtual void Add(Int32sRef input, T output)
+    public virtual void Add(Int32sRef input, T output)
         {
             /*
             if (DEBUG) {
@@ -389,7 +409,7 @@ namespace Lucene.Net.Support.Util.Fst
                 // the node
                 frontier[0].InputCount++;
                 frontier[0].IsFinal = true;
-                fst.EmptyOutput = output;
+                fst.SetEmptyOutput(output);
                 return;
             }
 
@@ -412,6 +432,7 @@ namespace Lucene.Net.Support.Util.Fst
 
             if (frontier.Length < input.Length + 1)
             {
+                // LUCENENET UPGRADE: This should be changed to use ArrayUtil after it is upgraded and Array.Copy removed
                 UnCompiledNode<T>[] next = new UnCompiledNode<T>[ArrayUtil.Oversize(input.Length + 1, RamUsageEstimator.NUM_BYTES_OBJECT_REF)];
                 Array.Copy(frontier, 0, next, 0, frontier.Length);
                 for (int idx = frontier.Length; idx < next.Length; idx++)
@@ -423,7 +444,7 @@ namespace Lucene.Net.Support.Util.Fst
 
             // minimize/compile states from previous input's
             // orphan'd suffix
-            DoFreezeTail(prefixLenPlus1);
+            FreezeTail(prefixLenPlus1);
 
             // init tail states for current input
             for (int idx = prefixLenPlus1; idx <= input.Length; idx++)
@@ -503,7 +524,7 @@ namespace Lucene.Net.Support.Util.Fst
             UnCompiledNode<T> root = frontier[0];
 
             // minimize nodes in the last word's suffix
-            DoFreezeTail(0);
+            FreezeTail(0);
             if (root.InputCount < minSuffixCount1 || root.InputCount < minSuffixCount2 || root.NumArcs == 0)
             {
                 if (fst.emptyOutput is null)
@@ -526,14 +547,7 @@ namespace Lucene.Net.Support.Util.Fst
             //if (DEBUG) System.out.println("  builder.finish root.isFinal=" + root.isFinal + " root.Output=" + root.Output);
             fst.Finish(CompileNode(root, lastInput.Length).Node);
 
-            if (doPackFST)
-            {
-                return fst.Pack(3, Math.Max(10, (int)(fst.NodeCount / 4)), acceptableOverheadRatio);
-            }
-            else
-            {
-                return fst;
-            }
+            return fst;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -565,9 +579,9 @@ namespace Lucene.Net.Support.Util.Fst
         // LUCENENET specific: moved INode to Builder type
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual long GetFstSizeInBytes()
+        public virtual long GetFstRamBytesUsed()
         {
-            return fst.GetSizeInBytes();
+            return fst.GetRamBytesUsed();
         }
 
         // LUCENENET specific: Moved CompiledNode and UncompiledNode to Builder class
@@ -579,16 +593,10 @@ namespace Lucene.Net.Support.Util.Fst
     /// </summary>
     public abstract class Builder
     {
-        internal Builder() { } // Disallow external creation
+        // The amount of Arc array oversizing used to enable direct addressing of Arcs by their labels
+        internal const int DIRECT_ARC_LOAD_FACTOR = 4;
 
-        /// <summary>
-        /// Expert: this is invoked by Builder whenever a suffix
-        ///  is serialized.
-        /// </summary>
-        public abstract class FreezeTail<S> where S : class // LUCNENET specific - added class constraint because we compare reference equality
-        {
-            public abstract void Freeze(UnCompiledNode<S>[] frontier, int prefixLenPlus1, Int32sRef prevInput);
-        }
+        internal Builder() { } // Disallow external creation
 
         public interface INode // LUCENENET NOTE: made public rather than internal because it is returned in public types
         {
@@ -597,13 +605,13 @@ namespace Lucene.Net.Support.Util.Fst
 
         /// <summary>
         /// Expert: holds a pending (seen but not yet serialized) arc. </summary>
-        public class Arc<S> where S : class // LUCENENET specific - added class constraint because we compare reference equality
+        public class Arc<T> where T : class // LUCENENET specific - added class constraint because we compare reference equality
         {
             public int Label { get; set; } // really an "unsigned" byte
             public INode Target { get; set; }
             public bool IsFinal { get; set; }
-            public S Output { get; set; }
-            public S NextFinalOutput { get; set; }
+            public T Output { get; set; }
+            public T NextFinalOutput { get; set; }
         }
 
         public sealed class CompiledNode : INode
@@ -615,20 +623,20 @@ namespace Lucene.Net.Support.Util.Fst
 
         /// <summary>
         /// Expert: holds a pending (seen but not yet serialized) Node. </summary>
-        public sealed class UnCompiledNode<S> : INode where S : class // LUCENENET specific - added class constraint, since we compare reference equality
+        public sealed class UnCompiledNode<T> : INode where T : class // LUCENENET specific - added class constraint, since we compare reference equality
         {
-            internal Builder<S> Owner { get; private set; }
+            internal Builder<T> Owner { get; private set; }
             public int NumArcs { get; set; }
 
             [WritableArray]
             [SuppressMessage("Microsoft.Performance", "CA1819", Justification = "Lucene's design requires some writable array properties")]
-            public Arc<S>[] Arcs { get; set; }
+            public Arc<T>[] Arcs { get; set; }
 
             // TODO: instead of recording isFinal/output on the
             // node, maybe we should use -1 arc to mean "end" (like
             // we do when reading the FST).  Would simplify much
             // code here...
-            public S Output { get; set; }
+            public T Output { get; set; }
 
             public bool IsFinal { get; set; }
             public long InputCount { get; set; }
@@ -641,11 +649,11 @@ namespace Lucene.Net.Support.Util.Fst
             ///          The node's depth starting from the automaton root. Needed for
             ///          LUCENE-2934 (node expansion based on conditions other than the
             ///          fanout size). </param>
-            public UnCompiledNode(Builder<S> owner, int depth)
+            public UnCompiledNode(Builder<T> owner, int depth)
             {
                 this.Owner = owner;
-                Arcs = (Arc<S>[])new Arc<S>[1];
-                Arcs[0] = new Arc<S>();
+                Arcs = (Arc<T>[])new Arc<T>[1];
+                Arcs[0] = new Arc<T>();
                 Output = owner.NoOutput;
                 this.Depth = depth;
             }
@@ -663,7 +671,7 @@ namespace Lucene.Net.Support.Util.Fst
                 // for nodes on the frontier (even when reused).
             }
 
-            public S GetLastOutput(int labelToMatch)
+            public T GetLastOutput(int labelToMatch)
             {
                 if (Debugging.AssertsEnabled)
                 {
@@ -678,29 +686,30 @@ namespace Lucene.Net.Support.Util.Fst
                 if (Debugging.AssertsEnabled) Debugging.Assert(label >= 0);
                 if (NumArcs != 0)
                 {
-                    if (Debugging.AssertsEnabled) Debugging.Assert(label > Arcs[NumArcs - 1].Label, "arc[-1].Label={0} new label={1} numArcs={2}", Arcs[NumArcs - 1].Label, label, NumArcs);
+                    if (Debugging.AssertsEnabled) Debugging.Assert(label > Arcs[NumArcs - 1].Label, "arc[NumArcs-1].Label={0} new label={1} numArcs={2}", Arcs[NumArcs - 1].Label, label, NumArcs);
                 }
                 if (NumArcs == Arcs.Length)
                 {
-                    Arc<S>[] newArcs = new Arc<S>[ArrayUtil.Oversize(NumArcs + 1, RamUsageEstimator.NUM_BYTES_OBJECT_REF)];
+                    // LUCENENET UPGRADE: This should be changed to use ArrayUtil after it is upgraded and Array.Copy removed
+                    Arc<T>[] newArcs = new Arc<T>[ArrayUtil.Oversize(NumArcs + 1, RamUsageEstimator.NUM_BYTES_OBJECT_REF)];
                     Array.Copy(Arcs, 0, newArcs, 0, Arcs.Length);
                     for (int arcIdx = NumArcs; arcIdx < newArcs.Length; arcIdx++)
                     {
-                        newArcs[arcIdx] = new Arc<S>();
+                        newArcs[arcIdx] = new Arc<T>();
                     }
                     Arcs = newArcs;
                 }
-                Arc<S> arc = Arcs[NumArcs++];
+                Arc<T> arc = Arcs[NumArcs++];
                 arc.Label = label;
                 arc.Target = target;
                 arc.Output = arc.NextFinalOutput = Owner.NoOutput;
                 arc.IsFinal = false;
             }
 
-            public void ReplaceLast(int labelToMatch, INode target, S nextFinalOutput, bool isFinal)
+            public void ReplaceLast(int labelToMatch, INode target, T nextFinalOutput, bool isFinal)
             {
                 if (Debugging.AssertsEnabled) Debugging.Assert(NumArcs > 0);
-                Arc<S> arc = Arcs[NumArcs - 1];
+                Arc<T> arc = Arcs[NumArcs - 1];
                 if (Debugging.AssertsEnabled) Debugging.Assert(arc.Label == labelToMatch,"arc.Label={0} vs {1}", arc.Label, labelToMatch);
                 arc.Target = target;
                 //assert target.Node != -2;
@@ -719,20 +728,20 @@ namespace Lucene.Net.Support.Util.Fst
                 NumArcs--;
             }
 
-            public void SetLastOutput(int labelToMatch, S newOutput)
+            public void SetLastOutput(int labelToMatch, T newOutput)
             {
                 if (Debugging.AssertsEnabled)
                 {
                     Debugging.Assert(Owner.ValidOutput(newOutput));
                     Debugging.Assert(NumArcs > 0);
                 }
-                Arc<S> arc = Arcs[NumArcs - 1];
+                Arc<T> arc = Arcs[NumArcs - 1];
                 if (Debugging.AssertsEnabled) Debugging.Assert(arc.Label == labelToMatch);
                 arc.Output = newOutput;
             }
 
             // pushes an output prefix forward onto all arcs
-            public void PrependOutput(S outputPrefix)
+            public void PrependOutput(T outputPrefix)
             {
                 if (Debugging.AssertsEnabled) Debugging.Assert(Owner.ValidOutput(outputPrefix));
 

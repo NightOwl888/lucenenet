@@ -95,19 +95,23 @@ namespace Lucene.Net.Support.Util.Fst
                 // no prefix removed
                 return output;
             }
-            else if (inc.Length == output.Length)
-            {
-                // entire output removed
-                return NO_OUTPUT;
-            }
             else
             {
-                if (Debugging.AssertsEnabled)
+                if (Debugging.AssertsEnabled) Debugging.Assert(StringHelper.StartsWith(output, inc));
+                if (inc.Length == output.Length)
                 {
-                    Debugging.Assert(inc.Length < output.Length, "inc.length={0} vs output.length={1}", inc.Length, output.Length);
-                    Debugging.Assert(inc.Length > 0);
+                    // entire output removed
+                    return NO_OUTPUT;
                 }
-                return new BytesRef(output.Bytes, output.Offset + inc.Length, output.Length - inc.Length);
+                else
+                {
+                    if (Debugging.AssertsEnabled)
+                    {
+                        Debugging.Assert(inc.Length < output.Length, "inc.length={0} vs output.length={1}", inc.Length, output.Length);
+                        Debugging.Assert(inc.Length > 0);
+                    }
+                    return new BytesRef(output.Bytes, output.Offset + inc.Length, output.Length - inc.Length);
+                }
             }
         }
 
@@ -161,12 +165,33 @@ namespace Lucene.Net.Support.Util.Fst
             }
         }
 
+        public override void SkipOutput(DataInput input)
+        {
+            int len = input.ReadVInt32();
+            if (len != 0)
+            {
+                input.SkipBytes(len);
+            }
+        }
+
         public override BytesRef NoOutput => NO_OUTPUT;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override string OutputToString(BytesRef output)
         {
             return output.ToString();
+        }
+
+        private static readonly long BASE_NUM_BYTES = RamUsageEstimator.ShallowSizeOf(NO_OUTPUT);
+
+        public override long GetRamBytesUsed(BytesRef output)
+        {
+            return BASE_NUM_BYTES + RamUsageEstimator.SizeOf(output.Bytes);
+        }
+
+        public override string ToString()
+        {
+            return "ByteSequenceOutputs";
         }
     }
 }

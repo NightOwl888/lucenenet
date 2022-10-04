@@ -35,11 +35,11 @@ namespace Lucene.Net.Support.Util.Fst
         [Slow]
         public virtual void TestRandom()
         {
-
             int iters = AtLeast(10);
+            int maxBytes = TestNightly ? 200000 : 20000;
             for (int iter = 0; iter < iters; iter++)
             {
-                int numBytes = TestUtil.NextInt32(Random, 1, 200000);
+                int numBytes = TestUtil.NextInt32(Random, 1, maxBytes);
                 byte[] expected = new byte[numBytes];
                 int blockBits = TestUtil.NextInt32(Random, 8, 15);
                 BytesStore bytes = new BytesStore(blockBits);

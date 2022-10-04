@@ -172,12 +172,38 @@ namespace Lucene.Net.Support.Util.Fst
             }
         }
 
+        public override void SkipOutput(DataInput input)
+        {
+            int len = input.ReadVInt32();
+            if (len == 0)
+            {
+                return;
+            }
+            for (int idx = 0; idx < len; idx++)
+            {
+                input.ReadVInt32();
+            }
+        }
+
         public override Int32sRef NoOutput => NO_OUTPUT;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override string OutputToString(Int32sRef output)
         {
             return output.ToString();
+        }
+
+        private static readonly long BASE_NUM_BYTES = RamUsageEstimator.ShallowSizeOf(NO_OUTPUT);
+
+
+        public override long GetRamBytesUsed(Int32sRef output)
+        {
+            return BASE_NUM_BYTES + RamUsageEstimator.SizeOf(output.Int32s);
+        }
+
+        public override string ToString()
+        {
+            return "IntSequenceOutputs";
         }
     }
 }

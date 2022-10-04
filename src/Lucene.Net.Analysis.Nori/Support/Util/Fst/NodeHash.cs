@@ -43,7 +43,7 @@ namespace Lucene.Net.Support.Util.Fst
 
         public NodeHash(FST<T> fst, FST.BytesReader input)
         {
-            table = new PagedGrowableWriter(16, 1 << 30, 8, PackedInt32s.COMPACT);
+            table = new PagedGrowableWriter(16, 1 << 27, 8, PackedInt32s.COMPACT);
             mask = 15;
             this.fst = fst;
             this.input = input;
@@ -152,7 +152,7 @@ namespace Lucene.Net.Support.Util.Fst
             return h & long.MaxValue;
         }
 
-        public long Add(Builder.UnCompiledNode<T> nodeIn)
+        public long Add(Builder<T> builder, Builder.UnCompiledNode<T> nodeIn)
         {
             //System.out.println("hash: add count=" + count + " vs " + table.size() + " mask=" + mask);
             long h = Hash(nodeIn);
@@ -164,7 +164,7 @@ namespace Lucene.Net.Support.Util.Fst
                 if (v == 0)
                 {
                     // freeze & add
-                    long node = fst.AddNode(nodeIn);
+                    long node = fst.AddNode(builder, nodeIn);
                     //System.out.println("  now freeze node=" + node);
                     if (Debugging.AssertsEnabled)
                     {

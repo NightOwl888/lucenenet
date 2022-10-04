@@ -155,12 +155,12 @@ namespace Lucene.Net.Support.Util.Fst
             //System.out.println("  after rewind upto=" + upto);
 
             FST.Arc<T> arc = GetArc(m_upto);
-            int targetLabel = TargetLabel;
             //System.out.println("  init targetLabel=" + targetLabel);
 
             // Now scan forward, matching the new suffix of the target
-            while (true)
+            while (arc != null)
             {
+                int targetLabel = TargetLabel;
                 //System.out.println("  cycle upto=" + upto + " arc.label=" + arc.label + " (" + (char) arc.label + ") vs targetLabel=" + targetLabel);
 
                 if (arc.BytesPerArc != 0 && arc.Label != -1)
@@ -169,143 +169,225 @@ namespace Lucene.Net.Support.Util.Fst
                     // the target.
 
                     FST.BytesReader @in = m_fst.GetBytesReader();
-                    int low = arc.ArcIdx;
-                    int high = arc.NumArcs - 1;
-                    int mid = 0;
-                    //System.out.println("do arc array low=" + low + " high=" + high + " targetLabel=" + targetLabel);
-                    bool found = false;
-                    while (low <= high)
+                    if (arc.ArcIdx == int.MinValue)
                     {
-                        mid = (low + high).TripleShift(1);
-                        @in.Position = arc.PosArcsStart;
-                        @in.SkipBytes(arc.BytesPerArc * mid + 1);
-                        int midLabel = m_fst.ReadLabel(@in);
-                        int cmp = midLabel - targetLabel;
-                        //System.out.println("  cycle low=" + low + " high=" + high + " mid=" + mid + " midLabel=" + midLabel + " cmp=" + cmp);
-                        if (cmp < 0)
-                        {
-                            low = mid + 1;
-                        }
-                        else if (cmp > 0)
-                        {
-                            high = mid - 1;
-                        }
-                        else
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    // NOTE: this code is dup'd w/ the code below (in
-                    // the outer else clause):
-                    if (found)
-                    {
-                        // Match
-                        arc.ArcIdx = mid - 1;
-                        m_fst.ReadNextRealArc(arc, @in);
-                        if (Debugging.AssertsEnabled)
-                        {
-                            Debugging.Assert(arc.ArcIdx == mid);
-                            Debugging.Assert(arc.Label == targetLabel, "arc.label={0} vs targetLabel={1} mid={2}", arc.Label, targetLabel, mid);
-                        }
-                        m_output[m_upto] = m_fst.Outputs.Add(m_output[m_upto - 1], arc.Output);
-                        if (targetLabel == FST.END_LABEL)
-                        {
-                            return;
-                        }
-                        CurrentLabel = arc.Label;
-                        Incr();
-                        arc = m_fst.ReadFirstTargetArc(arc, GetArc(m_upto), m_fstReader);
-                        targetLabel = TargetLabel;
-                        continue;
-                    }
-                    else if (low == arc.NumArcs)
-                    {
-                        // Dead end
-                        arc.ArcIdx = arc.NumArcs - 2;
-                        m_fst.ReadNextRealArc(arc, @in);
-                        if (Debugging.AssertsEnabled) Debugging.Assert(arc.IsLast);
-                        // Dead end (target is after the last arc);
-                        // rollback to last fork then push
-                        m_upto--;
-                        while (true)
-                        {
-                            if (m_upto == 0)
-                            {
-                                return;
-                            }
-                            FST.Arc<T> prevArc = GetArc(m_upto);
-                            //System.out.println("  rollback upto=" + upto + " arc.label=" + prevArc.label + " isLast?=" + prevArc.isLast());
-                            if (!prevArc.IsLast)
-                            {
-                                m_fst.ReadNextArc(prevArc, m_fstReader);
-                                PushFirst();
-                                return;
-                            }
-                            m_upto--;
-                        }
+                        arc = DoSeekCeilArrayWithGaps(arc, targetLabel, @in);
                     }
                     else
                     {
-                        arc.ArcIdx = (low > high ? low : high) - 1;
-                        m_fst.ReadNextRealArc(arc, @in);
-                        if (Debugging.AssertsEnabled) Debugging.Assert(arc.Label > targetLabel);
-                        PushFirst();
-                        return;
+                        arc = DoSeekCeilArrayPacked(arc, targetLabel, @in);
                     }
                 }
                 else
                 {
-                    // Arcs are not array'd -- must do linear scan:
-                    if (arc.Label == targetLabel)
-                    {
-                        // recurse
-                        m_output[m_upto] = m_fst.Outputs.Add(m_output[m_upto - 1], arc.Output);
-                        if (targetLabel == FST.END_LABEL)
-                        {
-                            return;
-                        }
-                        CurrentLabel = arc.Label;
-                        Incr();
-                        arc = m_fst.ReadFirstTargetArc(arc, GetArc(m_upto), m_fstReader);
-                        targetLabel = TargetLabel;
-                    }
-                    else if (arc.Label > targetLabel)
-                    {
-                        PushFirst();
-                        return;
-                    }
-                    else if (arc.IsLast)
-                    {
-                        // Dead end (target is after the last arc);
-                        // rollback to last fork then push
-                        m_upto--;
-                        while (true)
-                        {
-                            if (m_upto == 0)
-                            {
-                                return;
-                            }
-                            FST.Arc<T> prevArc = GetArc(m_upto);
-                            //System.out.println("  rollback upto=" + upto + " arc.label=" + prevArc.label + " isLast?=" + prevArc.isLast());
-                            if (!prevArc.IsLast)
-                            {
-                                m_fst.ReadNextArc(prevArc, m_fstReader);
-                                PushFirst();
-                                return;
-                            }
-                            m_upto--;
-                        }
-                    }
-                    else
-                    {
-                        // keep scanning
-                        //System.out.println("    next scan");
-                        m_fst.ReadNextArc(arc, m_fstReader);
-                    }
+                    arc = DoSeekCeilList(arc, targetLabel);
                 }
             }
+        }
+
+        private FST.Arc<T> DoSeekCeilArrayWithGaps(FST.Arc<T> arc, int targetLabel, FST.BytesReader @in)
+        {
+            // The array is addressed directly by label and may contain holes.
+
+            @in.Position = arc.PosArcsStart;
+            @in.SkipBytes(1);
+            int firstLabel = m_fst.ReadLabel(@in);
+            int arcOffset = targetLabel - firstLabel;
+            if (arcOffset >= arc.NumArcs)
+            {
+                // target is beyond the last arc
+                arc.NextArc = arc.PosArcsStart - (arc.NumArcs - 1) * arc.BytesPerArc;
+                m_fst.ReadNextRealArc(arc, @in);
+                if (Debugging.AssertsEnabled) Debugging.Assert(arc.IsLast);
+                // Dead end (target is after the last arc);
+                // rollback to last fork then push
+                m_upto--;
+                while (true)
+                {
+                    if (m_upto == 0)
+                    {
+                        return null;
+                    }
+                    FST.Arc<T> prevArc = GetArc(m_upto);
+                    //System.out.println("  rollback upto=" + upto + " arc.label=" + prevArc.label + " isLast?=" + prevArc.isLast());
+                    if (!prevArc.IsLast)
+                    {
+                        m_fst.ReadNextArc(prevArc, m_fstReader);
+                        PushFirst();
+                        return null;
+                    }
+                    m_upto--;
+                }
+            }
+            else
+            {
+                // TODO: if firstLabel == targetLabel
+                if (arcOffset >= 0)
+                {
+                    arc.NextArc = arc.PosArcsStart - (arc.BytesPerArc * arcOffset);
+                }
+                else
+                {
+                    arc.NextArc = arc.PosArcsStart;
+                }
+                m_fst.ReadNextRealArc(arc, @in);
+                if (arc.Label == targetLabel)
+                {
+                    // found -- copy pasta from below
+                    m_output[m_upto] = m_fst.Outputs.Add(m_output[m_upto - 1], arc.Output);
+                    if (targetLabel == FST.END_LABEL)
+                    {
+                        return null;
+                    }
+                    CurrentLabel = arc.Label;
+                    Incr();
+                    return m_fst.ReadFirstTargetArc(arc, GetArc(m_upto), m_fstReader);
+                }
+                // not found, return the next highest
+                if (Debugging.AssertsEnabled) Debugging.Assert(arc.Label > targetLabel);
+                PushFirst();
+                return null;
+            }
+        }
+
+        private FST.Arc<T> DoSeekCeilArrayPacked(FST.Arc<T> arc, int targetLabel, FST.BytesReader @in)
+        {
+            // The array is packed -- use binary search to find the target.
+            int low = arc.ArcIdx;
+            int high = arc.NumArcs - 1;
+            int mid = 0;
+            //System.out.println("do arc array low=" + low + " high=" + high + " targetLabel=" + targetLabel);
+            bool found = false;
+            while (low <= high)
+            {
+                mid = (low + high).TripleShift(1);
+                @in.Position = arc.PosArcsStart;
+                @in.SkipBytes(arc.BytesPerArc * mid + 1);
+                int midLabel = m_fst.ReadLabel(@in);
+                int cmp = midLabel - targetLabel;
+                //System.out.println("  cycle low=" + low + " high=" + high + " mid=" + mid + " midLabel=" + midLabel + " cmp=" + cmp);
+                if (cmp < 0)
+                {
+                    low = mid + 1;
+                }
+                else if (cmp > 0)
+                {
+                    high = mid - 1;
+                }
+                else
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            // NOTE: this code is dup'd w/ the code below (in
+            // the outer else clause):
+            if (found)
+            {
+                // Match
+                arc.ArcIdx = mid - 1;
+                m_fst.ReadNextRealArc(arc, @in);
+                if (Debugging.AssertsEnabled)
+                {
+                    Debugging.Assert(arc.ArcIdx == mid);
+                    Debugging.Assert(arc.Label == targetLabel, "arc.label={0} vs targetLabel={1} mid={2}", arc.Label, targetLabel, mid);
+                }
+                m_output[m_upto] = m_fst.Outputs.Add(m_output[m_upto - 1], arc.Output);
+                if (targetLabel == FST.END_LABEL)
+                {
+                    return null;
+                }
+                CurrentLabel = arc.Label;
+                Incr();
+                return m_fst.ReadFirstTargetArc(arc, GetArc(m_upto), m_fstReader);
+            }
+            else if (low == arc.NumArcs)
+            {
+                // Dead end
+                arc.ArcIdx = arc.NumArcs - 2;
+                m_fst.ReadNextRealArc(arc, @in);
+                if (Debugging.AssertsEnabled) Debugging.Assert(arc.IsLast);
+                // Dead end (target is after the last arc);
+                // rollback to last fork then push
+                m_upto--;
+                while (true)
+                {
+                    if (m_upto == 0)
+                    {
+                        return null;
+                    }
+                    FST.Arc<T> prevArc = GetArc(m_upto);
+                    //System.out.println("  rollback upto=" + upto + " arc.label=" + prevArc.label + " isLast?=" + prevArc.isLast());
+                    if (!prevArc.IsLast)
+                    {
+                        m_fst.ReadNextArc(prevArc, m_fstReader);
+                        PushFirst();
+                        return null;
+                    }
+                    m_upto--;
+                }
+            }
+            else
+            {
+                arc.ArcIdx = (low > high ? low : high) - 1;
+                m_fst.ReadNextRealArc(arc, @in);
+                if (Debugging.AssertsEnabled) Debugging.Assert(arc.Label > targetLabel);
+                PushFirst();
+                return null;
+            }
+        }
+
+
+        private FST.Arc<T> DoSeekCeilList(FST.Arc<T> arc, int targetLabel)
+        {
+            // Arcs are not array'd -- must do linear scan:
+            if (arc.Label == targetLabel)
+            {
+                // recurse
+                m_output[m_upto] = m_fst.Outputs.Add(m_output[m_upto - 1], arc.Output);
+                if (targetLabel == FST.END_LABEL)
+                {
+                    return null;
+                }
+                CurrentLabel = arc.Label;
+                Incr();
+                return m_fst.ReadFirstTargetArc(arc, GetArc(m_upto), m_fstReader);
+            }
+            else if (arc.Label > targetLabel)
+            {
+                PushFirst();
+                return null;
+            }
+            else if (arc.IsLast)
+            {
+                // Dead end (target is after the last arc);
+                // rollback to last fork then push
+                m_upto--;
+                while (true)
+                {
+                    if (m_upto == 0)
+                    {
+                        return null;
+                    }
+                    FST.Arc<T> prevArc = GetArc(m_upto);
+                    //System.out.println("  rollback upto=" + upto + " arc.label=" + prevArc.label + " isLast?=" + prevArc.isLast());
+                    if (!prevArc.IsLast)
+                    {
+                        m_fst.ReadNextArc(prevArc, m_fstReader);
+                        PushFirst();
+                        return null;
+                    }
+                    m_upto--;
+                }
+            }
+            else
+            {
+                // keep scanning
+                //System.out.println("    next scan");
+                m_fst.ReadNextArc(arc, m_fstReader);
+            }
+            return arc;
         }
 
         // TODO: should we return a status here (SEEK_FOUND / SEEK_NOT_FOUND /
@@ -327,191 +409,286 @@ namespace Lucene.Net.Support.Util.Fst
             //System.out.println("FE: after rewind upto=" + upto);
 
             FST.Arc<T> arc = GetArc(m_upto);
-            int targetLabel = TargetLabel;
 
             //System.out.println("FE: init targetLabel=" + targetLabel);
 
             // Now scan forward, matching the new suffix of the target
-            while (true)
+            while (arc != null)
             {
                 //System.out.println("  cycle upto=" + upto + " arc.label=" + arc.label + " (" + (char) arc.label + ") targetLabel=" + targetLabel + " isLast?=" + arc.isLast() + " bba=" + arc.bytesPerArc);
+                int targetLabel = TargetLabel;
 
                 if (arc.BytesPerArc != 0 && arc.Label != FST.END_LABEL)
                 {
-                    // Arcs are fixed array -- use binary search to find
-                    // the target.
+                    // Arcs are in an array
 
                     FST.BytesReader @in = m_fst.GetBytesReader();
-                    int low = arc.ArcIdx;
-                    int high = arc.NumArcs - 1;
-                    int mid = 0;
-                    //System.out.println("do arc array low=" + low + " high=" + high + " targetLabel=" + targetLabel);
-                    bool found = false;
-                    while (low <= high)
+                    if (arc.ArcIdx == int.MinValue)
                     {
-                        mid = (low + high).TripleShift(1);
-                        @in.Position = arc.PosArcsStart;
-                        @in.SkipBytes(arc.BytesPerArc * mid + 1);
-                        int midLabel = m_fst.ReadLabel(@in);
-                        int cmp = midLabel - targetLabel;
-                        //System.out.println("  cycle low=" + low + " high=" + high + " mid=" + mid + " midLabel=" + midLabel + " cmp=" + cmp);
-                        if (cmp < 0)
-                        {
-                            low = mid + 1;
-                        }
-                        else if (cmp > 0)
-                        {
-                            high = mid - 1;
-                        }
-                        else
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    // NOTE: this code is dup'd w/ the code below (in
-                    // the outer else clause):
-                    if (found)
-                    {
-                        // Match -- recurse
-                        //System.out.println("  match!  arcIdx=" + mid);
-                        arc.ArcIdx = mid - 1;
-                        m_fst.ReadNextRealArc(arc, @in);
-                        if (Debugging.AssertsEnabled)
-                        {
-                            Debugging.Assert(arc.ArcIdx == mid);
-                            Debugging.Assert(arc.Label == targetLabel, "arc.label={0} vs targetLabel={1} mid={2}", arc.Label, targetLabel, mid);
-                        }
-                        m_output[m_upto] = m_fst.Outputs.Add(m_output[m_upto - 1], arc.Output);
-                        if (targetLabel == FST.END_LABEL)
-                        {
-                            return;
-                        }
-                        CurrentLabel = arc.Label;
-                        Incr();
-                        arc = m_fst.ReadFirstTargetArc(arc, GetArc(m_upto), m_fstReader);
-                        targetLabel = TargetLabel;
-                        continue;
-                    }
-                    else if (high == -1)
-                    {
-                        //System.out.println("  before first");
-                        // Very first arc is after our target
-                        // TODO: if each arc could somehow read the arc just
-                        // before, we can save this re-scan.  The ceil case
-                        // doesn't need this because it reads the next arc
-                        // instead:
-                        while (true)
-                        {
-                            // First, walk backwards until we find a first arc
-                            // that's before our target label:
-                            m_fst.ReadFirstTargetArc(GetArc(m_upto - 1), arc, m_fstReader);
-                            if (arc.Label < targetLabel)
-                            {
-                                // Then, scan forwards to the arc just before
-                                // the targetLabel:
-                                while (!arc.IsLast && m_fst.ReadNextArcLabel(arc, @in) < targetLabel)
-                                {
-                                    m_fst.ReadNextArc(arc, m_fstReader);
-                                }
-                                PushLast();
-                                return;
-                            }
-                            m_upto--;
-                            if (m_upto == 0)
-                            {
-                                return;
-                            }
-                            targetLabel = TargetLabel;
-                            arc = GetArc(m_upto);
-                        }
+                        arc = DoSeekFloorArrayWithGaps(arc, targetLabel, @in);
                     }
                     else
                     {
-                        // There is a floor arc:
-                        arc.ArcIdx = (low > high ? high : low) - 1;
-                        //System.out.println(" hasFloor arcIdx=" + (arc.arcIdx+1));
-                        m_fst.ReadNextRealArc(arc, @in);
-
-                        // LUCNENET specific: We don't want the ReadNextArcLabel call to be
-                        // excluded when Debug.Assert is stripped out by the compiler.
-                        bool check = arc.IsLast || m_fst.ReadNextArcLabel(arc, @in) > targetLabel;
-                        if (Debugging.AssertsEnabled)
-                        {
-                            Debugging.Assert(check);
-                            Debugging.Assert(arc.Label < targetLabel,"arc.label={0} vs targetLabel={1}", arc.Label, targetLabel);
-                        }
-                        PushLast();
-                        return;
+                        arc = DoSeekFloorArrayPacked(arc, targetLabel, @in);
                     }
                 }
                 else
                 {
-                    if (arc.Label == targetLabel)
+                    arc = DoSeekFloorList(arc, targetLabel);
+                }
+            }
+        }
+
+        private FST.Arc<T> DoSeekFloorArrayWithGaps(FST.Arc<T> arc, int targetLabel, FST.BytesReader @in)
+        {
+            // The array is addressed directly by label and may contain holes.
+            @in.Position = arc.PosArcsStart;
+            @in.SkipBytes(1);
+            int firstLabel = m_fst.ReadLabel(@in);
+            int targetOffset = targetLabel - firstLabel;
+            if (targetOffset < 0)
+            {
+                //System.out.println(" before first"); Very first arc is after our target TODO: if each
+                // arc could somehow read the arc just before, we can save this re-scan.  The ceil case
+                // doesn't need this because it reads the next arc instead:
+                while (true)
+                {
+                    // First, walk backwards until we find a first arc
+                    // that's before our target label:
+                    m_fst.ReadFirstTargetArc(GetArc(m_upto - 1), arc, m_fstReader);
+                    if (arc.Label < targetLabel)
                     {
-                        // Match -- recurse
-                        m_output[m_upto] = m_fst.Outputs.Add(m_output[m_upto - 1], arc.Output);
-                        if (targetLabel == FST.END_LABEL)
+                        // Then, scan forwards to the arc just before
+                        // the targetLabel:
+                        while (!arc.IsLast && m_fst.ReadNextArcLabel(arc, @in) < targetLabel)
                         {
-                            return;
-                        }
-                        CurrentLabel = arc.Label;
-                        Incr();
-                        arc = m_fst.ReadFirstTargetArc(arc, GetArc(m_upto), m_fstReader);
-                        targetLabel = TargetLabel;
-                    }
-                    else if (arc.Label > targetLabel)
-                    {
-                        // TODO: if each arc could somehow read the arc just
-                        // before, we can save this re-scan.  The ceil case
-                        // doesn't need this because it reads the next arc
-                        // instead:
-                        while (true)
-                        {
-                            // First, walk backwards until we find a first arc
-                            // that's before our target label:
-                            m_fst.ReadFirstTargetArc(GetArc(m_upto - 1), arc, m_fstReader);
-                            if (arc.Label < targetLabel)
-                            {
-                                // Then, scan forwards to the arc just before
-                                // the targetLabel:
-                                while (!arc.IsLast && m_fst.ReadNextArcLabel(arc, m_fstReader) < targetLabel)
-                                {
-                                    m_fst.ReadNextArc(arc, m_fstReader);
-                                }
-                                PushLast();
-                                return;
-                            }
-                            m_upto--;
-                            if (m_upto == 0)
-                            {
-                                return;
-                            }
-                            targetLabel = TargetLabel;
-                            arc = GetArc(m_upto);
-                        }
-                    }
-                    else if (!arc.IsLast)
-                    {
-                        //System.out.println("  check next label=" + fst.readNextArcLabel(arc) + " (" + (char) fst.readNextArcLabel(arc) + ")");
-                        if (m_fst.ReadNextArcLabel(arc, m_fstReader) > targetLabel)
-                        {
-                            PushLast();
-                            return;
-                        }
-                        else
-                        {
-                            // keep scanning
                             m_fst.ReadNextArc(arc, m_fstReader);
                         }
-                    }
-                    else
-                    {
                         PushLast();
-                        return;
+                        return null;
+                    }
+                    m_upto--;
+                    if (m_upto == 0)
+                    {
+                        return null;
+                    }
+                    targetLabel = TargetLabel;
+                    arc = GetArc(m_upto);
+                }
+            }
+            else
+            {
+                if (targetOffset >= arc.NumArcs)
+                {
+                    arc.NextArc = arc.PosArcsStart - arc.BytesPerArc * (arc.NumArcs - 1);
+                    m_fst.ReadNextRealArc(arc, @in);
+                    if (Debugging.AssertsEnabled) Debugging.Assert(arc.IsLast);
+                    if (Debugging.AssertsEnabled) Debugging.Assert(arc.Label < targetLabel, "arc.label=" + arc.Label + " vs targetLabel=" + targetLabel);
+                    PushLast();
+                    return null;
+                }
+                arc.NextArc = arc.PosArcsStart - arc.BytesPerArc * targetOffset;
+                m_fst.ReadNextRealArc(arc, @in);
+                if (arc.Label == targetLabel)
+                {
+                    // found -- copy pasta from below
+                    m_output[m_upto] = m_fst.Outputs.Add(m_output[m_upto - 1], arc.Output);
+                    if (targetLabel == FST.END_LABEL)
+                    {
+                        return null;
+                    }
+                    CurrentLabel = arc.Label;
+                    Incr();
+                    return m_fst.ReadFirstTargetArc(arc, GetArc(m_upto), m_fstReader);
+                }
+                // Scan backwards to find a floor arc that is not missing
+                for (long arcOffset = arc.PosArcsStart - targetOffset * arc.BytesPerArc; arcOffset <= arc.PosArcsStart; arcOffset += arc.BytesPerArc)
+                {
+                    // TODO: we can do better here by skipping missing arcs
+                    arc.NextArc = arcOffset;
+                    //System.out.println(" hasFloor arcIdx=" + (arc.arcIdx+1));
+                    m_fst.ReadNextRealArc(arc, @in);
+                    if (arc.Label < targetLabel)
+                    {
+                        if (Debugging.AssertsEnabled) Debugging.Assert(arc.IsLast || m_fst.ReadNextArcLabel(arc, @in) > targetLabel);
+                        PushLast();
+                        return null;
                     }
                 }
+                if (Debugging.AssertsEnabled) Debugging.Assert(false, "arc.label=" + arc.Label + " vs targetLabel=" + targetLabel);
+                return arc;               // unreachable
+            }
+        }
+
+        private FST.Arc<T> DoSeekFloorArrayPacked(FST.Arc<T> arc, int targetLabel, FST.BytesReader @in)
+        {
+            // Arcs are fixed array -- use binary search to find the target.
+            int low = arc.ArcIdx;
+            int high = arc.NumArcs - 1;
+            int mid = 0;
+            //System.out.println("do arc array low=" + low + " high=" + high + " targetLabel=" + targetLabel);
+            bool found = false;
+            while (low <= high)
+            {
+                mid = (low + high).TripleShift(1);
+                @in.Position = arc.PosArcsStart;
+                @in.SkipBytes(arc.BytesPerArc * mid + 1);
+                int midLabel = m_fst.ReadLabel(@in);
+                int cmp = midLabel - targetLabel;
+                //System.out.println("  cycle low=" + low + " high=" + high + " mid=" + mid + " midLabel=" + midLabel + " cmp=" + cmp);
+                if (cmp < 0)
+                {
+                    low = mid + 1;
+                }
+                else if (cmp > 0)
+                {
+                    high = mid - 1;
+                }
+                else
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            // NOTE: this code is dup'd w/ the code below (in
+            // the outer else clause):
+            if (found)
+            {
+                // Match -- recurse
+                //System.out.println("  match!  arcIdx=" + mid);
+                arc.ArcIdx = mid - 1;
+                m_fst.ReadNextRealArc(arc, @in);
+                if (Debugging.AssertsEnabled)
+                {
+                    Debugging.Assert(arc.ArcIdx == mid);
+                    Debugging.Assert(arc.Label == targetLabel, "arc.label={0} vs targetLabel={1} mid={2}", arc.Label, targetLabel, mid);
+                }
+                m_output[m_upto] = m_fst.Outputs.Add(m_output[m_upto - 1], arc.Output);
+                if (targetLabel == FST.END_LABEL)
+                {
+                    return null;
+                }
+                CurrentLabel = arc.Label;
+                Incr();
+                return m_fst.ReadFirstTargetArc(arc, GetArc(m_upto), m_fstReader);
+            }
+            else if (high == -1)
+            {
+                //System.out.println("  before first");
+                // Very first arc is after our target
+                // TODO: if each arc could somehow read the arc just
+                // before, we can save this re-scan.  The ceil case
+                // doesn't need this because it reads the next arc
+                // instead:
+                while (true)
+                {
+                    // First, walk backwards until we find a first arc
+                    // that's before our target label:
+                    m_fst.ReadFirstTargetArc(GetArc(m_upto - 1), arc, m_fstReader);
+                    if (arc.Label < targetLabel)
+                    {
+                        // Then, scan forwards to the arc just before
+                        // the targetLabel:
+                        while (!arc.IsLast && m_fst.ReadNextArcLabel(arc, @in) < targetLabel)
+                        {
+                            m_fst.ReadNextArc(arc, m_fstReader);
+                        }
+                        PushLast();
+                        return null;
+                    }
+                    m_upto--;
+                    if (m_upto == 0)
+                    {
+                        return null;
+                    }
+                    targetLabel = TargetLabel;
+                    arc = GetArc(m_upto);
+                }
+            }
+            else
+            {
+                // There is a floor arc:
+                arc.ArcIdx = (low > high ? high : low) - 1;
+                //System.out.println(" hasFloor arcIdx=" + (arc.arcIdx+1));
+                m_fst.ReadNextRealArc(arc, @in);
+
+                // LUCNENET specific: We don't want the ReadNextArcLabel call to be
+                // excluded when Debug.Assert is stripped out by the compiler.
+                bool check = arc.IsLast || m_fst.ReadNextArcLabel(arc, @in) > targetLabel;
+                if (Debugging.AssertsEnabled)
+                {
+                    Debugging.Assert(check);
+                    Debugging.Assert(arc.Label < targetLabel, "arc.label={0} vs targetLabel={1}", arc.Label, targetLabel);
+                }
+                PushLast();
+                return null;
+            }
+        }
+
+        private FST.Arc<T> DoSeekFloorList(FST.Arc<T> arc, int targetLabel)
+        {
+            if (arc.Label == targetLabel)
+            {
+                // Match -- recurse
+                m_output[m_upto] = m_fst.Outputs.Add(m_output[m_upto - 1], arc.Output);
+                if (targetLabel == FST.END_LABEL)
+                {
+                    return null;
+                }
+                CurrentLabel = arc.Label;
+                Incr();
+                return m_fst.ReadFirstTargetArc(arc, GetArc(m_upto), m_fstReader);
+            }
+            else if (arc.Label > targetLabel)
+            {
+                // TODO: if each arc could somehow read the arc just
+                // before, we can save this re-scan.  The ceil case
+                // doesn't need this because it reads the next arc
+                // instead:
+                while (true)
+                {
+                    // First, walk backwards until we find a first arc
+                    // that's before our target label:
+                    m_fst.ReadFirstTargetArc(GetArc(m_upto - 1), arc, m_fstReader);
+                    if (arc.Label < targetLabel)
+                    {
+                        // Then, scan forwards to the arc just before
+                        // the targetLabel:
+                        while (!arc.IsLast && m_fst.ReadNextArcLabel(arc, m_fstReader) < targetLabel)
+                        {
+                            m_fst.ReadNextArc(arc, m_fstReader);
+                        }
+                        PushLast();
+                        return null;
+                    }
+                    m_upto--;
+                    if (m_upto == 0)
+                    {
+                        return null;
+                    }
+                    targetLabel = TargetLabel;
+                    arc = GetArc(m_upto);
+                }
+            }
+            else if (!arc.IsLast)
+            {
+                //System.out.println("  check next label=" + fst.readNextArcLabel(arc) + " (" + (char) fst.readNextArcLabel(arc) + ")");
+                if (m_fst.ReadNextArcLabel(arc, m_fstReader) > targetLabel)
+                {
+                    PushLast();
+                    return null;
+                }
+                else
+                {
+                    // keep scanning
+                    return m_fst.ReadNextArc(arc, m_fstReader);
+                }
+            }
+            else
+            {
+                PushLast();
+                return null;
             }
         }
 

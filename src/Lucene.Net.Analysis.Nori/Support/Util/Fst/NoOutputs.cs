@@ -128,5 +128,15 @@ namespace Lucene.Net.Support.Util.Fst
         {
             return "";
         }
+
+        public override long GetRamBytesUsed(object output)
+        {
+            return 0;
+        }
+
+        public override string ToString()
+        {
+            return "NoOutputs";
+        }
     }
 }

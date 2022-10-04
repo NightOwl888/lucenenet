@@ -48,9 +48,9 @@ namespace Lucene.Net.Support.Util.Fst
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override void SkipBytes(int count)
+        public override void SkipBytes(long count)
         {
-            pos -= count;
+            pos -= (int)count;
         }
 
         public override long Position

@@ -121,6 +121,7 @@ namespace Lucene.Net.Support.Util.Fst
         /// 2, ...), or file offets (when appending to a file)
         /// fit this.
         /// </summary>
+        [Obsolete]
         public static Int32sRef GetByOutput(FST<Int64> fst, long targetOutput)
         {
             var @in = fst.GetBytesReader();
@@ -139,6 +140,7 @@ namespace Lucene.Net.Support.Util.Fst
         /// Expert: like <see cref="Util.GetByOutput(FST{Int64}, long)"/> except reusing
         /// <see cref="FST.BytesReader"/>, initial and scratch Arc, and result.
         /// </summary>
+        [Obsolete]
         public static Int32sRef GetByOutput(FST<Int64> fst, long targetOutput, FST.BytesReader @in, FST.Arc<Int64> arc, FST.Arc<Int64> scratchArc, Int32sRef result)
         {
             long output = arc.Output;
@@ -166,17 +168,14 @@ namespace Lucene.Net.Support.Util.Fst
                     }
                 }
 
-                if (FST<Int64>.TargetHasArcs(arc))
+                if (FST.TargetHasArcs(arc))
                 {
                     //System.out.println("  targetHasArcs");
-                    if (result.Int32s.Length == upto)
-                    {
-                        result.Grow(1 + upto);
-                    }
+                    result.Grow(1 + upto);
 
                     fst.ReadFirstRealTargetArc(arc.Target, arc, @in);
 
-                    if (arc.BytesPerArc != 0)
+                    if (arc.BytesPerArc != 0 && arc.ArcIdx > int.MinValue)
                     {
                         int low = 0;
                         int high = arc.NumArcs - 1;
@@ -200,6 +199,7 @@ namespace Lucene.Net.Support.Util.Fst
                             {
                                 minArcOutput = output;
                             }
+                            //System.out.println("  cycle mid=" + mid + " output=" + minArcOutput);
                             if (minArcOutput == targetOutput)
                             {
                                 exact = true;
@@ -303,22 +303,49 @@ namespace Lucene.Net.Support.Util.Fst
         /// </summary>
         public class FSTPath<T> where T : class  // LUCENENET specific - added class constraint, since we compare reference equality
         {
+            /// <summary>
+            /// Holds the last arc appended to this path
+            /// </summary>
             public FST.Arc<T> Arc { get; set; }
-            public T Cost { get; set; }
+            /// <summary>
+            /// Holds cost plus any usage-specific output
+            /// </summary>
+            public T Output { get; set; }
             public Int32sRef Input { get; private set; }
+
+            public float Boost { get; private set; }
+            public string Context { get; private set; }
+
+            // Custom int payload for consumers; the NRT suggester uses this to record if this path has already enumerated a surface form
+            public int Payload { get; private set; }
 
             /// <summary>
             /// Sole constructor </summary>
-            public FSTPath(T cost, FST.Arc<T> arc, Int32sRef input)
+            public FSTPath(T output, FST.Arc<T> arc, Int32sRef input)
+                : this(output, arc, input, 0, null, -1)
+            {
+            }
+
+            /// <summary>
+            /// Sole constructor </summary>
+            public FSTPath(T output, FST.Arc<T> arc, Int32sRef input, float boost, string context, int payload)
             {
                 this.Arc = (new FST.Arc<T>()).CopyFrom(arc);
-                this.Cost = cost;
+                this.Output = output;
                 this.Input = input;
+                this.Boost = boost;
+                this.Context = context;
+                this.Payload = payload;
+            }
+
+            public FSTPath<T> NewPath(T output, Int32sRef input)
+            {
+                return new FSTPath<T>(output, this.Arc, input, this.Boost, this.Context, this.Payload);
             }
 
             public override string ToString()
             {
-                return "input=" + Input + " cost=" + Cost;
+                return "input=" + Input + " output=" + Output + " context=" + Context + " boost=" + Boost + " payload=" + Payload;
             }
         }
 
@@ -337,7 +364,7 @@ namespace Lucene.Net.Support.Util.Fst
 
             public virtual int Compare(FSTPath<T> a, FSTPath<T> b)
             {
-                int cmp = comparer.Compare(a.Cost, b.Cost);
+                int cmp = comparer.Compare(a.Output, b.Output);
                 if (cmp == 0)
                 {
                     return a.Input.CompareTo(b.Input);
@@ -362,7 +389,8 @@ namespace Lucene.Net.Support.Util.Fst
 
             private readonly FST.Arc<T> scratchArc = new FST.Arc<T>();
 
-            internal readonly IComparer<T> comparer;
+            private readonly IComparer<T> comparer;
+            private readonly IComparer<FSTPath<T>> pathComparer;
 
             internal JCG.SortedSet<FSTPath<T>> queue = null;
 
@@ -373,14 +401,20 @@ namespace Lucene.Net.Support.Util.Fst
             /// <param name="maxQueueDepth"> the maximum size of the queue of possible top entries </param>
             /// <param name="comparer"> the comparer to select the top N </param>
             public TopNSearcher(FST<T> fst, int topN, int maxQueueDepth, IComparer<T> comparer)
+                : this(fst, topN, maxQueueDepth, comparer, new TieBreakByInputComparer<T>(comparer))
+            {
+            }
+
+            public TopNSearcher(FST<T> fst, int topN, int maxQueueDepth, IComparer<T> comparer, IComparer<FSTPath<T>> pathComparer)
             {
                 this.fst = fst;
                 this.bytesReader = fst.GetBytesReader();
                 this.topN = topN;
                 this.maxQueueDepth = maxQueueDepth;
                 this.comparer = comparer;
+                this.pathComparer = pathComparer;
 
-                queue = new JCG.SortedSet<FSTPath<T>>(new TieBreakByInputComparer<T>(comparer));
+                queue = new JCG.SortedSet<FSTPath<T>>(pathComparer);
             }
 
             /// <summary>
@@ -390,13 +424,13 @@ namespace Lucene.Net.Support.Util.Fst
             {
                 if (Debugging.AssertsEnabled) Debugging.Assert(queue != null);
 
-                T cost = fst.Outputs.Add(path.Cost, path.Arc.Output);
+                T output = fst.Outputs.Add(path.Output, path.Arc.Output);
                 //System.out.println("  addIfCompetitive queue.size()=" + queue.size() + " path=" + path + " + label=" + path.arc.label);
 
                 if (queue.Count == maxQueueDepth)
                 {
                     FSTPath<T> bottom = queue.Max;
-                    int comp = comparer.Compare(cost, bottom.Cost);
+                    int comp = pathComparer.Compare(path, bottom);
                     if (comp > 0)
                     {
                         // Doesn't compete
@@ -432,21 +466,30 @@ namespace Lucene.Net.Support.Util.Fst
                 Array.Copy(path.Input.Int32s, 0, newInput.Int32s, 0, path.Input.Length);
                 newInput.Int32s[path.Input.Length] = path.Arc.Label;
                 newInput.Length = path.Input.Length + 1;
-                FSTPath<T> newPath = new FSTPath<T>(cost, path.Arc, newInput);
 
-                queue.Add(newPath);
-
-                if (queue.Count == maxQueueDepth + 1)
+                FSTPath<T> newPath = path.NewPath(output, newInput);
+                if (AcceptPartialPath(newPath))
                 {
-                    queue.Remove(queue.Max);
+                    queue.Add(newPath);
+
+                    if (queue.Count == maxQueueDepth + 1)
+                    {
+                        queue.Remove(queue.Max);
+                    }
                 }
             }
 
-            /// <summary>
-            /// Adds all leaving arcs, including 'finished' arc, if
-            /// the node is final, from this node into the queue.
-            /// </summary>
-            public virtual void AddStartPaths(FST.Arc<T> node, T startOutput, bool allowEmptyString, Int32sRef input)
+            public void AddStartPaths(FST.Arc<T> node, T startOutput, bool allowEmptyString, Int32sRef input)
+            {
+                AddStartPaths(node, startOutput, allowEmptyString, input, 0, null, -1);
+            }
+
+        /// <summary>
+        /// Adds all leaving arcs, including 'finished' arc, if
+        /// the node is final, from this node into the queue.
+        /// </summary>
+        public virtual void AddStartPaths(FST.Arc<T> node, T startOutput, bool allowEmptyString, Int32sRef input,
+            float boost, string context, int payload)
             {
                 // De-dup NO_OUTPUT since it must be a singleton:
                 if (startOutput.Equals(fst.Outputs.NoOutput))
@@ -454,10 +497,8 @@ namespace Lucene.Net.Support.Util.Fst
                     startOutput = fst.Outputs.NoOutput;
                 }
 
-                FSTPath<T> path = new FSTPath<T>(startOutput, node, input);
+                FSTPath<T> path = new FSTPath<T>(startOutput, node, input, boost, context, payload);
                 fst.ReadFirstTargetArc(node, path.Arc, bytesReader);
-
-                //System.out.println("add start paths");
 
                 // Bootstrap: find the min starting arc
                 while (true)
@@ -478,8 +519,6 @@ namespace Lucene.Net.Support.Util.Fst
             {
                 IList<Result<T>> results = new JCG.List<Result<T>>();
 
-                //System.out.println("search topN=" + topN);
-
                 var fstReader = fst.GetBytesReader();
                 T NO_OUTPUT = fst.Outputs.NoOutput;
 
@@ -494,14 +533,12 @@ namespace Lucene.Net.Support.Util.Fst
                 // For each top N path:
                 while (results.Count < topN)
                 {
-                    //System.out.println("\nfind next path: queue.size=" + queue.size());
 
                     FSTPath<T> path;
 
                     if (queue is null)
                     {
                         // Ran out of paths
-                        //System.out.println("  break queue=null");
                         break;
                     }
 
@@ -518,13 +555,19 @@ namespace Lucene.Net.Support.Util.Fst
                         //System.out.println("  break no more paths");
                         break;
                     }
+                    //System.out.println("pop path=" + path + " arc=" + path.arc.output);
+
+                    if (AcceptPartialPath(path) == false)
+                    {
+                        continue;
+                    }
+
 
                     if (path.Arc.Label == FST.END_LABEL)
                     {
-                        //System.out.println("    empty string!  cost=" + path.cost);
                         // Empty string!
                         path.Input.Length--;
-                        results.Add(new Result<T>(path.Input, path.Cost));
+                        results.Add(new Result<T>(path.Input, path.Output));
                         continue;
                     }
 
@@ -533,8 +576,6 @@ namespace Lucene.Net.Support.Util.Fst
                         // Last path -- don't bother w/ queue anymore:
                         queue = null;
                     }
-
-                    //System.out.println("  path: " + path);
 
                     // We take path and find its "0 output completion",
                     // ie, just keep traversing the first arc with
@@ -545,14 +586,12 @@ namespace Lucene.Net.Support.Util.Fst
                     // For each input letter:
                     while (true)
                     {
-                        //System.out.println("\n    cycle path: " + path);
                         fst.ReadFirstTargetArc(path.Arc, path.Arc, fstReader);
 
                         // For each arc leaving this node:
                         bool foundZero = false;
                         while (true)
                         {
-                            //System.out.println("      arc=" + (char) path.arc.label + " cost=" + path.arc.output);
                             // tricky: instead of comparing output == 0, we must
                             // express it via the comparer compare(output, 0) == 0
                             if (comparer.Compare(NO_OUTPUT, path.Arc.Output) == 0)
@@ -597,12 +636,10 @@ namespace Lucene.Net.Support.Util.Fst
                         if (path.Arc.Label == FST.END_LABEL)
                         {
                             // Add final output:
-                            //Debug.WriteLine("    done!: " + path);
-                            T finalOutput = fst.Outputs.Add(path.Cost, path.Arc.Output);
-                            if (AcceptResult(path.Input, finalOutput))
+                            path.Output = fst.Outputs.Add(path.Output, path.Arc.Output);
+                            if (AcceptResult(path))
                             {
-                                //Debug.WriteLine("    add result: " + path);
-                                results.Add(new Result<T>(path.Input, finalOutput));
+                                results.Add(new Result<T>(path.Input, path.Output));
                             }
                             else
                             {
@@ -615,11 +652,26 @@ namespace Lucene.Net.Support.Util.Fst
                             path.Input.Grow(1 + path.Input.Length);
                             path.Input.Int32s[path.Input.Length] = path.Arc.Label;
                             path.Input.Length++;
-                            path.Cost = fst.Outputs.Add(path.Cost, path.Arc.Output);
+                            path.Output = fst.Outputs.Add(path.Output, path.Arc.Output);
+                            if (AcceptPartialPath(path) == false)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
                 return new TopResults<T>(rejectCount + topN <= maxQueueDepth, results);
+            }
+
+            protected virtual bool AcceptResult(FSTPath<T> path)
+            {
+                return AcceptResult(path.Input, path.Output);
+            }
+
+            /// <summary>Override this to prevent considering a path before it's complete</summary>
+            protected virtual bool AcceptPartialPath(FSTPath<T> path)
+            {
+                return true;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -715,10 +767,9 @@ namespace Lucene.Net.Support.Util.Fst
         ///
         /// <para/>
         /// Note: larger FSTs (a few thousand nodes) won't even
-        /// render, don't bother.  If the FST is &gt; 2.1 GB in size
-        /// then this method will throw strange exceptions.
+        /// render, don't bother.
         /// <para/>
-        /// See also <a href="http://www.graphviz.org/">http://www.graphviz.org/</a>.
+        /// See also <a href="http://www.graphviz.org/">graphviz project</a>.
         /// </summary>
         /// <param name="sameRank">
         ///          If <c>true</c>, the resulting <c>dot</c> file will try
@@ -819,7 +870,7 @@ namespace Lucene.Net.Support.Util.Fst
                     FST.Arc<T> arc = thisLevelQueue[thisLevelQueue.Count - 1];
                     thisLevelQueue.RemoveAt(thisLevelQueue.Count - 1);
                     //System.out.println("  pop: " + arc);
-                    if (FST<T>.TargetHasArcs(arc))
+                    if (FST.TargetHasArcs(arc))
                     {
                         // scan all target arcs
                         //System.out.println("  readFirstTarget...");
@@ -885,7 +936,7 @@ namespace Lucene.Net.Support.Util.Fst
                                 outs = "";
                             }
 
-                            if (!FST<T>.TargetHasArcs(arc) && arc.IsFinal && arc.NextFinalOutput != NO_OUTPUT)
+                            if (!FST.TargetHasArcs(arc) && arc.IsFinal && arc.NextFinalOutput != NO_OUTPUT)
                             {
                                 // Tricky special case: sometimes, due to
                                 // pruning, the builder can [sillily] produce
@@ -1101,7 +1152,6 @@ namespace Lucene.Net.Support.Util.Fst
                         arc.Flags = 0;
                         // NOTE: nextArc is a node (not an address!) in this case:
                         arc.NextArc = follow.Target;
-                        arc.Node = follow.Target;
                     }
                     arc.Output = follow.NextFinalOutput;
                     arc.Label = FST.END_LABEL;
@@ -1113,13 +1163,31 @@ namespace Lucene.Net.Support.Util.Fst
                 }
             }
 
-            if (!FST<T>.TargetHasArcs(follow))
+            if (!FST.TargetHasArcs(follow))
             {
                 return null;
             }
             fst.ReadFirstTargetArc(follow, arc, @in);
             if (arc.BytesPerArc != 0 && arc.Label != FST.END_LABEL)
             {
+                if (arc.ArcIdx == int.MinValue)
+                {
+                    // Arcs are in an array-with-gaps
+                    int offset = label - arc.Label;
+                    if (offset >= arc.NumArcs)
+                    {
+                        return null;
+                    }
+                    else if (offset < 0)
+                    {
+                        return arc;
+                    }
+                    else
+                    {
+                        arc.NextArc = arc.PosArcsStart - offset * arc.BytesPerArc;
+                        return fst.ReadNextRealArc(arc, @in);
+                    }
+                }
                 // Arcs are fixed array -- use binary search to find
                 // the target.
 

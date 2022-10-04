@@ -126,9 +126,7 @@ namespace Lucene.Net.Analysis.Ko.Util
             Console.Out.WriteLine("  encode...");
 
             PositiveInt32Outputs fstOutput = PositiveInt32Outputs.Singleton;
-            //Builder<Long> fstBuilder = new Builder<Long>(FST.INPUT_TYPE.BYTE2, 0, 0, true, true, int.MaxValue, fstOutput, null, true, PackedInt32s.DEFAULT, true, 15);
-            //0.25f
-            Builder<Long> fstBuilder = new Builder<Long>(FST.INPUT_TYPE.BYTE2, 0, 0, true, true, int.MaxValue, fstOutput, null, true, /*PackedInt32s.DEFAULT*/ 0.25f, true, 15);
+            Builder<Long> fstBuilder = new Builder<Long>(FST.INPUT_TYPE.BYTE2, 0, 0, true, true, int.MaxValue, fstOutput, true, 15);
             Int32sRef scratch = new Int32sRef();
             long ord = -1; // first ord will be 0
             string lastValue = null;
@@ -168,7 +166,7 @@ namespace Lucene.Net.Analysis.Ko.Util
 
             FST<Long> fst = fstBuilder.Finish();
 
-            Console.Out.Write("  " + fst.NodeCount + " nodes, " + fst.ArcCount + " arcs, " + fst.GetSizeInBytes() + " bytes...  ");
+            Console.Out.Write(/*"  " + fst.NodeCount + " nodes, " + fst.ArcCount + " arcs, " +*/ fst.GetRamBytesUsed() + " bytes...  ");
             dictionary.SetFST(fst);
             Console.Out.WriteLine(" done");
 
