@@ -29,6 +29,8 @@ namespace Lucene.Net.Search.Suggest
     /// </summary>
     public class BufferedInputEnumerator : IInputEnumerator
     {
+        // Foo
+    
         // TODO keep this for now
         /// <summary>
         /// buffered term entries </summary>
