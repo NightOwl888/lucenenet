@@ -75,9 +75,7 @@ param(
 
     [string]$DotNet6SDKVersion = '6.0.100',
 
-    [string]$DotNet5SDKVersion = '5.0.400',
-
-    [string]$DotNetCore3SDKVersion = '3.1.412'
+    [string]$DotNet5SDKVersion = '5.0.400'
 )
 
 
@@ -158,8 +156,7 @@ function Write-TestWorkflow(
     [string[]]$TestPlatforms = @('x64'),
     [string[]]$OperatingSystems = @('windows-latest', 'ubuntu-latest', 'macos-latest'),
     [string]$DotNet6SDKVersion = $DotNet6SDKVersion,
-    [string]$DotNet5SDKVersion = $DotNet5SDKVersion,
-    [string]$DotNetCore3SDKVersion = $DotNetCore3SDKVersion) {
+    [string]$DotNet5SDKVersion = $DotNet5SDKVersion) {
 
     $dependencies = New-Object System.Collections.Generic.HashSet[string]
     Get-ProjectDependencies $ProjectPath $RelativeRoot $dependencies
@@ -172,6 +169,9 @@ function Write-TestWorkflow(
     $projectRelativePath = $(Resolve-RelativePath $RelativeRoot $ProjectPath) -replace '\\', '/'
     $projectRelativeDirectory = ([System.IO.Path]::GetDirectoryName($projectRelativePath) -replace '\\', '/').TrimStart('./')
     $projectName = [System.IO.Path]::GetFileNameWithoutExtension($ProjectPath)
+
+    [bool]$isCLI = if ($projectName -eq "Lucene.Net.Tests.Cli") { $true } else { $false }       # Special case
+    $luceneCliProjectPath = $projectRelativePath -replace "Lucene.Net.Tests.Cli", "lucene-cli"  # Special case
 
     [string]$frameworks = '[' + $($TestFrameworks -join ', ') + ']'
     [string]$platforms = '[' + $($TestPlatforms -join ', ') + ']'
@@ -249,18 +249,19 @@ jobs:
           - os: macos-latest
             framework: net461
     env:
-      project_path: '$projectRelativePath'
+      project_path: '$projectRelativePath'"
+
+    if ($isCLI) {
+        $fileText += "
+      project_under_test_path: '$luceneCliProjectPath'"
+    }
+
+    $fileText += "
       trx_file_name: 'TestResults.trx'
       md_file_name: 'TestResults.md' # Report file name for LiquidTestReports.Markdown
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Setup .NET 3.1 SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '$DotNetCore3SDKVersion'
-        if: `${{ startswith(matrix.framework, 'netcoreapp3.') }}
 
       - name: Setup .NET 5 SDK
         uses: actions/setup-dotnet@v1
@@ -282,8 +283,18 @@ jobs:
           echo `"test_results_artifact_name=`$test_results_artifact_name`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
           # Title for LiquidTestReports.Markdown
           echo `"title=Test Run for `$project_name - `${{matrix.framework}} - `${{matrix.platform}} - `${{matrix.os}}`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
+          # Set the Azure DevOps default working directory env variable, so our tests only need to deal with a single env variable
+          echo `"SYSTEM_DEFAULTWORKINGDIRECTORY=`${{env.GITHUB_WORKSPACE}}`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
-      - run: dotnet build `${{env.project_path}} --configuration `${{matrix.configuration}} --framework `${{matrix.framework}} /p:TestFrameworks=true
+      - run: dotnet build `${{env.project_path}} --configuration `${{matrix.configuration}} --framework `${{matrix.framework}} /p:TestFrameworks=true"
+
+    if ($isCLI) {
+        # Special case: Generate lucene-cli.nupkg for installation test so the test runner doesn't have to do it
+        $fileText += "
+      - run: dotnet pack `${{env.project_under_test_path}} --configuration `${{matrix.configuration}} --no-build"
+    }
+
+    $fileText += "
       - run: dotnet test `${{env.project_path}} --configuration `${{matrix.configuration}} --framework `${{matrix.framework}} --no-build --no-restore --blame-hang --blame-hang-dump-type mini --blame-hang-timeout 20minutes --logger:`"console;verbosity=normal`" --logger:`"trx;LogFileName=`${{env.trx_file_name}}`" --logger:`"liquid.md;LogFileName=`${{env.md_file_name}};Title=`${{env.title}};`" --results-directory:`"`${{github.workspace}}/`${{env.test_results_artifact_name}}/`${{env.project_name}}`" -- RunConfiguration.TargetPlatform=`${{matrix.platform}} TestRunParameters.Parameter\(name=\`"tests:slow\`",\ value=\`"false\`"\)
         shell: bash
       # upload reports as build artifacts
@@ -317,7 +328,7 @@ try {
     Pop-Location
 }
 
-#Write-TestWorkflow -OutputDirectory $OutputDirectory -ProjectPath $projectPath -RelativeRoot $repoRoot -TestFrameworks @('net5.0','netcoreapp3.1') -OperatingSystems $OperatingSystems -TestPlatforms $TestPlatforms -Configurations $Configurations -DotNet6SDKVersion $DotNet6SDKVersion -DotNet5SDKVersion $DotNet5SDKVersion -DotNetCore3SDKVersion $DotNetCore3SDKVersion
+#Write-TestWorkflow -OutputDirectory $OutputDirectory -ProjectPath $projectPath -RelativeRoot $repoRoot -TestFrameworks @('net5.0') -OperatingSystems $OperatingSystems -TestPlatforms $TestPlatforms -Configurations $Configurations -DotNet6SDKVersion $DotNet6SDKVersion -DotNet5SDKVersion $DotNet5SDKVersion
 
 #Write-Host $TestProjects
 
@@ -344,5 +355,5 @@ foreach ($testProject in $TestProjects) {
     Write-Host "Frameworks To Test for ${projectName}: $($frameworks -join ';')" -ForegroundColor Cyan
 
     #Write-Host "Project: $projectName"
-    Write-TestWorkflow -OutputDirectory $OutputDirectory -ProjectPath $testProject -RelativeRoot $RepoRoot -TestFrameworks $frameworks -OperatingSystems $OperatingSystems -TestPlatforms $TestPlatforms -Configurations $Configurations -DotNet6SDKVersion $DotNet6SDKVersion -DotNet5SDKVersion $DotNet5SDKVersion -DotNetCore3SDKVersion $DotNetCore3SDKVersion
+    Write-TestWorkflow -OutputDirectory $OutputDirectory -ProjectPath $testProject -RelativeRoot $RepoRoot -TestFrameworks $frameworks -OperatingSystems $OperatingSystems -TestPlatforms $TestPlatforms -Configurations $Configurations -DotNet6SDKVersion $DotNet6SDKVersion -DotNet5SDKVersion $DotNet5SDKVersion
 }
