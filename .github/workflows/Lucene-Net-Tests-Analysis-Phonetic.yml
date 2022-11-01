@@ -85,7 +85,7 @@ jobs:
         run: |
           $project_name = [System.IO.Path]::GetFileNameWithoutExtension($env:project_path)
           $test_results_artifact_name = "testresults_${{matrix.os}}_${{matrix.framework}}_${{matrix.platform}}_${{matrix.configuration}}"
-          $working_directory = "$env.GITHUB_WORKSPACE"
+          $working_directory = "$env:GITHUB_WORKSPACE"
           Write-Host "Project Name: $project_name"
           Write-Host "Results Artifact Name: $test_results_artifact_name"
           Write-Host "Working Directory: $working_directory"
