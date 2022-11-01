@@ -292,11 +292,11 @@ jobs:
     if ($isCLI) {
         # Special case: Generate lucene-cli.nupkg for installation test so the test runner doesn't have to do it
         $fileText += "
-      - run: dotnet pack `${{env.project_under_test_path}} --configuration `${{matrix.configuration}} /p:TestFrameworks=true /p:PortableDebugTypeOnly=true"
+      - run: dotnet pack `${{env.project_under_test_path}} --configuration `${{matrix.configuration}} --output `${{github.workspace}} /p:TestFrameworks=true /p:PortableDebugTypeOnly=true"
     }
 
     $fileText += "
-      - run: dotnet build `${{env.project_path}} --configuration `${{matrix.configuration}} --framework `${{matrix.framework}}
+      - run: dotnet build `${{env.project_path}} --configuration `${{matrix.configuration}} --framework `${{matrix.framework}} /p:TestFrameworks=true /p:PortableDebugTypeOnly=true
       - run: dotnet test `${{env.project_path}} --configuration `${{matrix.configuration}} --framework `${{matrix.framework}} --no-build --no-restore --blame-hang --blame-hang-dump-type mini --blame-hang-timeout 20minutes --logger:`"console;verbosity=normal`" --logger:`"trx;LogFileName=`${{env.trx_file_name}}`" --logger:`"liquid.md;LogFileName=`${{env.md_file_name}};Title=`${{env.title}};`" --results-directory:`"`${{github.workspace}}/`${{env.test_results_artifact_name}}/`${{env.project_name}}`" -- RunConfiguration.TargetPlatform=`${{matrix.platform}} TestRunParameters.Parameter\(name=\`"tests:slow\`",\ value=\`"false\`"\)
         shell: bash
       # upload reports as build artifacts
