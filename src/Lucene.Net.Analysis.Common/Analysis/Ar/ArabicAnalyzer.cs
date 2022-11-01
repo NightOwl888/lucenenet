@@ -26,6 +26,7 @@ namespace Lucene.Net.Analysis.Ar
      * limitations under the License.
      */
 
+
     /// <summary>
     /// <see cref="Analyzer"/> for Arabic. 
     /// <para/>
