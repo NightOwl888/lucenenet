@@ -20,6 +20,7 @@ namespace Lucene.Net.Cli
      * limitations under the License.
      */
 
+
     [SuppressMessage("Design", "CA1052:Static holder types should be Static or NotInheritable", Justification = "This class is intended to hold the options that are passed into the app")]
     public class CommandLineOptions
     {
