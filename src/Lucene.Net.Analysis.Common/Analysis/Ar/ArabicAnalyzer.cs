@@ -7,6 +7,7 @@ using Lucene.Net.Util;
 using System;
 using System.IO;
 
+
 namespace Lucene.Net.Analysis.Ar
 {
     /*
