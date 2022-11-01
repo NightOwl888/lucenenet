@@ -276,23 +276,26 @@ jobs:
         with:
           dotnet-version: '$DotNet6SDKVersion'
 
-      - run: |
+      - name: Setup Environment Variables
+        run: |
           `$project_name = [System.IO.Path]::GetFileNameWithoutExtension(`$env:project_path)
           `$test_results_artifact_name = `"testresults_`${{matrix.os}}_`${{matrix.framework}}_`${{matrix.platform}}_`${{matrix.configuration}}`"
+          `$working_directory = `"`$env.GITHUB_WORKSPACE`"
           Write-Host `"Project Name: `$project_name`"
           Write-Host `"Results Artifact Name: `$test_results_artifact_name`"
+          Write-Host `"Working Directory: `$working_directory`"
           echo `"project_name=`$project_name`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
           echo `"test_results_artifact_name=`$test_results_artifact_name`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
+          # Set the Azure DevOps default working directory env variable, so our tests only need to deal with a single env variable
+          echo `"SYSTEM_DEFAULTWORKINGDIRECTORY=`$working_directory`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
           # Title for LiquidTestReports.Markdown
           echo `"title=Test Run for `$project_name - `${{matrix.framework}} - `${{matrix.platform}} - `${{matrix.os}}`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
-          # Set the Azure DevOps default working directory env variable, so our tests only need to deal with a single env variable
-          echo `"SYSTEM_DEFAULTWORKINGDIRECTORY=`${{env.GITHUB_WORKSPACE}}`" | Out-File -FilePath  `$env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh"
 
     if ($isCLI) {
         # Special case: Generate lucene-cli.nupkg for installation test so the test runner doesn't have to do it
         $fileText += "
-      - run: dotnet pack `${{env.project_under_test_path}} --configuration `${{matrix.configuration}} --output `${{github.workspace}} /p:TestFrameworks=true /p:PortableDebugTypeOnly=true"
+      - run: dotnet pack `${{env.project_under_test_path}} --configuration `${{matrix.configuration}} /p:TestFrameworks=true /p:PortableDebugTypeOnly=true"
     }
 
     $fileText += "
