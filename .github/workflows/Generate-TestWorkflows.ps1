@@ -52,13 +52,12 @@
     A string array of build configurations to run the tests on. The default is @('Release').
 
  .PARAMETER DotNet5SDKVersion
-    The SDK version of .NET 5.x to install on the build agent to be used for building and
-    testing. This SDK is always installed on the build agent. The default is 5.0.400.
+    The SDK version of .NET 6.x to install on the build agent to be used for building and
+    testing. This SDK is always installed on the build agent. The default is 6.0.x.
 
- .PARAMETER DotNetCore3SDKVersion
-    The SDK version of .NET Core 3.x to install on the build agent to be used for building and
-    testing. This SDK is only installed on the build agent when targeting .NET Core 3.x.
-    The default is 3.1.412.
+ .PARAMETER DotNet5SDKVersion
+    The SDK version of .NET 5.x to install on the build agent to be used for building and
+    testing. This SDK is always installed on the build agent. The default is 5.0.x.
 #>
 param(
     [string]$OutputDirectory =  $PSScriptRoot,
@@ -73,9 +72,9 @@ param(
 
     [string[]]$Configurations = @('Release'),
 
-    [string]$DotNet6SDKVersion = '6.0.100',
+    [string]$DotNet6SDKVersion = '6.0.x',
 
-    [string]$DotNet5SDKVersion = '5.0.400'
+    [string]$DotNet5SDKVersion = '5.0.x'
 )
 
 
