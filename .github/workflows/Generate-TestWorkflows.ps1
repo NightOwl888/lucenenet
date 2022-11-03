@@ -285,6 +285,10 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '$DotNet6SDKVersion'
+        if: `${{ startswith(matrix.framework, 'net6.') }}
+
+      - name: Display .NET Runtime Info
+        run: dotnet --info
 
       - name: Setup Environment Variables
         run: |
