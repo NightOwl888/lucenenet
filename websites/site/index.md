@@ -9,7 +9,7 @@ Lucene.NET
 
 <h2 id="about" class="text-center">About the project</h2>
 
-Lucene.Net is a port of the Lucene search library, written in C# and targeted at .NET runtime users.
+Hello! Lucene.Net is a port of the Lucene search library, written in C# and targeted at .NET runtime users.
 
 ### Latest Version - Lucene.NET 4.8.0 Beta
 
