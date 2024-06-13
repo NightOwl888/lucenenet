@@ -23,6 +23,7 @@ namespace Lucene.Net.Analysis.Phonetic
      * limitations under the License.
      */
 
+    // some change
     public class DoubleMetaphoneFilterTest : BaseTokenStreamTestCase
     {
         [Test]
