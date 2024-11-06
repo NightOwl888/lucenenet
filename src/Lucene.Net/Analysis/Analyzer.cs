@@ -63,7 +63,6 @@ namespace Lucene.Net.Analysis
     ///   <item><description>[Stempel](../analysis-stempel/Lucene.Net.Analysis.Stempel.html):
     ///       Algorithmic Stemmer for the Polish Language.</description></item>
     /// </list>
-    /// 
     /// </summary>
     public abstract class Analyzer : IDisposable
     {
