@@ -112,6 +112,7 @@ namespace Lucene.Net.Analysis.Icu.Segmentation
 
         /** blast some random strings through the analyzer */
         [Test]
+        [Repeat(10)]
         public void TestRandomStrings()
         {
             CheckRandomData(Random, a, 10000 * RandomMultiplier);
