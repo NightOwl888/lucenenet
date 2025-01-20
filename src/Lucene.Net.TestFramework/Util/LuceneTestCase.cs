@@ -885,7 +885,7 @@ namespace Lucene.Net.Util
             // of whether verbose is enabled (since we need it for debugging,
             // but the verbose output can crash tests).
             Console.Write("RandomSeed: ");
-            Console.WriteLine(RandomizedContext.CurrentContext.RandomSeedAsHex);
+            Console.WriteLine(RandomizedContext.CurrentContext.RandomSeedAsString);
 
             Console.Write("Culture: ");
             Console.WriteLine(ClassEnvRule.locale.Name);
@@ -948,7 +948,7 @@ namespace Lucene.Net.Util
 
                        Apply the following assembly-level attributes:
 
-                      [assembly: Lucene.Net.Util.RandomSeed("{{RandomizedContext.CurrentContext.RandomSeedAsHex}}")]
+                      [assembly: Lucene.Net.Util.RandomSeed("{{RandomizedContext.CurrentContext.RandomSeedAsString}}")]
                       [assembly: NUnit.Framework.SetCulture("{{Thread.CurrentThread.CurrentCulture.Name}}")]
 
                       Option 2:
@@ -957,7 +957,7 @@ namespace Lucene.Net.Util
 
                       <RunSettings>
                         <TestRunParameters>
-                          <Parameter name="tests:seed" value="{{RandomizedContext.CurrentContext.RandomSeedAsHex}}" />
+                          <Parameter name="tests:seed" value="{{RandomizedContext.CurrentContext.RandomSeedAsString}}" />
                           <Parameter name="tests:culture" value="{{Thread.CurrentThread.CurrentCulture.Name}}" />
                         </TestRunParameters>
                       </RunSettings>
@@ -968,7 +968,7 @@ namespace Lucene.Net.Util
 
                       {
                         "tests": {
-                           "seed": "{{RandomizedContext.CurrentContext.RandomSeedAsHex}}",
+                           "seed": "{{RandomizedContext.CurrentContext.RandomSeedAsString}}",
                            "culture": "{{Thread.CurrentThread.CurrentCulture.Name}}"
                         }
                       }
@@ -1087,6 +1087,7 @@ namespace Lucene.Net.Util
         /// Gets the current type being tested.
         /// </summary>
         public static Type TestType
+            //=> TestExecutionContext.CurrentContext.CurrentTest.TypeInfo.Type; //
             => TestExecutionContext.CurrentContext.CurrentTest.Fixture?.GetType(); // LUCENENET specific - renamed from testClass()
 
         /// <summary>

@@ -38,6 +38,34 @@ using System.Text.RegularExpressions;
 using Console = Lucene.Net.Util.SystemConsole;
 using JCG = J2N.Collections.Generic;
 
+//[assembly: Lucene.Net.Util.RandomSeed("0xb78a94b3d0d07ab5")]
+//[assembly: NUnit.Framework.SetCulture("ca")]
+
+//[assembly: Lucene.Net.Util.RandomSeed("0xb78a94b3d0d07ab5:0x60bba3eab49c5068")]
+//[assembly: NUnit.Framework.SetCulture("ca")]
+
+[assembly: Lucene.Net.Util.RandomSeed("0xb78a94b3d0d07ab5:0xbbd18513f2af9ada")]
+//[assembly: NUnit.Framework.SetCulture("ca")]
+[assembly: NUnit.Framework.SetCulture("en")]
+
+//[assembly: Lucene.Net.Util.RandomSeed("0x1d3c3f9649919abb:0x157101e5e08ba5ea")]
+//[assembly: NUnit.Framework.SetCulture("yo")]
+
+//[assembly: Lucene.Net.Util.RandomSeed("0x29f02a96117b7eb9")]
+//[assembly: NUnit.Framework.SetCulture("fr-BF")]
+
+//[assembly: Lucene.Net.Util.RandomSeed("0x3e1eb27535280665:0x747dd2e55b9f42ae")]
+//[assembly: NUnit.Framework.SetCulture("en-CK")]
+
+//[assembly: Lucene.Net.Util.RandomSeed("0x94762111a0171f6:0x4151b5a0ab9bebca")]
+//[assembly: NUnit.Framework.SetCulture("sr-Cyrl-RS")]
+
+//[assembly: Lucene.Net.Util.RandomSeed("0x9116b44d15513f96:0x9ee635faa59090c3")]
+//[assembly: NUnit.Framework.SetCulture("fr-CD")]
+
+//[assembly: Lucene.Net.Util.RandomSeed("0xe7d9bc54f95aef91:0xc30660323d4522bb")]
+//[assembly: NUnit.Framework.SetCulture("en-LC")]
+
 namespace Lucene.Net.Analysis.Core
 {
     /*
@@ -1151,12 +1179,18 @@ namespace Lucene.Net.Analysis.Core
 
         [Test]
         //[AwaitsFix(BugUrl = "https://github.com/apache/lucenenet/issues/271#issuecomment-973005744")] // LUCENENET TODO: this test occasionally fails
+        //[Repeat(10000)]
         public void TestRandomChains_()
         {
             int numIterations = AtLeast(20);
             Random random = Random;
             for (int i = 0; i < numIterations; i++)
             {
+                if (i == 3)
+                {
+                    string foo = "";
+                }
+
                 MockRandomAnalyzer a = new MockRandomAnalyzer(random.NextInt64());
                 if (Verbose)
                 {
@@ -1169,7 +1203,7 @@ namespace Lucene.Net.Analysis.Core
                 }
                 catch (Exception e) when (e.IsThrowable())
                 {
-                    Console.WriteLine("Exception from random analyzer (iteration {i}): " + a);
+                    Console.WriteLine($"Exception from random analyzer (iteration {i}): " + a);
                     throw; // LUCENENET: CA2200: Rethrow to preserve stack details (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca2200-rethrow-to-preserve-stack-details)
                 }
             }
@@ -1199,6 +1233,17 @@ namespace Lucene.Net.Analysis.Core
                     Console.WriteLine($"Exception from random analyzer (iteration {i}): " + a);
                     throw; // LUCENENET: CA2200: Rethrow to preserve stack details (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca2200-rethrow-to-preserve-stack-details)
                 }
+            }
+        }
+
+        [Test]
+        //[Repeat(10000)]
+        public void TestRepeatability()
+        {
+            var random = Random;
+            if (random.Next(1, 200) == 100)
+            {
+                fail("This is the seed that fails.");
             }
         }
     }

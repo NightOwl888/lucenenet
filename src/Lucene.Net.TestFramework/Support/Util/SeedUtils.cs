@@ -37,5 +37,8 @@ namespace Lucene.Net.Util
         // LUCENENET: Our format deviates from the Java randomizedtesting implementation
         public static string FormatSeed(long seed)
             => string.Concat("0x", seed.ToHexString());
+
+        public static string FormatSeed(long seed, long testSeed)
+            => string.Concat("0x", seed.ToHexString(), ":0x", testSeed.ToHexString());
     }
 }

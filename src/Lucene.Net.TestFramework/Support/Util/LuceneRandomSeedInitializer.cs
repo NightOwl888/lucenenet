@@ -75,7 +75,7 @@ namespace Lucene.Net.Util
             int colonIndex = seedAsString.IndexOf(':');
             if (colonIndex  != -1)
             {
-                if (!J2N.Numerics.Int64.TryParse(seedAsString, 0, colonIndex, radix: 16, out seed))
+                if (!J2N.Numerics.Int64.TryParse(seedAsString.AsSpan(0, colonIndex), radix: 16, out seed))
                 {
                     test.MakeInvalid(RANDOM_SEED_PARAMS_MSG);
                     return false;
@@ -87,12 +87,13 @@ namespace Lucene.Net.Util
                 // values. If we ignore now, we leave the door open for adding a compound seed in the most sensible way later without breaking
                 // the current version when the change is introduced.
                 //if (!J2N.Numerics.Int64.TryParse(seedAsString, colonIndex + 1, seedAsString.Length - (colonIndex + 1), radix: 16, out long testSeedValue))
-                //{
-                //    test.MakeInvalid(RANDOM_SEED_PARAMS_MSG);
-                //    return false;
-                //}
+                if (!J2N.Numerics.Int64.TryParse(seedAsString.AsSpan(colonIndex + 1, seedAsString.Length - (colonIndex + 1)), radix: 16, out long testSeedValue))
+                {
+                    test.MakeInvalid(RANDOM_SEED_PARAMS_MSG);
+                    return false;
+                }
 
-                //testSeed = testSeedValue;
+                testSeed = testSeedValue;
                 return true;
             }
             else if (J2N.Numerics.Int64.TryParse(seedAsString, radix: 16, out seed))

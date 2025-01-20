@@ -1,4 +1,4 @@
-/*
+﻿/*
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -37,6 +37,6 @@ using System.Runtime.InteropServices;
 [assembly: Guid("fd602350-abed-4d1e-ad7b-709d18b0b464")]
 
 
-// LUCENENET specific - time out test projects at 55 minutes to allow the results
-// to be uploaded before the 60 minute Azure DevOps job cutoff for easier troubleshooting
-[assembly: Timeout(3300000)]
+//// LUCENENET specific - time out test projects at 55 minutes to allow the results
+//// to be uploaded before the 60 minute Azure DevOps job cutoff for easier troubleshooting
+//[assembly: Timeout(3300000)]

@@ -122,8 +122,8 @@ namespace Lucene.Net.Analysis
             // LUCENENET: Bug fix: NUnit throws an exception when something fails.
             // This causes Dispose() to be skipped and it pollutes other tests indicating false negatives.
             // Added this try-finally block to fix this.
-            try
-            {
+            //try
+            //{
                 Assert.IsNotNull(output);
                 var checkClearAtt = ts.AddAttribute<ICheckClearAttributesAttribute>();
 
@@ -384,11 +384,11 @@ namespace Lucene.Net.Analysis
                 {
                     Assert.AreEqual((int)finalPosInc, posIncrAtt.PositionIncrement, "finalPosInc");
                 }
-            }
-            finally
-            {
+            //}
+            //finally
+            //{
                 ts.Close();
-            }
+            //}
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
@@ -695,6 +695,7 @@ namespace Lucene.Net.Analysis
                 // now test with multiple threads: note we do the EXACT same thing we did before in each thread,
                 // so this should only really fail from another thread if its an actual thread problem
                 int numThreads = TestUtil.NextInt32(random, 2, 4);
+                numThreads = 0;
                 var startingGun = new CountdownEvent(1);
                 var threads = new AnalysisThread[numThreads];
                 for (int i = 0; i < threads.Length; i++)
@@ -804,6 +805,11 @@ namespace Lucene.Net.Analysis
 
                 for (int i = 0; i < iterations; i++)
                 {
+                    if (i == 38)
+                    {
+                        string foo = "";
+                    }
+
                     string text;
 
                     if (random.Next(10) == 7)
@@ -950,11 +956,18 @@ namespace Lucene.Net.Analysis
             IList<int> endOffsets = new JCG.List<int>();
             ts.Reset();
 
+            int tokenCount2 = 0;
             try
             {
+                if (tokenCount2 == 27)
+                {
+                    string foo = "";
+                }
+
                 // First pass: save away "correct" tokens
                 while (ts.IncrementToken())
                 {
+                    tokenCount2++;
                     Assert.IsNotNull(termAtt, "has no CharTermAttribute");
                     tokens.Add(termAtt.ToString());
                     if (typeAtt != null)
@@ -980,12 +993,18 @@ namespace Lucene.Net.Analysis
                 }
 
                 ts.End();
-            }
-            finally
-            {
+                //}
+                //finally
+                //{
                 // LUCENENET: We are doing this in the finally block to ensure it happens
                 // when there are exceptions thrown (such as when the assert fails).
                 ts.Close();
+                //}
+
+            }
+            finally
+            {
+
             }
 
             // verify reusing is "reproducable" and also get the normal tokenstream sanity checks

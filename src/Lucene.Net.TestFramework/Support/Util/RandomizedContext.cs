@@ -1,8 +1,10 @@
 ﻿using J2N;
+using Lucene.Net.Support.Threading;
 using NUnit.Framework.Internal;
 using System;
 using System.Reflection;
 using System.Threading;
+#nullable enable
 
 namespace Lucene.Net.Util
 {
@@ -31,12 +33,12 @@ namespace Lucene.Net.Util
         // LUCENENET NOTE: Using an underscore to prefix the name hides it from "traits" in Test Explorer
         internal const string RandomizedContextPropertyName = "_RandomizedContext";
 
-        private readonly ThreadLocal<Random> randomGenerator;
+        private readonly ThreadLocal<J2N.Randomizer> randomGenerator;
         private readonly Test currentTest;
         private readonly Assembly currentTestAssembly;
-        private readonly long randomSeed;
-        private readonly string randomSeedAsHex;
-        private readonly long testSeed;
+        private long randomSeed;
+        private volatile string? randomSeedAsString;
+        private long testSeed;
 
         /// <summary>
         /// Initializes the randomized context.
@@ -50,9 +52,8 @@ namespace Lucene.Net.Util
             this.currentTest = currentTest ?? throw new ArgumentNullException(nameof(currentTest));
             this.currentTestAssembly = currentTestAssembly ?? throw new ArgumentNullException(nameof(currentTestAssembly));
             this.randomSeed = randomSeed;
-            this.randomSeedAsHex = SeedUtils.FormatSeed(randomSeed);
             this.testSeed = testSeed;
-            this.randomGenerator = new ThreadLocal<Random>(() => new J2N.Randomizer(this.testSeed));
+            this.randomGenerator = new ThreadLocal<J2N.Randomizer>(() => new J2N.Randomizer(this.testSeed));
         }
 
         /// <summary>
@@ -63,7 +64,7 @@ namespace Lucene.Net.Util
         /// <summary>
         /// Gets the initial seed as a hexadecimal string for display/configuration purposes.
         /// </summary>
-        public string RandomSeedAsHex => randomSeedAsHex;
+        public string RandomSeedAsString => randomSeedAsString ??= SeedUtils.FormatSeed(randomSeed, testSeed);
 
         /// <summary>
         /// The current test for this context.
@@ -92,21 +93,87 @@ namespace Lucene.Net.Util
         /// random test data in these cases. Using the <see cref="LuceneTestCase.TestFixtureAttribute"/>
         /// will set the seed properly and make it possible to repeat the result.
         /// </summary>
-        public Random RandomGenerator => randomGenerator.Value;
+        public Random RandomGenerator
+        {
+            get
+            {
+                var random = randomGenerator.Value!;
+                UninterruptableMonitor.Enter(random.SyncRoot);
+                try
+                {
+                    if (random.Seed != testSeed)
+                        random.Seed = testSeed;
+                }
+                finally
+                {
+                    UninterruptableMonitor.Exit(random.SyncRoot);
+                }
+                return random;
+            }
+        }
 
         /// <summary>
         /// Gets the randomized context for the current test or test fixture.
         /// </summary>
-        public static RandomizedContext CurrentContext
+        public static RandomizedContext? CurrentContext
         {
             get
             {
                 var currentTest = TestExecutionContext.CurrentContext.CurrentTest;
 
                 if (currentTest.Properties.ContainsKey(RandomizedContextPropertyName))
-                    return (RandomizedContext)currentTest.Properties.Get(RandomizedContextPropertyName);
+                    return (RandomizedContext)currentTest.Properties.Get(RandomizedContextPropertyName)!;
 
                 return null; // We are out of random context and cannot respond with results that are repeatable.
+            }
+        }
+
+        internal void ResetRandom(long randomSeed, long testSeed)
+        {
+            var random = this.randomGenerator.Value!;
+            UninterruptableMonitor.Enter(random.SyncRoot);
+            try
+            {
+                this.randomSeedAsString = null;
+                this.randomSeed = randomSeed;
+                this.testSeed = testSeed;
+                this.randomGenerator.Value!.Seed = testSeed;
+            }
+            finally
+            {
+                UninterruptableMonitor.Exit(random.SyncRoot);
+            }
+        }
+
+        internal void ResetRandom(long testSeed)
+        {
+            var random = this.randomGenerator.Value!;
+            UninterruptableMonitor.Enter(random.SyncRoot);
+            try
+            {
+                this.randomSeedAsString = null;
+                this.testSeed = testSeed;
+                this.randomGenerator.Value!.Seed = testSeed;
+            }
+            finally
+            {
+                UninterruptableMonitor.Exit(random.SyncRoot);
+            }
+        }
+
+        internal void ResetRandom(J2N.Randomizer randomizer)
+        {
+            var random = this.randomGenerator.Value!;
+            UninterruptableMonitor.Enter(random.SyncRoot);
+            try
+            {
+                this.randomSeedAsString = null;
+                this.testSeed = randomizer.Seed;
+                this.randomGenerator.Value = randomizer;
+            }
+            finally
+            {
+                UninterruptableMonitor.Exit(random.SyncRoot);
             }
         }
     }
