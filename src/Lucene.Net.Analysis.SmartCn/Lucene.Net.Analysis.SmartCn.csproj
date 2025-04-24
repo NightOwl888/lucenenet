@@ -63,5 +63,9 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesPackageVersion)" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lucene.Net.Tests.Analysis.SmartCn"/>
+  </ItemGroup>
 
 </Project>
