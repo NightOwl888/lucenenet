@@ -1,0 +1,98 @@
+name: Build All Commits for Benchmarking
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_commit:
+        description: "Oldest commit SHA or tag to start from"
+        required: true
+      end_commit:
+        description: "Newest commit SHA or tag to end at"
+        required: true
+        default: main
+      base_version:
+        description: "Base semantic version prefix (e.g. 4.8.0-beta00018). This should ideally be the next release milestone."
+        required: true
+
+jobs:
+  enumerate-commits:
+    runs-on: ubuntu-latest
+    outputs:
+      commit_list: ${{ steps.enumerate.outputs.commit_list }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/apache/lucenenet.git
+          git fetch upstream --tags --prune
+
+      - id: enumerate
+        name: Enumerate commits between start and end
+        run: |
+          COMMITS=$(git rev-list --reverse ${{ github.event.inputs.start_commit }}..${{ github.event.inputs.end_commit }})
+          echo "Found commits:"
+          echo "$COMMITS"
+          commits_json=$(echo "$COMMITS" | jq -R -s -c 'split("\n")[:-1]')
+          echo "commit_list=$commits_json" >> $GITHUB_OUTPUT
+
+  build:
+    needs: enumerate-commits
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        commit: ${{ fromJson(needs.enumerate-commits.outputs.commit_list) }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout specific commit
+        run: git checkout ${{ matrix.commit }}
+
+      - name: Set up .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Calculate build number
+        id: calc
+        shell: bash
+        run: |
+          COMMITS=$(git rev-list --reverse ${{ github.event.inputs.start_commit }}..${{ github.event.inputs.end_commit }})
+          i=1
+          for c in $COMMITS; do
+            if [ "$c" = "${{ matrix.commit }}" ]; then
+              echo "build_number=$i" >> $GITHUB_OUTPUT
+              break
+            fi
+            ((i++))
+          done
+
+      - name: Build with PowerShell
+        shell: pwsh
+        run: |
+          $version = "${{ github.event.inputs.base_version }}-${{ steps.calc.outputs.build_number.PadLeft(4,'0') }}-g${{ matrix.commit.Substring(0,7) }}"
+          Write-Host "Building version: $version..."
+          ./build.ps1 -pv $version -config Release
+
+      - name: Collect filtered NuGet packages
+        shell: bash
+        run: |
+          mkdir -p ../artifacts/${{ matrix.commit }}
+          find . -type f -name "*.nupkg" \
+            | grep -E "Lucene.Net(\.Analysis\.Common|\.Expressions|\.Facet|\.Grouping|\.Join|\.Queries|\.QueryParser|\.Sandbox)?-[0-9]" \
+            | grep -E "Lucene.Net-[0-9]" \            # <-- Added this line to ensure core Lucene.Net is included
+            | grep -Ev "(Kuromoji|Morfologik|OpenNLP|Phonetic|SmartCn|Stempel|Benchmark|TestFramework|lucene-cli)" \
+            | xargs -I{} cp {} ../artifacts/${{ matrix.commit }}/
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.commit }}
+          path: ../artifacts/${{ matrix.commit }}
