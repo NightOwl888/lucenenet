@@ -204,6 +204,7 @@ jobs:
           dotnet build "./Lucene.Net.sln" `
             --configuration Release `
             --no-restore `
+            -maxcpucount:1 `
             "-p:Platform=$platform" `
             -p:PortableDebugTypeOnly=true `
             -p:AssemblyVersion=$assemblyVersion `
