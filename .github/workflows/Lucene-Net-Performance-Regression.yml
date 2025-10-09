@@ -82,7 +82,8 @@ jobs:
         shell: pwsh
         run: |
           $commit = "${{ matrix.commit }}"
-          $packageVersion = "${{ github.event.inputs.base_version }}-${{ steps.calc.outputs.build_number }}-g$commit"
+          $gitCommit = "$commit".SubString(0, 10)
+          $packageVersion = "${{ github.event.inputs.base_version }}-${{ steps.calc.outputs.build_number }}-g$gitCommit"
           
           # Compute FileVersion (just the numeric part)
           $fileVersion = $packageVersion.Split('-')[0]
@@ -95,7 +96,6 @@ jobs:
           }
 
           # Compute InformationalVersion (with git hash)
-          $gitCommit = "$commit".SubString(0, 10)
           if ($LASTEXITCODE -eq 0 -and $gitCommit) {
             $informationalVersion = "$packageVersion commit:[$gitCommit]"
           } else {
