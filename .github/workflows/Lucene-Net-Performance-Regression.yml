@@ -198,6 +198,9 @@ jobs:
           $antlr4JarPath = '${{ steps.antlr4.outputs.antlr4JarPath }}'
           $platform = "Any CPU"
           
+          # disable node reuse (optional but sometimes helps)
+          $env:MSBUILDDISABLENODEREUSE = "1"
+          
           dotnet build "./Lucene.Net.sln" `
             --configuration Release `
             --no-restore `
