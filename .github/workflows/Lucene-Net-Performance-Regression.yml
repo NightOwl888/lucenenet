@@ -1,0 +1,257 @@
+name: Build All Commits for Benchmarking
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_commit:
+        description: "Oldest commit SHA or tag to start from (exclusive)"
+        required: true
+      end_commit:
+        description: "Newest commit SHA or tag to end at (inclusive)"
+        required: true
+        default: HEAD
+      base_version:
+        description: "Base semantic version prefix (e.g. 4.8.0-beta00018). This should ideally be the next release milestone."
+        required: true
+
+jobs:
+  enumerate-commits:
+    runs-on: ubuntu-latest
+    outputs:
+      commit_list: ${{ steps.enumerate.outputs.commit_list }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/apache/lucenenet.git
+          git fetch upstream --tags --prune
+
+      - id: enumerate
+        name: Enumerate commits between start and end
+        run: |
+          COMMITS=$(git rev-list --reverse ${{ github.event.inputs.start_commit }}..${{ github.event.inputs.end_commit }})
+          echo "Found commits:"
+          echo "$COMMITS"
+          commits_json=$(echo "$COMMITS" | jq -R -s -c 'split("\n")[:-1]')
+          echo "commit_list=$commits_json" >> $GITHUB_OUTPUT
+
+  build:
+    needs: enumerate-commits
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        commit: ${{ fromJson(needs.enumerate-commits.outputs.commit_list) }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout specific commit
+        run: git checkout ${{ matrix.commit }}
+
+      - name: Set up .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.304
+
+      - name: Calculate build number
+        id: calc
+        shell: bash
+        run: |
+          COMMITS=$(git rev-list --reverse ${{ github.event.inputs.start_commit }}..${{ github.event.inputs.end_commit }})
+          i=1
+          for c in $COMMITS; do
+            if [ "$c" = "${{ matrix.commit }}" ]; then
+              printf -v num "%04d" "$i"
+              echo "build_number=$num" >> $GITHUB_OUTPUT
+              break
+            fi
+            ((i++))
+          done
+
+      - name: Generate Versions
+        id: versions
+        shell: pwsh
+        run: |
+          $commit = "${{ matrix.commit }}"
+          $packageVersion = "${{ github.event.inputs.base_version }}-${{ steps.calc.outputs.build_number }}-g$commit"
+          
+          # Compute FileVersion (just the numeric part)
+          $fileVersion = $packageVersion.Split('-')[0]
+
+          # Compute AssemblyVersion: major.0.0.0
+          $assemblyVersion = "1.0.0.0" # This should be bumped to 4.0.0.0.
+          
+          if ($fileVersion -match '^(\d+)') {
+            $assemblyVersion = "$($matches[1]).0.0.0"
+          }
+
+          # Compute InformationalVersion (with git hash)
+          $gitCommit = "$commit".SubString(0, 10)
+          if ($LASTEXITCODE -eq 0 -and $gitCommit) {
+            $informationalVersion = "$packageVersion commit:[$gitCommit]"
+          } else {
+            $informationalVersion = $packageVersion
+          }
+
+          Add-Content $env:GITHUB_OUTPUT "packageVersion=$packageVersion"
+          Add-Content $env:GITHUB_OUTPUT "`nfileVersion=$fileVersion"
+          Add-Content $env:GITHUB_OUTPUT "`nassemblyVersion=$assemblyVersion"
+          Add-Content $env:GITHUB_OUTPUT "`ninformationalVersion=$informationalVersion"
+
+      - name: Download Antlr4.CodeGenerator NuGet package
+        id: antlr4
+        shell: pwsh
+        run: |
+          $version = '4.6.6'
+          $packageId = 'Antlr4.CodeGenerator'
+          $nupkgUrl = "https://www.nuget.org/api/v2/package/$packageId/$version"
+          $packagePath = Join-Path $env:RUNNER_TEMP "$packageId.$version.nupkg"
+          
+          Invoke-WebRequest -Uri $nupkgUrl -OutFile $packagePath
+          $extractDir = Join-Path $env:RUNNER_TEMP "$packageId.$version"
+          Expand-Archive -Path $packagePath -DestinationPath $extractDir -Force
+
+          $antlrJar = Join-Path $extractDir "tools" "antlr4-csharp-$version-complete.jar"
+          if (-not (Test-Path $antlrJar)) {
+              Write-Error "Antlr4 jar not found: $antlrJar"
+              exit 1
+          }
+
+          Add-Content $env:GITHUB_OUTPUT "antlr4JarPath=$antlrJar"
+
+      - name: Patch Antlr4ToolPath condition in Lucene.Net.Expressions.csproj
+        shell: pwsh
+        run: |
+          $projFile = Join-Path $env:GITHUB_WORKSPACE 'src/Lucene.Net.Expressions/Lucene.Net.Expressions.csproj'
+          if (-not (Test-Path $projFile)) {
+              Write-Warning "Project file not found: $projFile"
+              exit 0
+          }
+
+          [xml]$xml = Get-Content $projFile
+          $nodes = $xml.SelectNodes("//Antlr4ToolPath")
+          if ($nodes.Count -eq 0) {
+              Write-Host "No Antlr4ToolPath element found. No change needed."
+              exit 0
+          }
+
+          $modified = $false
+          foreach ($node in $nodes) {
+              if (-not $node.Attributes["Condition"]) {
+                  $attr = $xml.CreateAttribute("Condition")
+                  # Use single quotes around the whole string to prevent PowerShell parsing it
+                  $attr.Value = ' ''$(Antlr4ToolPath)'' == '''' '
+                  $node.Attributes.Append($attr) | Out-Null
+                  $modified = $true
+                  Write-Host "Added missing Condition attribute to Antlr4ToolPath."
+              }
+          }
+
+          if ($modified) {
+              $settings = New-Object System.Xml.XmlWriterSettings
+              $settings.Indent = $true
+              $settings.IndentChars = '  ' # 2 spaces
+              $settings.Encoding = New-Object System.Text.UTF8Encoding($false)
+              $settings.OmitXmlDeclaration = $false
+
+              $writer = [System.Xml.XmlWriter]::Create($projFile, $settings)
+              try {
+                  $xml.Save($writer)
+              } finally {
+                  $writer.Close()
+              }
+
+              Write-Host "Patched $projFile successfully (with indentation)."
+          } else {
+              Write-Host "Condition already present. No changes made."
+          }
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        shell: pwsh
+        run: |
+          $assemblyVersion = '${{ steps.versions.outputs.assemblyVersion }}'
+          $fileVersion = '${{ steps.versions.outputs.fileVersion }}'
+          $informationalVersion = '${{ steps.versions.outputs.informationalVersion }}'
+          $antlr4JarPath = '${{ steps.antlr4.outputs.antlr4JarPath }}'
+          $platform = "Any CPU"
+          
+          dotnet build "./Lucene.Net.sln" `
+            --configuration Release `
+            --no-restore `
+            "-p:Platform=$platform" `
+            -p:PortableDebugTypeOnly=true `
+            -p:AssemblyVersion=$assemblyVersion `
+            -p:FileVersion=$fileVersion `
+            -p:InformationalVersion=$informationalVersion `
+            "-p:Antlr4ToolPath=$antlr4JarPath"
+          
+          # NOTE: We don't pass TestFrameworks=true here because we aren't building to run tests and this will build faster.
+          
+      - name: Pack
+        shell: pwsh
+        run: |
+          $packageVersion = '${{ steps.versions.outputs.packageVersion }}'
+          
+          $tempOutputDir = Join-Path $env:GITHUB_WORKSPACE "nuget-temp"
+          New-Item -ItemType Directory -Force -Path $tempOutputDir | Out-Null
+          $outputDir = Join-Path $env:GITHUB_WORKSPACE "nuget-subfolders"
+          New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+          
+          dotnet pack "./Lucene.Net.sln" `
+            --configuration Release `
+            --output "$tempOutputDir" `
+            --no-build `
+            -p:PackageVersion=$packageVersion
+          
+          # Filter packages to use as artifacts
+          $packages = Get-ChildItem -Path "$tempOutputDir\*" -Recurse -Include 'Lucene.Net*.nupkg' | Where-Object {
+              $_.Name -match '^Lucene\.Net(\.Analysis\.Common|\.Expressions|\.Facet|\.Grouping|\.Join|\.Queries|\.QueryParser|\.Sandbox)?\.[0-9]+\.[0-9]+\.[0-9]+.*\.nupkg$'
+          }
+
+          Write-Host "Packages Found: $packages"
+          
+          foreach ($pkg in $packages) {
+              Write-Host "Copying $($pkg.FullName)"
+              Copy-Item -Path $pkg.FullName -Destination $outputDir -Force
+          }
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-subfolders-${{ matrix.commit }}
+          path: nuget-subfolders/*.nupkg
+          if-no-files-found: ignore
+          compression-level: 9
+          retention-days: 7
+          overwrite: false
+
+  merge-artifacts:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: nuget-subfolders*
+          merge-multiple: true
+          path: merged
+
+      - name: Upload merged artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: merged
+          compression-level: 9
+          retention-days: 7
+          overwrite: true
