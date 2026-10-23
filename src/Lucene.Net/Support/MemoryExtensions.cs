@@ -15,6 +15,186 @@ namespace Lucene.Net
     /// </summary>
     public static class MemoryExtensions
     {
+        #region AsMemory (T[])
+
+#if !NET5_0_OR_GREATER
+
+        /// <summary>
+        /// Creates a new memory region over the target array.
+        /// </summary>
+        /// <typeparam name="T">The type of the array.</typeparam>
+        /// <param name="array">The target array.</param>
+        /// <returns>The memory representation of the whole or part of the array.</returns>
+        /// <remarks>
+        /// This overload exists to override <see cref="System.MemoryExtensions.AsMemory{T}(T[], int, int)"/>
+        /// on .NET Standard and .NET Framework, which has a known JIT bug when using these methods in the
+        /// System.Memory NuGet package with modern .NET Core SDKs. Calling the constructor of <see cref="Memory{T}"/>
+        /// directly addresses the problem. This method ensures that rule is enforced without having to remember
+        /// to fix it throughout the codebase.
+        /// </remarks>
+        internal static Memory<T> AsMemory<T>(this T[] array)
+        {
+            if (array is null)
+                return default;
+
+            return new Memory<T>(array);
+        }
+
+        /// <summary>
+        /// Creates a new memory region over the portion of the target array starting
+        /// at a specified position to the end of the array.
+        /// </summary>
+        /// <typeparam name="T">The type of the array.</typeparam>
+        /// <param name="array">The target array.</param>
+        /// <param name="start">The index at which to begin this slice.</param>
+        /// <returns>The memory representation of the whole or part of the array.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="start"/> is not in range of <paramref name="array"/>
+        /// (<paramref name="start"/> is &lt;0 or &gt;<c>text.Length</c>).
+        /// </exception>
+        /// <remarks>
+        /// This overload exists to override <see cref="System.MemoryExtensions.AsMemory{T}(T[], int, int)"/>
+        /// on .NET Standard and .NET Framework, which has a known JIT bug when using these methods in the
+        /// System.Memory NuGet package with modern .NET Core SDKs. Calling the constructor of <see cref="Memory{T}"/>
+        /// directly addresses the problem. This method ensures that rule is enforced without having to remember
+        /// to fix it throughout the codebase.
+        /// </remarks>
+        internal static Memory<T> AsMemory<T>(this T[] array, int start)
+        {
+            if (array == null)
+            {
+                if (start != 0)
+                    throw new ArgumentOutOfRangeException(nameof(start));
+
+                return default;
+            }
+
+            if ((uint)start > (uint)array.Length)
+                throw new ArgumentOutOfRangeException(nameof(start));
+
+            return new Memory<T>(array, start, array.Length - start);
+        }
+
+        /// <summary>
+        /// Creates a new memory region over the portion of the target array beginning
+        /// at a specified position with a specified length.
+        /// </summary>
+        /// <typeparam name="T">The type of the array.</typeparam>
+        /// <param name="array">The target array.</param>
+        /// <param name="start">The index at which to begin this slice.</param>
+        /// <param name="length">The desired length for the slice (exclusive).</param>
+        /// <returns>The memory representation of the array, or <c>default</c>
+        /// if <paramref name="array"/> is <c>null</c>.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="start"/>, <paramref name="length"/>,
+        /// or <paramref name="start"/> + <paramref name="length"/> is not in the range of <paramref name="array"/>.</exception>
+        /// <remarks>
+        /// This overload exists to override <see cref="System.MemoryExtensions.AsMemory{T}(T[], int, int)"/>
+        /// on .NET Standard and .NET Framework, which has a known JIT bug when using these methods in the
+        /// System.Memory NuGet package with modern .NET Core SDKs. Calling the constructor of <see cref="Memory{T}"/>
+        /// directly addresses the problem. This method ensures that rule is enforced without having to remember
+        /// to fix it throughout the codebase.
+        /// </remarks>
+        internal static Memory<T> AsMemory<T>(this T[] array, int start, int length)
+        {
+            if (array == null)
+            {
+                if (start != 0 || length != 0)
+                    throw new ArgumentOutOfRangeException(nameof(start));
+
+                return default;
+            }
+
+            if (IntPtr.Size == 8) // 64-bit process
+            {
+                // See comment in Span<T>.Slice for how this works.
+                if ((ulong)(uint)start + (ulong)(uint)length > (ulong)(uint)array.Length)
+                    throw new ArgumentOutOfRangeException(nameof(start));
+            }
+            else
+            {
+                if ((uint)start > (uint)array.Length || (uint)length > (uint)(array.Length - start))
+                    throw new ArgumentOutOfRangeException(nameof(start));
+            }
+
+            return new Memory<T>(array, start, length);
+        }
+
+        /// <summary>
+        /// Creates a new memory region over the portion of the target array starting at a specified
+        /// index to the end of the array.
+        /// </summary>
+        /// <typeparam name="T">The type of the array.</typeparam>
+        /// <param name="array">The target array.</param>
+        /// <param name="startIndex">The index at which to begin this slice.</param>
+        /// <returns>The memory representation of the whole or part of the array.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="startIndex"/> is less
+        /// than 0 or greater than <c>array.Length</c>.</exception>
+        /// <remarks>
+        /// This overload exists to override <see cref="System.MemoryExtensions.AsMemory{T}(T[], int, int)"/>
+        /// on .NET Standard and .NET Framework, which has a known JIT bug when using these methods in the
+        /// System.Memory NuGet package with modern .NET Core SDKs. Calling the constructor of <see cref="Memory{T}"/>
+        /// directly addresses the problem. This method ensures that rule is enforced without having to remember
+        /// to fix it throughout the codebase.
+        /// </remarks>
+        internal static Memory<T> AsMemory<T>(this T[] array, System.Index startIndex)
+        {
+            if (array == null)
+            {
+                if (!startIndex.Equals(System.Index.Start))
+                    throw new ArgumentNullException(nameof(array));
+
+                return default;
+            }
+
+            int actualIndex = startIndex.GetOffset(array.Length);
+            if ((uint)actualIndex > (uint)array.Length)
+                throw new ArgumentOutOfRangeException();
+
+            return new Memory<T>(array, actualIndex, array.Length - actualIndex);
+        }
+
+        /// <summary>
+        /// Creates a new memory region over the portion of the target array beginning at inclusive
+        /// start index of the range and ending at the exclusive end index of the range.
+        /// </summary>
+        /// <typeparam name="T">The type of the array.</typeparam>
+        /// <param name="array">The target array.</param>
+        /// <param name="range">The range used to indicate the start and length of the sliced array.</param>
+        /// <returns>The memory representation of the whole or part of the array.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="range"/>'s start or end index is not within the bounds of the array.
+        /// -or-
+        /// <paramref name="range"/>'s start index is greater than its end index.
+        /// </exception>
+        /// <remarks>
+        /// This overload exists to override <see cref="System.MemoryExtensions.AsMemory{T}(T[], int, int)"/>
+        /// on .NET Standard and .NET Framework, which has a known JIT bug when using these methods in the
+        /// System.Memory NuGet package with modern .NET Core SDKs. Calling the constructor of <see cref="Memory{T}"/>
+        /// directly addresses the problem. This method ensures that rule is enforced without having to remember
+        /// to fix it throughout the codebase.
+        /// </remarks>
+        internal static Memory<T> AsMemory<T>(this T[] array, Range range)
+        {
+            if (array == null)
+            {
+                System.Index startIndex = range.Start;
+                System.Index endIndex = range.End;
+
+                if (!startIndex.Equals(System.Index.Start) || !endIndex.Equals(System.Index.Start))
+                    throw new ArgumentNullException(nameof(array));
+
+                return default;
+            }
+
+            (int start, int length) = range.GetOffsetAndLength(array.Length);
+            return new Memory<T>(array, start, length);
+        }
+#endif
+
+        #endregion AsMemory (T[])
+
         #region AsSpan (ICharTermAttribute)
 
         /// <summary>

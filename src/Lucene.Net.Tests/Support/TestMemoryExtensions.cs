@@ -20,6 +20,70 @@ namespace Lucene.Net
     [LuceneNetSpecific]
     public class TestMemoryExtensions : LuceneTestCase
     {
+        #region AsMemory (T[])
+
+        [TestCase(0, 0)]
+        [TestCase(3, 0)]
+        [TestCase(3, 1)]
+        [TestCase(3, 2)]
+        [TestCase(3, 3)]
+        [TestCase(10, 0)]
+        [TestCase(10, 3)]
+        [TestCase(10, 10)]
+        public static void ArrayAsMemoryWithStart(int length, int start)
+        {
+            int[] a = new int[length];
+            Memory<int> m = a.AsMemory(start);
+            Assert.AreEqual(length - start, m.Length);
+            if (start != length)
+            {
+                a[start] = 42;
+                Assert.AreEqual(42, m.Span[0]);
+            }
+        }
+
+        [TestCase(0, 0, 0)]
+        [TestCase(3, 0, 3)]
+        [TestCase(3, 1, 2)]
+        [TestCase(3, 2, 1)]
+        [TestCase(3, 3, 0)]
+        [TestCase(10, 0, 5)]
+        [TestCase(10, 3, 2)]
+        public static void ArrayAsMemoryWithStartAndLength(int length, int start, int subLength)
+        {
+            int[] a = new int[length];
+            Memory<int> m = a.AsMemory(start, subLength);
+            Assert.AreEqual(subLength, m.Length);
+            if (subLength != 0)
+            {
+                a[start] = 42;
+                Assert.AreEqual(42, m.Span[0]);
+            }
+        }
+
+        [TestCase(0, -1)]
+        [TestCase(0, 1)]
+        [TestCase(5, 6)]
+        public static void ArrayAsMemoryWithStartNegative(int length, int start)
+        {
+            int[] a = new int[length];
+            Assert.Throws<ArgumentOutOfRangeException>(() => a.AsMemory(start));
+        }
+
+        [TestCase(0, -1, 0)]
+        [TestCase(0, 1, 0)]
+        [TestCase(0, 0, -1)]
+        [TestCase(0, 0, 1)]
+        [TestCase(5, 6, 0)]
+        [TestCase(5, 3, 3)]
+        public static void ArrayWithStartAndLengthNegative(int length, int start, int subLength)
+        {
+            int[] a = new int[length];
+            Assert.Throws<ArgumentOutOfRangeException>(() => a.AsMemory(start, subLength));
+        }
+
+        #endregion AsMemory (T[])
+
         #region AsSpan (ICharTermAttribute)
 
         [Test]
