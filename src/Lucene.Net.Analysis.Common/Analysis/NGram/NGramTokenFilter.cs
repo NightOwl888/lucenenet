@@ -1,6 +1,9 @@
 // Lucene version compatibility level 4.8.1
+using J2N;
+using J2N.Text;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.TokenAttributes;
+using Lucene.Net.Analysis.TokenAttributes.Extensions;
 using Lucene.Net.Analysis.Util;
 using Lucene.Net.Util;
 using System;
@@ -55,7 +58,7 @@ namespace Lucene.Net.Analysis.NGram
 
         private readonly int minGram, maxGram;
 
-        private char[] curTermBuffer;
+        private readonly TextBuilder curTermBuffer = new TextBuilder(); // LUCENENET specific - use TextBuilder for memory reuse
         private int curTermLength;
         private int curCodePointCount;
         private int curGramSize;
@@ -149,7 +152,10 @@ namespace Lucene.Net.Analysis.NGram
         {
             while (true)
             {
-                if (curTermBuffer is null)
+                // LUCENENET specific - since a token cannot be null or zero lenght, the logic
+                // was changed to check for a non-empty token rather than a null token. This is
+                // so we can reuse curTermBuffer rather than reallocate it continually.
+                if (curTermBuffer.Length == 0)
                 {
                     if (!m_input.IncrementToken())
                     {
@@ -157,7 +163,8 @@ namespace Lucene.Net.Analysis.NGram
                     }
                     else
                     {
-                        curTermBuffer = (char[])termAtt.Buffer.Clone();
+                        // LUCENENET: Copy the buffer (effectively a clone, but with a reusable buffer)
+                        curTermBuffer.Append(termAtt.AsSpan());
                         curTermLength = termAtt.Length;
                         curCodePointCount = charUtils.CodePointCount(termAtt.AsSpan());
                         curGramSize = minGram;
@@ -183,9 +190,10 @@ namespace Lucene.Net.Analysis.NGram
                     if ((curPos + curGramSize) <= curCodePointCount)
                     {
                         ClearAttributes();
-                        int start = charUtils.OffsetByCodePoints(curTermBuffer, 0, curTermLength, 0, curPos);
-                        int end = charUtils.OffsetByCodePoints(curTermBuffer, 0, curTermLength, start, curGramSize);
-                        termAtt.CopyBuffer(curTermBuffer, start, end - start);
+                        int start = charUtils.OffsetByCodePoints(curTermBuffer.AsSpan(0, curTermLength), 0, curPos);
+                        int end = charUtils.OffsetByCodePoints(curTermBuffer.AsSpan(0, curTermLength), start, curGramSize);
+                        // LUCENENET: This is effectively the same operation as CopyBuffer()
+                        termAtt.SetEmpty().Append(curTermBuffer.AsSpan(start, end - start));
                         posIncAtt.PositionIncrement = curPosInc;
                         curPosInc = 0;
                         posLenAtt.PositionLength = curPosLen;
@@ -201,7 +209,8 @@ namespace Lucene.Net.Analysis.NGram
                         while (curPos + curGramSize <= curTermLength) // while there is input
                         {
                             ClearAttributes();
-                            termAtt.CopyBuffer(curTermBuffer, curPos, curGramSize);
+                            // LUCENENET: This is effectively the same operation as CopyBuffer()
+                            termAtt.SetEmpty().Append(curTermBuffer.AsSpan(curPos, curGramSize));
                             if (hasIllegalOffsets)
                             {
                                 offsetAtt.SetOffset(tokStart, tokEnd);
@@ -217,14 +226,15 @@ namespace Lucene.Net.Analysis.NGram
                         curPos = 0;
                     }
                 }
-                curTermBuffer = null;
+                curTermBuffer.Length = 0; // LUCENENET: The signal the buffer is available for reuse is 0 rather than null
+
             }
         }
 
         public override void Reset()
         {
             base.Reset();
-            curTermBuffer = null;
+            curTermBuffer.Length = 0; // LUCENENET: The signal the buffer is available for reuse is 0 rather than null
         }
     }
 }

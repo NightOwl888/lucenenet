@@ -1,5 +1,7 @@
 // Lucene version compatibility level 4.8.1
+using J2N.Text;
 using Lucene.Net.Analysis.TokenAttributes;
+using Lucene.Net.Analysis.TokenAttributes.Extensions;
 using Lucene.Net.Analysis.Util;
 using Lucene.Net.Util;
 using System;
@@ -72,7 +74,7 @@ namespace Lucene.Net.Analysis.NGram
         private readonly int minGram;
         private readonly int maxGram;
         private readonly Side side;
-        private char[] curTermBuffer;
+        private readonly TextBuilder curTermBuffer = new TextBuilder(); // LUCENENET specific - use TextBuilder for memory reuse
         private int curTermLength;
         private int curCodePointCount;
         private int curGramSize;
@@ -165,7 +167,10 @@ namespace Lucene.Net.Analysis.NGram
         {
             while (true)
             {
-                if (curTermBuffer is null)
+                // LUCENENET specific - since a token cannot be null or zero length, the logic
+                // was changed to check for a non-empty token rather than a null token. This is
+                // so we can reuse curTermBuffer rather than reallocate it continually.
+                if (curTermBuffer.Length == 0)
                 {
                     if (!m_input.IncrementToken())
                     {
@@ -173,7 +178,8 @@ namespace Lucene.Net.Analysis.NGram
                     }
                     else
                     {
-                        curTermBuffer = (char[])termAtt.Buffer.Clone();
+                        // LUCENENET: Copy the buffer (effectively a clone, but with a reusable buffer)
+                        curTermBuffer.Append(termAtt.AsSpan());
                         curTermLength = termAtt.Length;
                         curCodePointCount = charUtils.CodePointCount(termAtt.AsSpan());
                         curGramSize = minGram;
@@ -201,8 +207,8 @@ namespace Lucene.Net.Analysis.NGram
                     if (curGramSize <= curCodePointCount) // if the remaining input is too short, we can't generate any n-grams
                     {
                         // grab gramSize chars from front or back
-                        int start = side == Side.FRONT ? 0 : charUtils.OffsetByCodePoints(curTermBuffer, 0, curTermLength, curTermLength, -curGramSize);
-                        int end = charUtils.OffsetByCodePoints(curTermBuffer, 0, curTermLength, start, curGramSize);
+                        int start = side == Side.FRONT ? 0 : charUtils.OffsetByCodePoints(curTermBuffer.AsSpan(0, curTermLength), curTermLength, -curGramSize);
+                        int end = charUtils.OffsetByCodePoints(curTermBuffer.AsSpan(0, curTermLength), start, curGramSize);
                         ClearAttributes();
                         if (updateOffsets)
                         {
@@ -223,19 +229,20 @@ namespace Lucene.Net.Analysis.NGram
                             posIncrAtt.PositionIncrement = 0;
                         }
                         posLenAtt.PositionLength = savePosLen;
-                        termAtt.CopyBuffer(curTermBuffer, start, end - start);
+                        // LUCENENET: This is effectively the same operation as CopyBuffer()
+                        termAtt.SetEmpty().Append(curTermBuffer.AsSpan(start, end - start));
                         curGramSize++;
                         return true;
                     }
                 }
-                curTermBuffer = null;
+                curTermBuffer.Length = 0; // LUCENENET: The signal the buffer is available for reuse is 0 rather than null
             }
         }
 
         public override void Reset()
         {
             base.Reset();
-            curTermBuffer = null;
+            curTermBuffer.Length = 0; // LUCENENET: The signal the buffer is available for reuse is 0 rather than null
             savePosIncr = 0;
         }
     }

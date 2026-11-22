@@ -313,10 +313,12 @@ namespace Lucene.Net.Analysis.Util
         }
 
         /// <summary>
-        /// Return the index within <c>buf[start:start+count]</c> which is by <paramref name="offset"/>
+        /// Return the index within <paramref name="buf"/> which is by <paramref name="offset"/>
         /// code points from <paramref name="index"/>.
         /// </summary>
-        public abstract int OffsetByCodePoints(char[] buf, int start, int count, int index, int offset);
+        // LUCENENET specific - Changed the signature from OffsetByCodePoints(char[], int, int, int, int)
+        // to OffsetByCodePoints(ReadOnlySpan<char>, int, int)
+        public abstract int OffsetByCodePoints(ReadOnlySpan<char> buf, int index, int offset);
 
         private static int ReadFully(TextReader reader, char[] dest, int offset, int len)
         {
@@ -392,9 +394,9 @@ namespace Lucene.Net.Analysis.Util
                 return Character.CodePointCount(seq);
             }
 
-            public override int OffsetByCodePoints(char[] buf, int start, int count, int index, int offset)
+            public override int OffsetByCodePoints(ReadOnlySpan<char> buf, int index, int offset)
             {
-                return Character.OffsetByCodePoints(buf, start, count, index, offset);
+                return Character.OffsetByCodePoints(buf, index, offset);
             }
         }
 
@@ -448,11 +450,11 @@ namespace Lucene.Net.Analysis.Util
                 return seq.Length;
             }
 
-            public override int OffsetByCodePoints(char[] buf, int start, int count, int index, int offset)
+            public override int OffsetByCodePoints(ReadOnlySpan<char> buf, int index, int offset)
             {
                 // LUCENENET: Checks for int overflow
                 uint result = (uint)index + (uint)offset;
-                if (result < 0 || result > count)
+                if (result > (uint)buf.Length)
                 {
                     // LUCENENET note - it is common in .NET to use the "index" (or "start") parameter for the paramName, even though offset might be what is invalid
                     throw new ArgumentOutOfRangeException(nameof(index), "index + offset must be >= 0 and <= count");

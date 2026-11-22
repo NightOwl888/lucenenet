@@ -98,6 +98,7 @@ namespace Lucene.Net.Analysis.Util
         [Test]
         public virtual void TestOffsetByCodePoint()
         {
+            // LUCENENET specific - Changed the signature from OffsetByCodePoints(char[], int, int, int, int) to OffsetByCodePoints(ReadOnlySpan<char>, int, int)
             var java4 = CharacterUtils.GetJava4Instance(TEST_VERSION_CURRENT);
             var java5 = CharacterUtils.GetInstance(TEST_VERSION_CURRENT);
             for (int i = 0; i < 10; ++i)
@@ -107,7 +108,7 @@ namespace Lucene.Net.Analysis.Util
                 var offset = Random.Next(7) - 3;
                 try
                 {
-                    var to = java4.OffsetByCodePoints(s, 0, s.Length, index, offset);
+                    var to = java4.OffsetByCodePoints(s, index, offset);
                     assertEquals(to, index + offset);
                 }
                 catch (Exception e) when (e.IsIndexOutOfBoundsException())
@@ -118,13 +119,13 @@ namespace Lucene.Net.Analysis.Util
                 int o;
                 try
                 {
-                    o = java5.OffsetByCodePoints(s, 0, s.Length, index, offset);
+                    o = java5.OffsetByCodePoints(s, index, offset);
                 }
                 catch (Exception e) when (e.IsIndexOutOfBoundsException())
                 {
                     try
                     {
-                        Character.OffsetByCodePoints(s, 0, s.Length, index, offset);
+                        Character.OffsetByCodePoints(s, index, offset);
                         fail();
                     }
                     catch (Exception e2) when (e2.IsIndexOutOfBoundsException())
@@ -135,7 +136,7 @@ namespace Lucene.Net.Analysis.Util
                 }
                 if (o >= 0)
                 {
-                    assertEquals(Character.OffsetByCodePoints(s, 0, s.Length, index, offset), o);
+                    assertEquals(Character.OffsetByCodePoints(s, index, offset), o);
                 }
             }
         }
